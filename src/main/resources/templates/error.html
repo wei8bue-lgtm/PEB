@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Fehler - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .error-container {
+            max-width: 700px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #dc3545;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 1.8rem;
+            color: #343a40;
+            margin-bottom: 1rem;
+        }
+
+        .error-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .error-detail-row {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        .error-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .error-detail-label {
+            font-weight: 600;
+            color: #6c757d;
+            min-width: 130px;
+        }
+
+        .error-detail-value {
+            color: #343a40;
+            word-break: break-all;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .hint-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem 1.25rem;
+            border-radius: 4px;
+            text-align: left;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .hint-box ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body style="background-color: #f5f5f5;">
+
+    <div class="error-container">
+
+        <!-- Icon und Code -->
+        <div class="error-icon">
+            <span th:if="${statusCode == 404}">🔍</span>
+            <span th:if="${statusCode == 403}">🔒</span>
+            <span th:if="${statusCode == 401}">🚫</span>
+            <span th:if="${statusCode == 500}">⚠️</span>
+            <span th:unless="${statusCode == 404 or statusCode == 403
+                               or statusCode == 401 or statusCode == 500}">❓</span>
+        </div>
+
+        <div class="error-code" th:text="${statusCode}">500</div>
+
+        <div class="error-title" th:text="${statusText}">
+            Internal Server Error
+        </div>
+
+        <!-- Fehler Details Card -->
+        <div class="error-card">
+            <h3 style="margin-top: 0; color: #dc3545;">🔴 Fehler-Details</h3>
+
+            <div class="error-detail-row">
+                <span class="error-detail-label">Status Code:</span>
+                <span class="error-detail-value" th:text="${statusCode}">500</span>
+            </div>
+
+            <div class="error-detail-row">
+                <span class="error-detail-label">Status Text:</span>
+                <span class="error-detail-value" th:text="${statusText}">
+                    Internal Server Error
+                </span>
+            </div>
+
+            <div class="error-detail-row">
+                <span class="error-detail-label">URL:</span>
+                <span class="error-detail-value"
+                      th:text="${requestUri}">
+                    /unbekannt
+                </span>
+            </div>
+
+            <div class="error-detail-row" th:if="${errorMessage != null and errorMessage != ''}">
+                <span class="error-detail-label">Meldung:</span>
+                <span class="error-detail-value"
+                      th:text="${errorMessage}">
+                    Fehlermeldung
+                </span>
+            </div>
+
+            <div class="error-detail-row"
+                 th:if="${exceptionType != null}">
+                <span class="error-detail-label">Exception:</span>
+                <span class="error-detail-value"
+                      th:text="${exceptionType}">
+                    ExceptionType
+                </span>
+            </div>
+
+            <div class="error-detail-row"
+                 th:if="${exceptionMessage != null}">
+                <span class="error-detail-label">Details:</span>
+                <span class="error-detail-value"
+                      th:text="${exceptionMessage}">
+                    Exception Message
+                </span>
+            </div>
+        </div>
+
+        <!-- Hilfestellung je nach Status -->
+        <div class="hint-box" th:if="${statusCode == 404}">
+            <strong>💡 Mögliche Ursachen:</strong>
+            <ul>
+                <li>Die aufgerufene URL existiert nicht</li>
+                <li>Das Objekt wurde gelöscht</li>
+                <li>Tippfehler in der URL</li>
+            </ul>
+        </div>
+
+        <div class="hint-box" th:if="${statusCode == 403 or statusCode == 401}">
+            <strong>💡 Mögliche Ursachen:</strong>
+            <ul>
+                <li>Sie sind nicht angemeldet</li>
+                <li>Fehlende Berechtigung für diese Aktion</li>
+                <li>Session ist abgelaufen - bitte neu anmelden</li>
+            </ul>
+        </div>
+
+        <div class="hint-box" th:if="${statusCode == 500}">
+            <strong>💡 Mögliche Ursachen:</strong>
+            <ul>
+                <li>Datenbankverbindung unterbrochen</li>
+                <li>Ungültige Daten wurden verarbeitet</li>
+                <li>Bitte prüfen Sie die Server-Logs für Details</li>
+            </ul>
+        </div>
+
+        <!-- Aktions-Buttons -->
+        <div class="error-actions">
+            <button onclick="history.back()"
+                    class="btn btn-primary">
+                ← Zurück
+            </button>
+            <a th:href="@{/}" class="btn btn-success">
+                🏠 Zur Startseite
+            </a>
+            <button onclick="location.reload()"
+                    class="btn btn-secondary"
+                    style="background:#6c757d; color:white;">
+                🔄 Neu laden
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <p style="margin-top: 2rem; color: #6c757d; font-size: 0.85rem;">
+            PEB - Production Engineering Backbone
+            &nbsp;|&nbsp;
+            Bei anhaltenden Problemen: IT-Support kontaktieren
+        </p>
+    </div>
+
+</body>
+</html>

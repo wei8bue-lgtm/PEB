@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,10 +15,11 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /**
- * Security configuration
- * Supports both form login and programmatic API access
+ * Security Konfiguration
+ * Unterstützt Form-Login (Browser) und API-Login (VBScript)
  */
 @Configuration
 @EnableWebSecurity
@@ -29,10 +31,11 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
-                    "/css/**", 
-                    "/js/**", 
-                    "/images/**", 
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
                     "/static/**",
+					"/favicon.ico", 
                     "/actuator/health",
                     "/login",
                     "/api/login",
@@ -57,9 +60,19 @@ public class SecurityConfig {
             )
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/login") // Allow programmatic login without CSRF
+                .ignoringRequestMatchers(
+                    "/api/login",
+                    "/api/logout-api",
+                    "/api/v1/datasets/**"
+                )
             )
-            .httpBasic(basic -> {}); // Enable HTTP Basic for API access
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            )
+            .securityContext(context -> context
+                .requireExplicitSave(true)
+            )
+            .httpBasic(basic -> {});
 
         return http.build();
     }
@@ -90,5 +103,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Notwendig für Session-Tracking bei maximumSessions
+     */
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

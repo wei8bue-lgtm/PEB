@@ -8,6 +8,10 @@ public enum DatasetCategory {
     PDF_DRAWING("PDF Drawing"),
     EXCEL_TABLE("Excel Table"),
     CE_DOCUMENT("CE Document"),
+	DESIGN_NX("Design NX"),
+	DESIGN_INVENTOR("Design Inventor"),
+	DESIGN_SOLIDEDGE("Design SolidEdge"),
+	DESIGN_RENDERING("Design Rendering"),
     OTHER("Other");
 
     private final String displayName;
