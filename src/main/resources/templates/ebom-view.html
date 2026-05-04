@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${ebomObject.name} + ' - PEB'">eBOM Object - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="${ebomObject.name}">eBOM Object Name</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/ebom}" class="btn btn-primary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 th:text="${ebomObject.objectType.displayName + ' Details'}">Object Details</h2>
+                <div>
+                    <a th:href="@{/ebom/{id}/edit(id=${ebomObject.id})}" class="btn btn-primary" sec:authorize="hasAuthority('WRITE')">Edit</a>
+					<a th:href="@{/structure/{id}(id=${ebomObject.id})}" class="btn btn-primary">View Structure</a>
+                    <form th:action="@{/ebom/{id}/delete(id=${ebomObject.id})}" method="post" style="display: inline;" 
+                          onsubmit="return confirm('Are you sure you want to delete this object?');" sec:authorize="hasAuthority('DELETE')">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <table style="width: 100%;">
+                <tr>
+                    <th style="width: 200px; padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Type</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.objectType.displayName}">Machine</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">ID</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.id}">MA00000001</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Name</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.name}">Object Name</td>
+                </tr>
+                <tr th:if="${linkedDesign != null}">
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Linked Design</th>
+                    <td style="padding: 0.5rem;">
+                        <a th:href="@{/designs/{id}(id=${linkedDesign.id})}" th:text="${linkedDesign.id + ' - ' + linkedDesign.name}">
+                            Design Link
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Department</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.department}">Engineering</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Mass (kg)</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.mass}">100</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Material</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.material}">Steel</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Supplier</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.supplier}">Supplier Name</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Created Date</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.createdDate != null ? #temporals.format(ebomObject.createdDate, 'yyyy-MM-dd HH:mm:ss') : 'N/A'}">2024-01-01 10:00:00</td>
+                </tr>
+                <tr>
+                    <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Created By</th>
+                    <td style="padding: 0.5rem;" th:text="${ebomObject.createdBy}">admin</td>
+                </tr>
+            </table>
+        </div>
+		
+<!-- Replace the Revision Actions card with this -->
+<div class="card" sec:authorize="hasAuthority('EXECUTE')">
+    <h3>Revision Actions</h3>
+    
+    <div th:if="${ebomObject.latestRevision != null}">
+        <div th:if="${ebomObject.latestRevision.releaseStatus.name() == 'WORKING'}">
+            <form th:action="@{/api/workflows/ebom/{id}/release(id=${ebomObject.id})}" 
+                  method="post" style="display: inline;"
+                  onsubmit="return confirm('Are you sure you want to release this revision? All older revisions will become obsolete.');">
+                <button type="submit" class="btn btn-success">
+                    🏁 Release Revision
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${ebomObject.latestRevision.revision}">01</strong> is in Working status. 
+                Click to release it.
+            </p>
+        </div>
+        
+        <div th:if="${ebomObject.latestRevision.releaseStatus.name() == 'RELEASED'}">
+            <form th:action="@{/api/workflows/ebom/{id}/revise(id=${ebomObject.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-primary">
+                    📝 Revise (Create New Revision)
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${ebomObject.latestRevision.revision}">01</strong> is Released. 
+                Create a new revision to make changes.
+            </p>
+        </div>
+        
+        <div th:if="${ebomObject.latestRevision.releaseStatus.name() == 'OBSOLETE'}">
+            <p style="color: #dc3545;">
+                Current revision <strong th:text="${ebomObject.latestRevision.revision}">01</strong> is Obsolete.
+                A newer revision exists.
+            </p>
+        </div>
+    </div>
+    
+    <div th:if="${ebomObject.latestRevision == null}">
+        <p style="color: #dc3545;">No revision found. This should not happen.</p>
+    </div>
+</div>
+
+        <div class="card">
+            <h3>Revisions</h3>
+            <div th:if="${ebomObject.revisions.empty}" class="alert alert-info">
+                No revisions found.
+            </div>
+
+            <table th:unless="${ebomObject.revisions.empty}" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+                        <th style="padding: 0.75rem; text-align: left;">Revision</th>
+                        <th style="padding: 0.75rem; text-align: left;">Status</th>
+                        <th style="padding: 0.75rem; text-align: left;">Created Date</th>
+                        <th style="padding: 0.75rem; text-align: left;">Created By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="revision : ${ebomObject.revisions}" style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 0.75rem;" th:text="${revision.revision}">01</td>
+                        <td style="padding: 0.75rem;">
+                            <span class="status-badge" 
+                                  th:classappend="${revision.releaseStatus.name() == 'WORKING'} ? 'status-working' : 
+                                                  (${revision.releaseStatus.name() == 'RELEASED'} ? 'status-released' : 'status-obsolete')"
+                                  th:text="${revision.releaseStatus.displayName}">
+                                Working
+                            </span>
+                        </td>
+                        <td style="padding: 0.75rem;" th:text="${#temporals.format(revision.createdDate, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
+                        <td style="padding: 0.75rem;" th:text="${revision.createdBy}">admin</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+	
+	<!-- XML Export Section -->
+<div class="card" sec:authorize="hasAuthority('READ')">
+    <h3>Export Options</h3>
+    <p>Export this eBOM structure including all children and attributes as machine-readable XML.</p>
+    
+    <div th:if="${ebomObject.latestRevision != null}">
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(id=${ebomObject.id},revId=${ebomObject.latestRevision.revisionId})}" 
+               class="btn btn-primary" download>
+                📄 Export XML (Simple)
+            </a>
+            <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(id=${ebomObject.id},revId=${ebomObject.latestRevision.revisionId})}" 
+               class="btn btn-success" download>
+                📋 Export XML (Detailed with Attributes)
+            </a>
+        </div>
+        
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 4px;">
+            <h4 style="margin-top: 0;">Export Formats:</h4>
+            <ul style="margin-bottom: 0;">
+                <li><strong>Simple XML:</strong> Basic structure with IDs, names, and quantities</li>
+                <li><strong>Detailed XML:</strong> Complete structure including all attributes (mass, material, supplier, department, creation info, linked designs)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div th:if="${ebomObject.latestRevision == null}" class="alert alert-warning">
+        No revision available for export. Create a revision first.
+    </div>
+</div>
+	
+	<!-- Add this after the main details table in ebom-view.html -->
+<div class="card" th:if="${linkedDesign != null}">
+    <h3>Synchronization Status</h3>
+    <table style="width: 100%;">
+        <tr>
+            <th style="width: 200px; padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Mass (from Design)</th>
+            <td style="padding: 0.5rem;">
+                <span th:text="${linkedDesign.mass}">100</span> kg
+                <span th:if="${linkedDesign.mass != ebomObject.mass}" style="color: #dc3545; margin-left: 1rem;">
+                    ⚠ Out of sync! eBOM has: <span th:text="${ebomObject.mass}">90</span> kg
+                </span>
+                <span th:if="${linkedDesign.mass == ebomObject.mass}" style="color: #28a745; margin-left: 1rem;">
+                    ✓ Synced
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <th style="padding: 0.5rem; text-align: left; background-color: #f8f9fa;">Material (to Design)</th>
+            <td style="padding: 0.5rem;">
+                <span th:text="${ebomObject.material}">Steel</span>
+                <span th:if="${ebomObject.material != linkedDesign.material}" style="color: #dc3545; margin-left: 1rem;">
+                    ⚠ Out of sync! Design has: <span th:text="${linkedDesign.material}">Aluminum</span>
+                </span>
+                <span th:if="${ebomObject.material == linkedDesign.material}" style="color: #28a745; margin-left: 1rem;">
+                    ✓ Synced
+                </span>
+            </td>
+        </tr>
+    </table>
+    <p style="margin-top: 1rem; color: #6c757d; font-size: 0.875rem;">
+        <strong>Note:</strong> Mass syncs automatically from Design to eBOM. Material syncs automatically from eBOM to Design.
+    </p>
+</div>
+
+<!-- <div class="card" sec:authorize="hasAuthority('EXECUTE')">
+    <h3>Revision Actions</h3>
+    
+    <div th:if="${ebomObject.latestRevision != null}">
+        <div th:if="${ebomObject.latestRevision.releaseStatus.name() == 'WORKING'}">
+            <form th:action="@{/api/workflows/ebom/{id}/release(id=${ebomObject.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-success" 
+                        onclick="return confirm('Are you sure you want to release this revision? All older revisions will become obsolete.');">
+                    🏁 Release Revision
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${ebomObject.latestRevision.revision}">01</strong> is in Working status
+            </p>
+        </div>
+        
+        <div th:if="${ebomObject.latestRevision.releaseStatus.name() == 'RELEASED'}">
+            <form th:action="@{/api/workflows/ebom/{id}/revise(id=${ebomObject.id})}" 
+                  method="post" style="display: inline;"
+                  onsubmit="event.preventDefault(); reviseObject('[[${ebomObject.id}]]');">
+                <button type="submit" class="btn btn-primary">
+                    📝 Revise (Create New Revision)
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${ebomObject.latestRevision.revision}">01</strong> is Released. Create a new revision to make changes.
+            </p>
+        </div>
+    </div>
+</div> -->
+
+<!-- Update the revisions table -->
+<table th:unless="${ebomObject.revisions.empty}" style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+            <th style="padding: 0.75rem; text-align: left;">Revision</th>
+            <th style="padding: 0.75rem; text-align: left;">Status</th>
+            <th style="padding: 0.75rem; text-align: left;">Created Date</th>
+            <th style="padding: 0.75rem; text-align: left;">Created By</th>
+            <th style="padding: 0.75rem; text-align: left;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="revision : ${ebomObject.revisions}" style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 0.75rem;" th:text="${revision.revision}">01</td>
+            <td style="padding: 0.75rem;">
+                <span class="status-badge" 
+                      th:classappend="${revision.releaseStatus.name() == 'WORKING'} ? 'status-working' : 
+                                      (${revision.releaseStatus.name() == 'RELEASED'} ? 'status-released' : 'status-obsolete')"
+                      th:text="${revision.releaseStatus.displayName + ' ' + revision.releaseStatus.icon}">
+                    Working 🚩
+                </span>
+            </td>
+            <td style="padding: 0.75rem;" th:text="${#temporals.format(revision.createdDate, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
+            <td style="padding: 0.75rem;" th:text="${revision.createdBy}">admin</td>
+            <td style="padding: 0.75rem;">
+                <a th:href="@{/datasets/manage/EBOM/{id}(id=${revision.revisionId})}" 
+                   class="btn btn-primary btn-sm">
+                    📎 Datasets
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+function reviseObject(objectId) {
+    if (!confirm('Create a new revision? This will increment the revision number and set it to Working status.')) {
+        return;
+    }
+    
+    fetch('/api/workflows/ebom/' + objectId + '/revise', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error('Failed to create revision');
+        }
+    })
+    .then(message => {
+        alert(message);
+        window.location.reload();
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    });
+}
+</script>
+
+    <style>
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+    </style>
+</body>
+</html>

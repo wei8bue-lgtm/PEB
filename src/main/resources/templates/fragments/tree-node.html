@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="tree-node(node)" class="tree-node">
+        <div class="node-header">
+            <span style="font-weight: bold;" th:text="${node.objectId}">ID</span>
+            <span th:text="${node.name}">Name</span>
+            <span th:if="${node.quantity != null}" 
+                  style="color: #6c757d;">
+                (Qty: <span th:text="${node.quantity}">1</span>)
+            </span>
+            <span th:if="${node.positionNumber != null}" 
+                  style="color: #6c757d;">
+                [Pos: <span th:text="${node.positionNumber}">10</span>]
+            </span>
+            <span class="status-badge"
+                  th:classappend="${node.releaseStatus == 'WORKING'} ? 'status-working' : 
+                                  (${node.releaseStatus == 'RELEASED'} ? 'status-released' : 'status-obsolete')"
+                  th:text="${node.releaseStatus}">
+                Status
+            </span>
+            <span class="node-actions">
+                <a th:href="@{/structure/{id}(id=${node.objectId})}" 
+                   class="btn btn-primary btn-sm">View</a>
+            </span>
+        </div>
+        
+        <div th:if="${!node.children.isEmpty()}" class="tree-children">
+            <div th:each="child : ${node.children}">
+                <div th:replace="~{fragments/tree-node :: tree-node(node=${child})}"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

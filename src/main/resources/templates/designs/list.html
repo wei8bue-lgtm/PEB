@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designs - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1>Design Management</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/}" class="btn btn-primary">Home</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>All Designs</h2>
+                <a th:href="@{/designs/new}" class="btn btn-success" sec:authorize="hasAuthority('WRITE')">
+                    + Create New Design
+                </a>
+            </div>
+
+            <div th:if="${designs.empty}" class="alert alert-info">
+                No designs found. Create your first design!
+            </div>
+
+            <table th:unless="${designs.empty}" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+                        <th style="padding: 0.75rem; text-align: left;">ID</th>
+                        <th style="padding: 0.75rem; text-align: left;">Name</th>
+                        <th style="padding: 0.75rem; text-align: left;">Department</th>
+                        <th style="padding: 0.75rem; text-align: left;">Mass (kg)</th>
+                        <th style="padding: 0.75rem; text-align: left;">Material</th>
+                        <th style="padding: 0.75rem; text-align: left;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="design : ${designs}" style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 0.75rem;" th:text="${design.id}">DS00000001</td>
+                        <td style="padding: 0.75rem;" th:text="${design.name}">Design Name</td>
+                        <td style="padding: 0.75rem;" th:text="${design.department}">Engineering</td>
+                        <td style="padding: 0.75rem;" th:text="${design.mass}">100</td>
+                        <td style="padding: 0.75rem;" th:text="${design.material}">Steel</td>
+                        <td style="padding: 0.75rem;">
+                            <a th:href="@{/designs/{id}(id=${design.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;">View</a>
+                            <a th:href="@{/designs/{id}/edit(id=${design.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" sec:authorize="hasAuthority('WRITE')">Edit</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        table {
+            background: white;
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</body>
+</html>

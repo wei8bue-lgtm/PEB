@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{app.title}">PEB - Production Engineering Backbone</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
+        <div style="margin-left: auto;">
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Welcome to PEB</h2>
+            <p>Production Engineering Backbone - CAD and eBOM Management System</p>
+        </div>
+
+        <div class="card">
+            <h3 th:text="#{menu.search}">Search</h3>
+            <input type="text" id="searchBox" class="search-box" 
+                   placeholder="Search by ID, Name, Department... (use * for wildcards)">
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <a th:href="@{/designs}" class="btn btn-primary" th:text="#{menu.designs}">Designs</a>
+            <a th:href="@{/drawings}" class="btn btn-primary" th:text="#{menu.drawings}">Drawings</a>
+            <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{menu.ebom}">eBOM</a>
+        </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

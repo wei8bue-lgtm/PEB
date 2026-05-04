@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Design - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1>Create New Design</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/designs}" class="btn btn-primary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Design Information</h2>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                Error message
+            </div>
+
+            <form th:action="@{/designs}" th:object="${design}" method="post">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" th:field="*{name}" required maxlength="256" 
+                           placeholder="Enter design name">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" th:field="*{department}" maxlength="128" 
+                           placeholder="Enter department (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="mass">Mass (kg)</label>
+                    <input type="text" id="mass" th:field="*{mass}" maxlength="8" 
+                           placeholder="e.g., 100.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="material">Material</label>
+                    <input type="text" id="material" th:field="*{material}" maxlength="256" 
+                           placeholder="e.g., Steel, Aluminum">
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success">Create Design</button>
+                    <a th:href="@{/designs}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+		
+<!-- Add after the main details card -->
+<div class="card" sec:authorize="hasAuthority('EXECUTE')">
+    <h3>Revision Actions</h3>
+    
+    <div th:if="${design.latestRevision != null}">
+        <div th:if="${design.latestRevision.releaseStatus.name() == 'WORKING'}">
+            <form th:action="@{/api/workflows/designs/{id}/revisions/{revId}/release(id=${design.id},revId=${design.latestRevision.revisionId})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-success" 
+                        onclick="return confirm('Are you sure you want to release this revision? All older revisions will become obsolete.');">
+                    🏁 Release Revision
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${design.latestRevision.revision}">01</strong> is in Working status
+            </p>
+        </div>
+        
+        <div th:if="${design.latestRevision.releaseStatus.name() == 'RELEASED'}">
+            <form th:action="@{/api/revisions/designs/{id}/revise(id=${design.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-primary">
+                    📝 Revise (Create New Revision)
+                </button>
+            </form>
+            <p style="color: #6c757d; margin-top: 0.5rem;">
+                Current revision <strong th:text="${design.latestRevision.revision}">01</strong> is Released. Create a new revision to make changes.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Add this in the Revision Actions card -->
+<div th:if="${design.releasedRevision != null}" style="margin-top: 1rem;">
+    <form th:action="@{/api/revisions/designs/{id}/saveas(id=${design.id})}" 
+          method="post" style="display: inline;" onsubmit="return handleSaveAs(event);">
+        <button type="submit" class="btn btn-primary">
+            💾 Save As (Copy)
+        </button>
+    </form>
+    <p style="color: #6c757d; margin-top: 0.5rem;">
+        Create a copy of this design with a new ID and name
+    </p>
+</div>
+
+<script>
+function handleSaveAs(event) {
+    event.preventDefault();
+    const newName = prompt('Enter name for the new design:');
+    if (newName && newName.trim()) {
+        const form = event.target;
+        const actionUrl = form.action + '?newName=' + encodeURIComponent(newName);
+        fetch(actionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Design copied successfully! New ID: ' + data.id);
+            window.location.href = '/designs/' + data.id;
+        })
+        .catch(error => {
+            alert('Failed to copy design: ' + error.message);
+        });
+    }
+    return false;
+}
+</script>
+
+<table th:unless="${design.revisions.empty}" style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+            <th style="padding: 0.75rem; text-align: left;">Revision</th>
+            <th style="padding: 0.75rem; text-align: left;">Status</th>
+            <th style="padding: 0.75rem; text-align: left;">Created Date</th>
+            <th style="padding: 0.75rem; text-align: left;">Created By</th>
+            <th style="padding: 0.75rem; text-align: left;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="revision : ${design.revisions}" style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 0.75rem;" th:text="${revision.revision}">01</td>
+            <td style="padding: 0.75rem;">
+                <span class="status-badge" 
+                      th:classappend="${revision.releaseStatus.name() == 'WORKING'} ? 'status-working' : 
+                                      (${revision.releaseStatus.name() == 'RELEASED'} ? 'status-released' : 'status-obsolete')"
+                      th:text="${revision.releaseStatus.displayName + ' ' + revision.releaseStatus.icon}">
+                    Working 🚩
+                </span>
+            </td>
+            <td style="padding: 0.75rem;" th:text="${#temporals.format(revision.createdDate, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
+            <td style="padding: 0.75rem;" th:text="${revision.createdBy}">admin</td>
+            <td style="padding: 0.75rem;">
+                <a th:href="@{/datasets/manage/DESIGN/{id}(id=${revision.revisionId})}" 
+                   class="btn btn-primary btn-sm">
+                    📎 Datasets
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+        <div class="card">
+            <h3>Information</h3>
+            <ul>
+                <li>Name is required (max 256 characters)</li>
+                <li>A unique ID will be automatically generated (format: DS00000001)</li>
+                <li>An initial revision (01) will be created automatically</li>
+                <li>The initial revision status will be "Working"</li>
+            </ul>
+        </div>
+    </div>
+
+    <style>
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</body>
+</html>

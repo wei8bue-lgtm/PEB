@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Search - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1>Search</h1>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Search Objects</h2>
+            <input type="text" id="searchBox" class="search-box" 
+                   placeholder="Search by ID, Name, Department...">
+            <div id="searchResults"></div>
+        </div>
+    </div>
+</body>
+</html>

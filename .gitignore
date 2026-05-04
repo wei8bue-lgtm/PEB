@@ -1,0 +1,18 @@
+# Kompilierte Klassen und Build-Artefakte
+/target/
+*.jar
+*.war
+
+# Log-Dateien
+*.log
+
+# IDE-spezifische Dateien
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db

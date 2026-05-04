@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Datasets - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .dataset-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            border-left: 3px solid #0066cc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .dataset-info {
+            flex: 1;
+        }
+        .dataset-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .file-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        .upload-area {
+            border: 2px dashed #0066cc;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fa;
+            margin: 1rem 0;
+        }
+        .file-size {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1>Dataset Management</h1>
+        <div style="margin-left: auto;">
+            <button onclick="history.back()" class="btn btn-primary">Back</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Success/Error Messages -->
+        <div th:if="${param.success}" class="alert alert-success">
+            File uploaded successfully!
+        </div>
+        <div th:if="${param.deleted}" class="alert alert-success">
+            File deleted successfully!
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger">
+            An error occurred. Please try again.
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card" sec:authorize="hasAuthority('WRITE')">
+            <h2>Upload New File</h2>
+            <div class="upload-area">
+                <form th:action="@{/datasets/upload}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="revisionId" th:value="${revisionId}">
+                    <input type="hidden" name="revisionType" th:value="${revisionType}">
+
+                    <div class="form-group">
+                        <label for="file" style="font-size: 1.2rem;">📎 Select File</label>
+                        <input type="file" id="file" name="file" required 
+                               style="display: block; margin: 1rem auto; width: 400px;">
+                    </div>
+
+                    <div class="form-group" style="max-width: 400px; margin: 1rem auto;">
+                        <label for="category">Category (for eBOM objects)</label>
+                        <select id="category" name="category" class="form-control">
+                            <option value="">-- No Category --</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat}" 
+                                    th:text="${cat.displayName}">
+                                Category
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="margin-top: 1rem;">
+                        ⬆️ Upload File
+                    </button>
+                </form>
+            </div>
+            
+            <div style="margin-top: 1rem; color: #6c757d; font-size: 0.875rem;">
+                <strong>Supported file types:</strong> PDF, Excel, Word, Images, CAD files, etc.<br>
+                <strong>Maximum file size:</strong> 100 MB
+            </div>
+        </div>
+
+        <!-- Dataset List -->
+        <div class="card">
+            <h2>Attached Files</h2>
+            
+            <div th:if="${datasets.empty}" class="alert alert-info">
+                No files attached yet. Upload your first file above.
+            </div>
+
+            <div th:unless="${datasets.empty}">
+                <p style="color: #6c757d; margin-bottom: 1rem;">
+                    Total files: <strong th:text="${datasets.size()}">0</strong>
+                </p>
+
+                <div th:each="dataset : ${datasets}" class="dataset-card">
+                    <div style="display: flex; align-items: center; flex: 1;">
+                        <div class="file-icon">
+                            <span th:if="${dataset.mimeType != null and dataset.mimeType.startsWith('application/pdf')}">📄</span>
+                            <span th:if="${dataset.mimeType != null and dataset.mimeType.startsWith('image/')}">🖼️</span>
+                            <span th:if="${dataset.mimeType != null and (dataset.mimeType.contains('excel') or dataset.mimeType.contains('spreadsheet'))}">📊</span>
+                            <span th:if="${dataset.mimeType != null and (dataset.mimeType.contains('word') or dataset.mimeType.contains('document'))}">📝</span>
+                            <span th:if="${dataset.mimeType == null or (!dataset.mimeType.startsWith('application/pdf') and !dataset.mimeType.startsWith('image/') and !dataset.mimeType.contains('excel') and !dataset.mimeType.contains('word'))}">📎</span>
+                        </div>
+                        <div class="dataset-info">
+                            <div style="font-weight: bold;" th:text="${dataset.fileName}">filename.pdf</div>
+                            <div class="file-size">
+                                Size: <span th:text="${#numbers.formatDecimal(dataset.fileSize / 1024.0, 1, 2)}">0</span> KB
+                                <span th:if="${dataset.category != null}">
+                                    | Category: <strong th:text="${dataset.category.displayName}">Category</strong>
+                                </span>
+                            </div>
+                            <div class="file-size">
+                                Uploaded: <span th:text="${#temporals.format(dataset.createdDate, 'yyyy-MM-dd HH:mm')}">2024-01-01</span>
+                                by <span th:text="${dataset.createdBy}">user</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dataset-actions">
+                        <a th:href="@{/datasets/download/{id}(id=${dataset.datasetId})}" 
+                           class="btn btn-primary btn-sm" target="_blank">
+                            ⬇️ Download
+                        </a>
+                        <form th:action="@{/datasets/delete/{id}(id=${dataset.datasetId})}" 
+                              method="post" style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this file?');"
+                              sec:authorize="hasAuthority('DELETE')">
+                            <input type="hidden" name="revisionType" th:value="${revisionType}">
+                            <input type="hidden" name="revisionId" th:value="${revisionId}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                🗑️ Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card">
+            <h3>Dataset Rules</h3>
+            <ul>
+                <li><strong>Design Objects:</strong> No dataset or one dataset allowed per revision</li>
+                <li><strong>Drawing Objects:</strong> No dataset or one dataset allowed per revision</li>
+                <li><strong>eBOM Objects:</strong> No dataset, one, or multiple datasets allowed per revision</li>
+                <li><strong>Categories:</strong> Only available for eBOM objects (PDF Document, PDF Drawing, Excel Table, CE Document, etc.)</li>
+                <li>Datasets are attached at the revision level</li>
+                <li>Files are stored securely on the server</li>
+                <li>Only authorized users can upload/delete files</li>
+            </ul>
+        </div>
+    </div>
+
+    <style>
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .btn-sm {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+</body>
+</html>

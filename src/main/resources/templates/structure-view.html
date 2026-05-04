@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Structure View - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .tree-view {
+            padding-left: 0;
+            list-style: none;
+        }
+        .tree-node {
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-left: 3px solid #0066cc;
+            border-radius: 4px;
+        }
+        .tree-node:hover {
+            background: #e9ecef;
+        }
+        .tree-children {
+            padding-left: 2rem;
+            margin-top: 0.5rem;
+        }
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .node-actions {
+            margin-left: auto;
+        }
+        .add-child-form {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px dashed #0066cc;
+            margin-top: 1rem;
+        }
+        .component-option {
+            padding: 0.5rem;
+        }
+        .component-option.no-revision {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1>Structure Management</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/ebom}" class="btn btn-primary">Back to eBOM</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Structure for: <span th:text="${objectId}">Object ID</span></h2>
+            
+            <div th:if="${revisionId == null}" class="alert alert-warning">
+                <strong>No revision found!</strong> 
+                <p>This object has no revisions yet. A revision was supposed to be created automatically when the object was created.</p>
+                <p>Please check the object details and ensure it has at least one revision before building a structure.</p>
+            </div>
+
+            <div th:if="${revisionId != null}">
+                <!-- Structure Tree -->
+                <div th:if="${structureTree != null}">
+                    <h3>Current Structure</h3>
+                    <div class="tree-view">
+                        <div th:replace="~{fragments/tree-node :: tree-node(node=${structureTree})}"></div>
+                    </div>
+                </div>
+
+                <!-- Add Child Form -->
+                <div class="card" style="margin-top: 2rem;" sec:authorize="hasAuthority('WRITE')">
+                    <h3>Add Component to Structure</h3>
+                    <div class="add-child-form">
+                        <form id="addChildForm">
+                            <input type="hidden" id="parentId" th:value="${objectId}">
+                            <input type="hidden" id="parentRevisionId" th:value="${revisionId}">
+
+                            <div class="form-group">
+                                <label for="childType">Component Type</label>
+                                <select id="childType" class="form-control" required>
+                                    <option value="">-- Select Type --</option>
+                                    <option th:each="type : ${allowedTypes}" 
+                                            th:value="${type}"
+                                            th:text="${#strings.equals(type, 'MA') ? 'Machine (MA)' :
+                                                      #strings.equals(type, 'SY') ? 'System (SY)' :
+                                                      #strings.equals(type, 'SU') ? 'Subsystem (SU)' :
+                                                      #strings.equals(type, 'MO') ? 'Module (MO)' :
+                                                      #strings.equals(type, 'MU') ? 'Submodule (MU)' :
+                                                      #strings.equals(type, 'PT') ? 'Part (PT)' :
+                                                      #strings.equals(type, 'AX') ? 'Auxiliary (AX)' :
+                                                      #strings.equals(type, 'DS') ? 'Design (DS)' :
+                                                      #strings.equals(type, 'DR') ? 'Drawing (DR)' : type}">
+                                        Type
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="childSelect">Select Component</label>
+                                <select id="childSelect" class="form-control" required disabled>
+                                    <option value="">-- Select type first --</option>
+                                </select>
+                                <small id="revisionWarning" style="display: none; color: #dc3545; margin-top: 0.5rem;">
+                                    ⚠ Selected component has no revision. Cannot add to structure.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" id="quantity" class="form-control" 
+                                       value="1" min="1" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="positionNumber">Position Number (optional)</label>
+                                <input type="text" id="positionNumber" class="form-control" 
+                                       placeholder="e.g., 10, 20, 30">
+                            </div>
+
+                            <button type="submit" class="btn btn-success" id="submitBtn">Add to Structure</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Structure Rules Info -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3>Structure Rules</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f8f9fa;">
+                                <th style="padding: 0.5rem; text-align: left;">Parent Type</th>
+                                <th style="padding: 0.5rem; text-align: left;">Can Contain</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.5rem;">Machine (MA)</td>
+                                <td style="padding: 0.5rem;">System, Part, Auxiliary, Drawing</td>
+                            </tr>
+                            <tr style="background-color: #f8f9fa;">
+                                <td style="padding: 0.5rem;">System (SY)</td>
+                                <td style="padding: 0.5rem;">Subsystem, Part, Auxiliary, Drawing</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem;">Subsystem (SU)</td>
+                                <td style="padding: 0.5rem;">Module, Part, Auxiliary, Drawing</td>
+                            </tr>
+                            <tr style="background-color: #f8f9fa;">
+                                <td style="padding: 0.5rem;">Module (MO)</td>
+                                <td style="padding: 0.5rem;">Submodule, Part, Auxiliary, Drawing</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem;">Submodule (MU)</td>
+                                <td style="padding: 0.5rem;">Part, Auxiliary, Drawing</td>
+                            </tr>
+                            <tr style="background-color: #f8f9fa;">
+                                <td style="padding: 0.5rem;">Part/Auxiliary (PT/AX)</td>
+                                <td style="padding: 0.5rem;">Drawing only</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem;">Design (DS)</td>
+                                <td style="padding: 0.5rem;">Design, Drawing, Part, Auxiliary</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<!-- Add this card after the Structure Rules card -->
+<div class="card" th:if="${revisionId != null}" sec:authorize="hasAuthority('READ')">
+    <h3>Export Structure</h3>
+    <p>Download the complete structure as XML for external processing.</p>
+    
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(id=${objectId},revId=${revisionId})}" 
+           class="btn btn-primary" download>
+            📄 Download XML (Simple)
+        </a>
+        <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(id=${objectId},revId=${revisionId})}" 
+           class="btn btn-success" download>
+            📋 Download XML (Detailed)
+        </a>
+    </div>
+</div>
+
+<style>
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        padding: 1rem;
+        border-radius: 4px;
+    }
+</style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const childTypeSelect = document.getElementById('childType');
+            const childSelect = document.getElementById('childSelect');
+            const addChildForm = document.getElementById('addChildForm');
+            const objectId = document.getElementById('parentId').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const revisionWarning = document.getElementById('revisionWarning');
+            
+            let selectedComponents = [];
+
+            // Load children when type changes
+            childTypeSelect.addEventListener('change', function() {
+                const selectedType = this.value;
+                
+                if (!selectedType) {
+                    childSelect.disabled = true;
+                    childSelect.innerHTML = '<option value="">-- Select type first --</option>';
+                    return;
+                }
+
+                // Fetch available children for this type
+                fetch(`/api/structure/${objectId}/children?type=${selectedType}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        selectedComponents = data;
+                        childSelect.disabled = false;
+                        childSelect.innerHTML = '<option value="">-- Select component --</option>';
+                        
+                        data.forEach((item, index) => {
+                            const option = document.createElement('option');
+                            option.value = index; // Store index to retrieve full object later
+                            
+                            if (item.revisionId) {
+                                option.textContent = `${item.id} - ${item.name} (Rev: ${item.revision})`;
+                                option.className = 'component-option';
+                            } else {
+                                option.textContent = `${item.id} - ${item.name} (NO REVISION - Cannot use)`;
+                                option.className = 'component-option no-revision';
+                                option.disabled = true;
+                            }
+                            
+                            childSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading children:', error);
+                        alert('Failed to load available components');
+                    });
+            });
+
+            // Validate selection
+            childSelect.addEventListener('change', function() {
+                const selectedIndex = this.value;
+                
+                if (!selectedIndex) {
+                    submitBtn.disabled = false;
+                    revisionWarning.style.display = 'none';
+                    return;
+                }
+                
+                const selectedComponent = selectedComponents[selectedIndex];
+                
+                if (!selectedComponent.revisionId) {
+                    submitBtn.disabled = true;
+                    revisionWarning.style.display = 'block';
+                } else {
+                    submitBtn.disabled = false;
+                    revisionWarning.style.display = 'none';
+                }
+            });
+
+            // Handle form submission
+            addChildForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const selectedIndex = childSelect.value;
+                if (!selectedIndex) {
+                    alert('Please select a component');
+                    return;
+                }
+
+                const selectedComponent = selectedComponents[selectedIndex];
+
+                if (!selectedComponent.revisionId) {
+                    alert('Selected component has no revision. Create a revision first.');
+                    return;
+                }
+
+                const data = {
+                    parentId: document.getElementById('parentId').value,
+                    parentRevisionId: parseInt(document.getElementById('parentRevisionId').value),
+                    childId: selectedComponent.id,
+                    childRevisionId: selectedComponent.revisionId,
+                    quantity: parseInt(document.getElementById('quantity').value),
+                    positionNumber: document.getElementById('positionNumber').value || null
+                };
+
+                fetch('/structure/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Component added to structure successfully!');
+                        window.location.reload();
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
