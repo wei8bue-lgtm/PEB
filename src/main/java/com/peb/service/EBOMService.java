@@ -245,46 +245,63 @@ public class EBOMService {
         };
     }
 
-    @Transactional
-    public EBOMObject updateEBOMObject(String id, String name, String department,
-                                       String mass, String material, String supplier, String linkedDesignId) {
-        EBOMObject ebomObject = getEBOMObject(id);
-        
-        String oldLinkedDesignId = ebomObject.getLinkedDesignId();
-        String oldMaterial = ebomObject.getMaterial();
-        
-        ebomObject.setName(name);
-        ebomObject.setDepartment(department);
-        ebomObject.setMass(mass);
-        ebomObject.setMaterial(material);
-        ebomObject.setSupplier(supplier);
-        ebomObject.setLinkedDesignId(linkedDesignId);
-        
-        EBOMObject savedObject = switch (ebomObject.getObjectType()) {
-            case MACHINE -> machineRepository.save((Machine) ebomObject);
-            case SYSTEM -> systemRepository.save((com.peb.model.ebom.System) ebomObject);
-            case SUBSYSTEM -> subsystemRepository.save((Subsystem) ebomObject);
-            case MODULE -> ebomModuleRepository.save((EBOMModule) ebomObject);
-            case SUBMODULE -> submoduleRepository.save((Submodule) ebomObject);
-            case PART -> partRepository.save((Part) ebomObject);
-            case AUXILIARY -> auxiliaryRepository.save((Auxiliary) ebomObject);
-            default -> throw new IllegalArgumentException("Unsupported object type");
-        };
+@Transactional
+public EBOMObject updateEBOMObject(String id, String name, String department,
+                                   String mass, String material, String supplier,
+                                   String linkedDesignId) {
+    EBOMObject ebomObject = getEBOMObject(id);
 
-        // Sync material to design if linked and material changed
-        if (linkedDesignId != null && !linkedDesignId.isEmpty()) {
+    String oldLinkedDesignId = ebomObject.getLinkedDesignId();
+    String oldMaterial       = ebomObject.getMaterial();
+    String oldMass           = ebomObject.getMass();
+
+    ebomObject.setName(name);
+    ebomObject.setDepartment(department);
+    ebomObject.setMass(mass);
+    ebomObject.setMaterial(material);
+    ebomObject.setSupplier(supplier);
+    ebomObject.setLinkedDesignId(linkedDesignId);
+
+    EBOMObject savedObject = switch (ebomObject.getObjectType()) {
+        case MACHINE    -> machineRepository.save((Machine) ebomObject);
+        case SYSTEM     -> systemRepository.save((com.peb.model.ebom.System) ebomObject);
+        case SUBSYSTEM  -> subsystemRepository.save((Subsystem) ebomObject);
+        case MODULE     -> ebomModuleRepository.save((EBOMModule) ebomObject);
+        case SUBMODULE  -> submoduleRepository.save((Submodule) ebomObject);
+        case PART       -> partRepository.save((Part) ebomObject);
+        case AUXILIARY  -> auxiliaryRepository.save((Auxiliary) ebomObject);
+        default -> throw new IllegalArgumentException("Unsupported object type");
+    };
+
+    // ── Sync-Logik ────────────────────────────────────────────
+    if (linkedDesignId != null && !linkedDesignId.isBlank()) {
+
+        if (!linkedDesignId.equals(oldLinkedDesignId)) {
+            // Link neu gesetzt → vollständige Synchronisation
+            // Design.mass überschreibt manuell gesetzten eBOM-mass Wert
+            log.info("Design-Link geändert → Full Sync: Design[{}] ↔ eBOM[{}]",
+                     linkedDesignId, id);
+            synchronizationService.performFullSync(linkedDesignId, id);
+
+        } else {
+            // Material geändert → eBOM → Design syncen
             if (material != null && !material.equals(oldMaterial)) {
+                log.info("Material geändert → Sync eBOM[{}] → Design[{}]", id, linkedDesignId);
                 synchronizationService.syncMaterialToDesign(id, linkedDesignId);
             }
-            
-            // If link changed, perform full sync
-            if (!linkedDesignId.equals(oldLinkedDesignId)) {
-                synchronizationService.performFullSync(linkedDesignId, id);
+
+            // Mass manuell geändert → Design.mass hat Priorität → zurücksetzen
+            // (Design ist führend für Mass)
+            if (mass != null && !mass.equals(oldMass)) {
+                log.info("eBOM Mass manuell geändert → Design[{}] überschreibt eBOM[{}]",
+                         linkedDesignId, id);
+                synchronizationService.syncMassFromDesign(linkedDesignId, id);
             }
         }
-
-        return savedObject;
     }
+
+    return savedObject;
+}
 
     @Transactional
     public void deleteEBOMObject(String id) {

@@ -1,0 +1,12 @@
+- Add Component TCSS LDAP
+- Confighure TCSS LDAP
+- Start Deployment
+- Copy D:\PLM\TC\deployment\*.war -> D:\PLM\TC_Web\Tomcat 9.0\webapps
+- Restart Apache
+
+Login
+https://rngvm01428.de.bosch.com:47911/tcssols
+
+
+Identity
+https://rngvm01428.de.bosch.com:47911/tcssoservice

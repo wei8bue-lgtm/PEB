@@ -1,0 +1,167 @@
+' Dataset an Maschine anhängen
+' Datei: UploadDataset.vbs
+
+Option Explicit
+
+Dim baseUrl, username, password
+Dim machineId, machineName, filePath, category
+
+' Konfiguration
+baseUrl = "http://localhost:8080"
+username = "admin"
+password = "admin123"
+
+' Parameter
+machineId = "MA00000001"
+machineName = "Hauptmaschine"
+filePath = "C:\Dokumente\Handbuch.pdf"
+category = "PDF_DOCUMENT"
+
+' Dataset hochladen
+Call UploadDataset(machineId, filePath, category)
+
+WScript.Echo "Dataset erfolgreich hochgeladen!"
+
+'====================================================================
+' Funktionen
+'====================================================================
+
+Sub UploadDataset(mId, fPath, cat)
+    Dim revisionId
+    
+    ' 1. Revision ID ermitteln
+    revisionId = GetLatestRevisionId(mId)
+    
+    If revisionId = 0 Then
+        WScript.Echo "Fehler: Keine Revision gefunden für " & mId
+        WScript.Quit 1
+    End If
+    
+    ' 2. Datei hochladen
+    Call UploadFile(revisionId, "MACHINE", fPath, cat)
+End Sub
+
+Function GetLatestRevisionId(mId)
+    Dim http, url, response, json
+    
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    url = baseUrl & "/api/ebom/" & mId
+    
+    http.Open "GET", url, False
+    http.setRequestHeader "Authorization", "Basic " & Base64Encode(username & ":" & password)
+    http.Send
+    
+    If http.Status = 200 Then
+        response = http.responseText
+        ' JSON parsen (vereinfacht - in Produktion JSON Parser verwenden)
+        ' Hier müsste ein JSON Parser verwendet werden
+        ' Vereinfachte Annahme: Revision ID aus Response extrahieren
+        GetLatestRevisionId = 1 ' Platzhalter
+    Else
+        GetLatestRevisionId = 0
+    End If
+    
+    Set http = Nothing
+End Function
+
+Sub UploadFile(revId, revType, fPath, cat)
+    Dim http, boundary, body, fileContent
+    Dim fso, file
+    
+    ' Datei prüfen
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    If Not fso.FileExists(fPath) Then
+        WScript.Echo "Fehler: Datei nicht gefunden - " & fPath
+        WScript.Quit 1
+    End If
+    
+    ' Datei lesen
+    Set file = fso.OpenTextFile(fPath, 1)
+    fileContent = file.ReadAll
+    file.Close
+    
+    ' HTTP Request vorbereiten
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    boundary = "----WebKitFormBoundary" & CreateGUID()
+    
+    ' Body erstellen
+    body = BuildMultipartBody(boundary, revId, revType, cat, fPath, fileContent)
+    
+    ' Request senden
+    http.Open "POST", baseUrl & "/api/datasets", False
+    http.setRequestHeader "Authorization", "Basic " & Base64Encode(username & ":" & password)
+    http.setRequestHeader "Content-Type", "multipart/form-data; boundary=" & boundary
+    http.Send body
+    
+    If http.Status <> 200 Then
+        WScript.Echo "Fehler beim Upload: " & http.Status & " - " & http.statusText
+        WScript.Quit 1
+    End If
+    
+    WScript.Echo "Datei erfolgreich hochgeladen: " & fso.GetFileName(fPath)
+    
+    Set http = Nothing
+    Set fso = Nothing
+End Sub
+
+Function BuildMultipartBody(boundary, revId, revType, cat, fPath, content)
+    Dim body, fileName, fso
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    fileName = fso.GetFileName(fPath)
+    
+    body = ""
+    body = body & "--" & boundary & vbCrLf
+    body = body & "Content-Disposition: form-data; name=""revisionId""" & vbCrLf & vbCrLf
+    body = body & revId & vbCrLf
+    
+    body = body & "--" & boundary & vbCrLf
+    body = body & "Content-Disposition: form-data; name=""revisionType""" & vbCrLf & vbCrLf
+    body = body & revType & vbCrLf
+    
+    body = body & "--" & boundary & vbCrLf
+    body = body & "Content-Disposition: form-data; name=""category""" & vbCrLf & vbCrLf
+    body = body & cat & vbCrLf
+    
+    body = body & "--" & boundary & vbCrLf
+    body = body & "Content-Disposition: form-data; name=""file""; filename=""" & fileName & """" & vbCrLf
+    body = body & "Content-Type: application/octet-stream" & vbCrLf & vbCrLf
+    body = body & content & vbCrLf
+    
+    body = body & "--" & boundary & "--" & vbCrLf
+    
+    BuildMultipartBody = body
+    Set fso = Nothing
+End Function
+
+Function Base64Encode(text)
+    Dim xml, node
+    Set xml = CreateObject("MSXML2.DOMDocument")
+    Set node = xml.createElement("b64")
+    node.dataType = "bin.base64"
+    node.nodeTypedValue = Stream_StringToBinary(text)
+    Base64Encode = node.text
+    Set node = Nothing
+    Set xml = Nothing
+End Function
+
+Function Stream_StringToBinary(text)
+    Dim stream
+    Set stream = CreateObject("ADODB.Stream")
+    stream.Type = 2 'adTypeText
+    stream.Charset = "us-ascii"
+    stream.Open
+    stream.WriteText text
+    stream.Position = 0
+    stream.Type = 1 'adTypeBinary
+    Stream_StringToBinary = stream.Read
+    stream.Close
+    Set stream = Nothing
+End Function
+
+Function CreateGUID()
+    Dim obj
+    Set obj = CreateObject("Scriptlet.TypeLib")
+    CreateGUID = Replace(Replace(obj.GUID, "{", ""), "}", "")
+    Set obj = Nothing
+End Function

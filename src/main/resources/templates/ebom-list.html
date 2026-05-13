@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>eBOM - PEB</title>
+    <title>MAE BOM - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -10,15 +10,15 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>eBOM Management</h1>
+        <h1>MAE BOM Management</h1>
         <div style="margin-left: auto;">
             <a th:href="@{/}" class="btn btn-primary">Home</a>
         </div>
     </div>
     <div class="container">
         <div class="card">
-            <h2>All eBOM Objects</h2>
-            <a th:href="@{/ebom/new}" class="btn btn-success">+ Create New eBOM Object</a>
+            <h2>All MAE BOM Objects</h2>
+            <a th:href="@{/ebom/new}" class="btn btn-success">+ Create New MAE BOM Object</a>
             
             <h3>Machines</h3>
             <p th:if="${machines.empty}">No machines found.</p>

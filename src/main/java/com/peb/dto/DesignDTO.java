@@ -8,4 +8,5 @@ public class DesignDTO {
     private String department;
     private String mass;
     private String material;
+    private String childView;
 }

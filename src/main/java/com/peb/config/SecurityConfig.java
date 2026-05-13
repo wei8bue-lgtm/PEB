@@ -16,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.http.HttpMethod;
 
 /**
  * Security Konfiguration
@@ -26,56 +27,74 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers(
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/static/**",
-					"/favicon.ico", 
-                    "/actuator/health",
-                    "/login",
-                    "/api/login",
-                    "/error"
-                ).permitAll()
-                .anyRequest().authenticated()
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        // ✅ NEU: Frame-Options auf SAMEORIGIN setzen
+        .headers(headers -> headers
+            .frameOptions(frame -> frame.sameOrigin())
+        )
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers(
+                "/css/**",
+                "/js/**",
+                "/images/**",
+                "/static/**",
+                "/webjars/**",
+                "/favicon.ico",
+                "/actuator/health",
+                "/login",
+                "/api/login",
+                "/error",
+                "/debug/**"
+            ).permitAll()
+            .requestMatchers(
+                HttpMethod.HEAD,
+                "/datasets/*/as-pdf"
+            ).hasAuthority("READ")
+            .requestMatchers("/actuator/**").authenticated()
+            .anyRequest().authenticated()
+        )
+        .formLogin(form -> form
+            .loginPage("/login")
+            .loginProcessingUrl("/login")
+            .defaultSuccessUrl("/", true)
+            .failureUrl("/login?error=true")
+            .successHandler(
+                new SimpleUrlAuthenticationSuccessHandler("/"))
+            .permitAll()
+        )
+        .logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/login?logout=true")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID")
+            .permitAll()
+        )
+        .csrf(csrf -> csrf
+            .csrfTokenRepository(
+                CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .ignoringRequestMatchers(
+                "/api/login",
+                "/api/logout-api",
+                "/api/v1/datasets/**",
+                "/api/v1/ids/**",
+                "/api/v1/revisions/**",
+                "/api/v1/attributes/**",
+                "/api/v1/viewer/**",
+                "/datasets/*/as-pdf"
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/", true)
-                .failureUrl("/login?error=true")
-                .successHandler(new SimpleUrlAuthenticationSuccessHandler("/"))
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers(
-                    "/api/login",
-                    "/api/logout-api",
-                    "/api/v1/datasets/**"
-                )
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            )
-            .securityContext(context -> context
-                .requireExplicitSave(true)
-            )
-            .httpBasic(basic -> {});
+        )
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+        )
+        .securityContext(context -> context
+            .requireExplicitSave(true)
+        )
+        .httpBasic(basic -> {});
 
-        return http.build();
-    }
+    return http.build();
+}
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -105,9 +124,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Notwendig für Session-Tracking bei maximumSessions
-     */
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();

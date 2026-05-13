@@ -14,7 +14,6 @@
             display: grid;
             gap: 1rem;
         }
-
         .dataset-card {
             display: flex;
             align-items: center;
@@ -25,22 +24,18 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-
-        .dataset-card:hover {
-            background: #e9ecef;
-        }
-
+        .dataset-card:hover       { background: #e9ecef; }
+        .dataset-card-odd         { background: #f0f4f8; }
+        .dataset-card-odd:hover   { background: #e2e8f0; }
         .dataset-icon {
             font-size: 2.2rem;
             min-width: 2.5rem;
             text-align: center;
         }
-
         .dataset-info {
             flex: 1;
             min-width: 0;
         }
-
         .dataset-filename {
             font-weight: 600;
             font-size: 1rem;
@@ -48,33 +43,26 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .dataset-meta {
             color: #6c757d;
             font-size: 0.82rem;
-            margin-top: 0.25rem;
+            margin-top: 0.2rem;
         }
-
         .dataset-actions {
             display: flex;
             gap: 0.5rem;
             flex-shrink: 0;
         }
-
         .upload-area {
             border: 2px dashed #0066cc;
             border-radius: 8px;
             padding: 2rem;
             text-align: center;
             background: #f0f6ff;
-            cursor: pointer;
             transition: background 0.2s;
+            cursor: pointer;
         }
-
-        .upload-area:hover {
-            background: #deeaff;
-        }
-
+        .upload-area:hover        { background: #deeaff; }
         .category-badge {
             display: inline-block;
             padding: 0.15rem 0.5rem;
@@ -84,45 +72,7 @@
             background: #0066cc;
             color: white;
             margin-left: 0.5rem;
-            vertical-align: middle;
         }
-
-        .stat-row {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 0.75rem 1.25rem;
-            text-align: center;
-            min-width: 120px;
-            border-top: 3px solid #0066cc;
-        }
-
-        .stat-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #0066cc;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-top: 0.15rem;
-        }
-
-        .revision-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 0.6rem 1rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
         .info-box {
             background: #e8f4fd;
             border-left: 4px solid #0066cc;
@@ -130,54 +80,58 @@
             border-radius: 4px;
             font-size: 0.9rem;
         }
-
         .info-box ul {
             margin: 0.5rem 0 0 0;
             padding-left: 1.5rem;
         }
-
         .alert {
             padding: 0.9rem 1.25rem;
             border-radius: 6px;
             margin-bottom: 1rem;
+            font-size: 0.95rem;
         }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+        .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+        .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; }
+        .btn-sm        { font-size:0.85rem; padding:0.3rem 0.7rem; }
+        .btn-secondary { background-color:#6c757d; color:white; }
+        .btn-secondary:hover { background-color:#5a6268; }
+        .stat-row {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
         }
-
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .stat-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            min-width: 120px;
+            border: 1px solid #dee2e6;
         }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0066cc;
         }
-
-        .btn-sm {
-            font-size: 0.85rem;
-            padding: 0.3rem 0.7rem;
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.2rem;
         }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
+        .revision-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- ── Header ── -->
 <div class="header">
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="${pageTitle}">Dataset Management</h1>
@@ -188,7 +142,7 @@
 
 <div class="container">
 
-    <!-- Flash Messages -->
+    <!-- ── Flash Messages ── -->
     <div th:if="${success}" class="alert alert-success">
         ✅ <span th:text="${success}">Erfolg</span>
     </div>
@@ -196,7 +150,7 @@
         ❌ <span th:text="${error}">Fehler</span>
     </div>
 
-    <!-- Revision Info -->
+    <!-- ── Revision Info ── -->
     <div class="revision-info">
         <strong>Revision ID:</strong>
         <span th:text="${revisionId}">1</span>
@@ -205,101 +159,112 @@
         <span th:text="${revisionType}">DESIGN</span>
     </div>
 
-    <!-- Statistiken - NUR Controller-Variablen, kein Java in Thymeleaf -->
+    <!-- ── Statistiken ── -->
     <div class="card">
+        <h3 style="margin-top:0;">📊 Übersicht</h3>
         <div class="stat-row">
             <div class="stat-item">
-                <div class="stat-value" th:text="${totalCount}">0</div>
+                <div class="stat-value" th:text="${datasetCount}">0</div>
                 <div class="stat-label">Dateien gesamt</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" th:text="${totalSizeFormatted}">0 KB</div>
+                <div class="stat-value" th:text="${totalSize}">0 KB</div>
                 <div class="stat-label">Gesamt-Größe</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" th:text="${withCategoryCount}">0</div>
+                <div class="stat-value" th:text="${countWithCategory}">0</div>
                 <div class="stat-label">Mit Kategorie</div>
             </div>
         </div>
     </div>
 
-<!-- Upload -->
-<div class="card" sec:authorize="hasAuthority('WRITE')">
-    <h2>📤 Datei hochladen</h2>
+    <!-- ── Upload ── -->
+    <div class="card" sec:authorize="hasAuthority('WRITE')">
+        <h2>📤 Datei hochladen</h2>
 
-    <form th:action="@{/datasets/upload}"
-          method="post"
-          enctype="multipart/form-data"
-          id="uploadForm">
+        <!--
+            ✅ WICHTIG:
+            - onsubmit="return validateUpload()" am FORM (nicht am Button!)
+            - Button hat KEIN onclick
+            - So wird erst validiert, dann normal submitted
+        -->
+        <form th:action="@{/datasets/upload}"
+              method="post"
+              enctype="multipart/form-data"
+              id="uploadForm"
+              onsubmit="return validateUpload()">
 
-        <!-- ✅ CSRF Token - WICHTIG für multipart/form-data! -->
-        <input type="hidden" 
-               th:name="${_csrf.parameterName}" 
-               th:value="${_csrf.token}">
+            <input type="hidden" name="revisionId"   th:value="${revisionId}">
+            <input type="hidden" name="revisionType" th:value="${revisionType}">
 
-        <input type="hidden" name="revisionId"   th:value="${revisionId}">
-        <input type="hidden" name="revisionType" th:value="${revisionType}">
+            <div class="upload-area"
+                 onclick="document.getElementById('fileInput').click()"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)"
+                 ondrop="handleDrop(event)">
 
-        <div class="upload-area"
-             onclick="document.getElementById('fileInput').click()">
-            <div style="font-size: 3rem;">📁</div>
-            <p style="margin: 0.5rem 0; font-size: 1.1rem; font-weight: 500;">
-                Klicken zum Auswählen oder Datei hierher ziehen
-            </p>
-            <input type="file"
-                   id="fileInput"
-                   name="file"
-                   required
-                   style="display:none;"
-                   onchange="updateFileName(this)">
-            <div id="selectedFileName"
-                 style="margin-top:0.5rem; color:#0066cc; font-weight:500;">
-                Keine Datei ausgewählt
+                <div style="font-size:3rem;">📁</div>
+                <p style="margin:0.5rem 0; font-size:1.1rem; font-weight:500;">
+                    Klicken zum Auswählen oder Datei hierher ziehen
+                </p>
+                <input type="file"
+                       id="fileInput"
+                       name="file"
+                       required
+                       style="display:none;"
+                       onchange="updateFileName(this)">
+                <div id="selectedFileName"
+                     style="margin-top:0.5rem; color:#0066cc; font-weight:500;">
+                    Keine Datei ausgewählt
+                </div>
+                <p style="color:#6c757d; font-size:0.85rem; margin:0.5rem 0 0 0;">
+                    PDF, Excel, Word, Bilder, XML, ZIP &nbsp;|&nbsp; Max: 100 MB
+                </p>
             </div>
-            <p style="color:#6c757d; font-size:0.85rem; margin:0.5rem 0 0 0;">
-                PDF, Excel, Word, Bilder, XML, ZIP &nbsp;|&nbsp; Max: 100 MB
-            </p>
-        </div>
 
-        <div class="form-group" style="margin-top:1rem; max-width:400px;">
-            <label for="category">
-                Kategorie
-                <span style="color:#6c757d; font-size:0.85rem;">
-                    (optional, für eBOM-Objekte)
-                </span>
-            </label>
-            <select id="category" name="category">
-                <option value="">-- Keine Kategorie --</option>
-                <option th:each="cat : ${categories}"
-                        th:value="${cat.name()}"
-                        th:text="${cat.displayName}">
+            <div class="form-group" style="margin-top:1rem; max-width:400px;">
+                <label for="category">
                     Kategorie
-                </option>
-            </select>
-        </div>
+                    <span style="color:#6c757d; font-size:0.85rem;">(optional)</span>
+                </label>
+			<select id="category" name="category">
+				<option value="">-- Keine Kategorie --</option>
+				<option th:each="cat : ${categories}"
+						th:value="${cat.name()}"
+						th:text="${cat.displayName}">
+					Kategorie
+				</option>
+			</select>
+            </div>
 
-        <div style="margin-top:1rem; display:flex; gap:0.75rem;">
-            <button type="submit"
-                    id="uploadBtn"
-                    class="btn btn-success"
-                    onclick="return validateUpload()">
-                ⬆️ Hochladen
-            </button>
-            <button type="button"
-                    class="btn btn-secondary"
-                    onclick="resetForm()">
-                ✖ Zurücksetzen
-            </button>
-        </div>
-    </form>
-</div>
+            <div style="margin-top:1rem; display:flex; gap:0.5rem; align-items:center;">
+                <!--
+                    ✅ type="submit" OHNE onclick
+                    → onsubmit am Form übernimmt die Validierung
+                -->
+                <button type="submit"
+                        id="uploadBtn"
+                        class="btn btn-success">
+                    ⬆️ Hochladen
+                </button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        onclick="resetUploadForm()">
+                    ✖ Zurücksetzen
+                </button>
+                <span id="uploadSpinner"
+                      style="display:none; color:#0066cc;">
+                    ⏳ Wird hochgeladen...
+                </span>
+            </div>
+        </form>
+    </div>
 
-    <!-- Dataset Liste -->
+    <!-- ── Dataset Liste ── -->
     <div class="card">
         <h2>📎 Angehängte Dateien
-            <span style="font-size:0.9rem; font-weight:normal; color:#6c757d;"
-                  th:text="'(' + ${totalCount} + ')'">
-                (0)
+            <span style="font-size:1rem; color:#6c757d; font-weight:normal;">
+                (<span th:text="${datasetCount}">0</span> Datei(en))
             </span>
         </h2>
 
@@ -309,152 +274,167 @@
             Laden Sie oben Ihre erste Datei hoch.
         </div>
 
-        <!-- Liste -->
-        <div th:unless="${datasets.empty}" class="dataset-grid">
-            <div th:each="dataset : ${datasets}" class="dataset-card">
+        <!--
+            ✅ Aus dataset-manage.html (funktioniert mit mehreren Datasets):
+            Scrollbarer Container + iterStat für Nummerierung
+        -->
+        <div th:unless="${datasets.empty}"
+             style="max-height:600px; overflow-y:auto; padding-right:0.25rem;">
 
-                <!-- Icon -->
-                <div class="dataset-icon">
-                    <span th:if="${dataset.mimeType != null
-                                   and #strings.startsWith(dataset.mimeType,'application/pdf')}">
-                        📄
-                    </span>
-                    <span th:if="${dataset.mimeType != null
-                                   and #strings.startsWith(dataset.mimeType,'image/')}">
-                        🖼️
-                    </span>
-                    <span th:if="${dataset.mimeType != null
-                                   and (#strings.contains(dataset.mimeType,'excel')
-                                        or #strings.contains(dataset.mimeType,'spreadsheet'))}">
-                        📊
-                    </span>
-                    <span th:if="${dataset.mimeType != null
-                                   and (#strings.contains(dataset.mimeType,'word')
-                                        or #strings.contains(dataset.mimeType,'document'))}">
-                        📝
-                    </span>
-                    <span th:if="${dataset.mimeType != null
-                                   and #strings.contains(dataset.mimeType,'zip')}">
-                        🗜️
-                    </span>
-                    <span th:if="${dataset.mimeType != null
-                                   and #strings.contains(dataset.mimeType,'xml')}">
-                        📋
-                    </span>
-                    <span th:if="${dataset.mimeType == null}">📎</span>
-                </div>
+            <div class="dataset-grid">
+                <div th:each="dataset, iterStat : ${datasets}"
+                     class="dataset-card"
+                     th:classappend="${iterStat.odd} ? 'dataset-card-odd' : ''">
 
-                <!-- Info -->
-                <div class="dataset-info">
-                    <div class="dataset-filename">
-                        <span th:text="${dataset.fileName}">datei.pdf</span>
-                        <span th:if="${dataset.category != null}"
-                              class="category-badge"
-                              th:text="${dataset.category.displayName}">
-                            Kategorie
-                        </span>
+                    <!-- Nummer -->
+                    <div style="min-width:2rem; text-align:center;
+                                color:#6c757d; font-weight:600; font-size:0.9rem;">
+                        <span th:text="${iterStat.count}">1</span>
                     </div>
-                    <div class="dataset-meta">
-                        <!-- Dateigröße -->
-                        <span th:if="${dataset.fileSize != null}">
-                            📦
-                            <span th:if="${dataset.fileSize >= 1048576}"
-                                  th:text="${#numbers.formatDecimal(
-                                      dataset.fileSize / 1048576.0, 1, 2)} + ' MB'">
-                                1.0 MB
-                            </span>
-                            <span th:if="${dataset.fileSize >= 1024
-                                          and dataset.fileSize < 1048576}"
-                                  th:text="${#numbers.formatDecimal(
-                                      dataset.fileSize / 1024.0, 1, 2)} + ' KB'">
-                                100.0 KB
-                            </span>
-                            <span th:if="${dataset.fileSize < 1024}"
-                                  th:text="${dataset.fileSize} + ' Bytes'">
-                                512 Bytes
-                            </span>
-                        </span>
 
-                        &nbsp;|&nbsp;
-
-                        <!-- Datum -->
-                        📅
-                        <span th:if="${dataset.createdDate != null}"
-                              th:text="${#temporals.format(
-                                  dataset.createdDate, 'dd.MM.yyyy HH:mm')}">
-                            01.01.2024
-                        </span>
-                        <span th:if="${dataset.createdDate == null}">Unbekannt</span>
-
-                        &nbsp;|&nbsp;
-
-                        <!-- Benutzer -->
-                        👤
-                        <span th:text="${dataset.createdBy != null
-                                         ? dataset.createdBy : 'Unbekannt'}">
-                            admin
-                        </span>
+                    <!-- Icon -->
+                    <div class="dataset-icon">
+                        <span th:if="${dataset.mimeType != null
+                                       and #strings.startsWith(
+                                           dataset.mimeType,'application/pdf')}">📄</span>
+                        <span th:if="${dataset.mimeType != null
+                                       and #strings.startsWith(
+                                           dataset.mimeType,'image/')}">🖼️</span>
+                        <span th:if="${dataset.mimeType != null
+                                       and (#strings.contains(dataset.mimeType,'excel')
+                                       or   #strings.contains(dataset.mimeType,'spreadsheet'))}">📊</span>
+                        <span th:if="${dataset.mimeType != null
+                                       and (#strings.contains(dataset.mimeType,'word')
+                                       or   #strings.contains(dataset.mimeType,'document'))}">📝</span>
+                        <span th:if="${dataset.mimeType != null
+                                       and #strings.contains(dataset.mimeType,'zip')}">🗜️</span>
+                        <span th:if="${dataset.mimeType != null
+                                       and #strings.contains(dataset.mimeType,'xml')}">📋</span>
+                        <span th:if="${dataset.mimeType == null}">📎</span>
                     </div>
-                </div>
 
-                <!-- Aktionen -->
-                <div class="dataset-actions">
-                    <a th:href="@{/api/v1/datasets/{id}/download(id=${dataset.datasetId})}"
-                       class="btn btn-primary btn-sm">
-                        ⬇️ Download
-                    </a>
+                    <!-- Info -->
+                    <div class="dataset-info">
+                        <div class="dataset-filename">
+                            <span th:text="${dataset.fileName}">datei.pdf</span>
+                            <span th:if="${dataset.category != null}"
+                                  class="category-badge"
+                                  th:text="${dataset.category.displayName}">
+                                Kategorie
+                            </span>
+                        </div>
+                        <div class="dataset-meta">
+                            <!-- Größe -->
+                            <span th:if="${dataset.fileSize != null}">
+                                📦
+                                <span th:if="${dataset.fileSize >= 1048576}"
+                                      th:text="${#numbers.formatDecimal(
+                                          dataset.fileSize / 1048576.0,
+                                          1,'COMMA',1,'POINT')} + ' MB'">
+                                    1.0 MB
+                                </span>
+                                <span th:if="${dataset.fileSize >= 1024
+                                              and dataset.fileSize < 1048576}"
+                                      th:text="${#numbers.formatDecimal(
+                                          dataset.fileSize / 1024.0,
+                                          1,'COMMA',1,'POINT')} + ' KB'">
+                                    1.0 KB
+                                </span>
+                                <span th:if="${dataset.fileSize < 1024}"
+                                      th:text="${dataset.fileSize} + ' Bytes'">
+                                    512 Bytes
+                                </span>
+                            </span>
+                            &nbsp;|&nbsp;
+                            📅
+                            <span th:if="${dataset.createdDate != null}"
+                                  th:text="${#temporals.format(
+                                      dataset.createdDate,'dd.MM.yyyy HH:mm')}">
+                                01.01.2024
+                            </span>
+                            <span th:unless="${dataset.createdDate != null}">Unbekannt</span>
+                            &nbsp;|&nbsp;
+                            👤
+                            <span th:text="${dataset.createdBy != null
+                                             ? dataset.createdBy : 'Unbekannt'}">
+                                admin
+                            </span>
+                            &nbsp;|&nbsp;
+                            🔑 ID: <span th:text="${dataset.datasetId}">1</span>
+                        </div>
+                    </div>
 
-                    <form th:action="@{/datasets/delete/{id}(id=${dataset.datasetId})}"
-                          method="post"
-                          style="display:inline;"
-                          sec:authorize="hasAuthority('DELETE')"
-                          th:onsubmit="|return confirmDelete('${dataset.fileName}')|">
-                        <input type="hidden" name="revisionId"
-                               th:value="${revisionId}">
-                        <input type="hidden" name="revisionType"
-                               th:value="${revisionType}">
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            🗑️ Löschen
-                        </button>
-                    </form>
+                    <!-- Aktionen -->
+                    <div class="dataset-actions">
+
+                        <!-- Download -->
+                        <a th:href="@{/api/v1/datasets/{id}/download(id=${dataset.datasetId})}"
+                           class="btn btn-primary btn-sm"
+                           th:title="'Herunterladen: ' + ${dataset.fileName}">
+                            ⬇️ Download
+                        </a>
+
+                        <!--
+                            ✅ Aus _1.html: data-filename statt th:onsubmit
+                            → Kein Thymeleaf-Escaping Problem mit Dateinamen!
+                        -->
+                        <form th:action="@{/datasets/delete/{id}(id=${dataset.datasetId})}"
+                              method="post"
+                              style="display:inline;"
+                              sec:authorize="hasAuthority('DELETE')"
+                              th:data-filename="${dataset.fileName}"
+                              onsubmit="return confirmDelete(this)">
+                            <input type="hidden" name="revisionId"
+                                   th:value="${revisionId}">
+                            <input type="hidden" name="revisionType"
+                                   th:value="${revisionType}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                🗑️ Löschen
+                            </button>
+                        </form>
+
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Footer der Liste -->
+        <div th:unless="${datasets.empty}"
+             style="margin-top:1rem; padding-top:0.75rem;
+                    border-top:1px solid #dee2e6;
+                    color:#6c757d; font-size:0.875rem; text-align:right;">
+            Gesamt: <strong th:text="${datasetCount}">0</strong> Datei(en)
+            &nbsp;|&nbsp;
+            Größe: <strong th:text="${totalSize}">0 KB</strong>
+        </div>
     </div>
 
-    <!-- Regeln -->
+    <!-- ── Regeln ── -->
     <div class="card">
         <h3>ℹ️ Dataset-Regeln</h3>
         <div class="info-box">
             <ul>
-                <li>
-                    <strong>Design / Drawing:</strong>
-                    Max. ein Dataset pro Revision
-                </li>
-                <li>
-                    <strong>eBOM-Objekte:</strong>
-                    Beliebig viele Datasets pro Revision
-                </li>
-                <li>
-                    <strong>Kategorien:</strong>
-                    PDF Dokument, PDF Zeichnung, Excel-Tabelle,
-                    CE-Dokument, Sonstiges
+                <li><strong>Design/Drawing:</strong> Max. ein Dataset pro Revision</li>
+                <li><strong>eBOM-Objekte:</strong> Beliebig viele Datasets pro Revision</li>
+                <li><strong>Kategorien:</strong>
+                    PDF Dokument, PDF Zeichnung, Excel-Tabelle, CE-Dokument, Sonstiges
                 </li>
                 <li>Maximale Dateigröße: <strong>100 MB</strong></li>
-                <li>Datasets werden auf Revisions-Ebene gespeichert</li>
             </ul>
         </div>
     </div>
 
-    <!-- API Info -->
+    <!-- ── API Info ── -->
     <div class="card" sec:authorize="hasAuthority('EXECUTE')">
         <h3>🔌 API-Zugriff</h3>
         <div class="info-box">
             <code style="display:block; background:#fff; padding:0.75rem;
                          border-radius:4px; font-size:0.85rem; line-height:1.8;">
-                GET    /api/v1/datasets?revisionId=<span th:text="${revisionId}">1</span>&amp;revisionType=<span th:text="${revisionType}">DESIGN</span><br>
-                POST   /api/v1/datasets/upload<br>
-                GET    /api/v1/datasets/{id}/download<br>
+                GET&nbsp;&nbsp;&nbsp;
+                /api/v1/datasets?revisionId=<span th:text="${revisionId}">1</span>
+                &amp;revisionType=<span th:text="${revisionType}">DESIGN</span><br>
+                POST&nbsp;&nbsp; /api/v1/datasets/upload<br>
+                GET&nbsp;&nbsp;&nbsp; /api/v1/datasets/{id}/download<br>
                 DELETE /api/v1/datasets/{id}
             </code>
         </div>
@@ -462,93 +442,119 @@
 
 </div>
 
-<!-- JavaScript -->
+<!-- ── JavaScript ── -->
 <script>
+    // ══════════════════════════════════════════════════════
+    // UPLOAD VALIDIERUNG
+    // ✅ onsubmit am FORM (nicht onclick am Button!)
+    // ══════════════════════════════════════════════════════
+    function validateUpload() {
+        const fi      = document.getElementById('fileInput');
+        const btn     = document.getElementById('uploadBtn');
+        const spinner = document.getElementById('uploadSpinner');
+
+        if (!fi.files || fi.files.length === 0) {
+            alert('Bitte zuerst eine Datei auswählen!');
+            return false;
+        }
+        if (fi.files[0].size > 100 * 1024 * 1024) {
+            alert('Datei zu groß! Maximum: 100 MB');
+            return false;
+        }
+
+        // UI-Feedback NACH Validierung
+        btn.disabled        = true;
+        btn.textContent     = '⏳ Wird hochgeladen...';
+        spinner.style.display = 'inline';
+
+        return true; // ← Form wird abgeschickt
+    }
+
+    // ══════════════════════════════════════════════════════
+    // DATEINAME ANZEIGEN
+    // ══════════════════════════════════════════════════════
     function updateFileName(input) {
         const label = document.getElementById('selectedFileName');
         if (input.files && input.files[0]) {
             const file   = input.files[0];
             const sizeMB = (file.size / 1048576).toFixed(2);
             if (file.size > 100 * 1024 * 1024) {
-                label.textContent = '❌ Datei zu groß! Max. 100 MB';
+                label.textContent = '❌ Datei zu groß! Max. 100 MB.';
                 label.style.color = '#dc3545';
             } else {
                 label.textContent = '✅ ' + file.name + ' (' + sizeMB + ' MB)';
                 label.style.color = '#28a745';
             }
+        } else {
+            label.textContent = 'Keine Datei ausgewählt';
+            label.style.color = '#0066cc';
         }
     }
 
-    function validateUpload() {
-        const fi = document.getElementById('fileInput');
-        if (!fi.files || fi.files.length === 0) {
-            alert('Bitte zuerst eine Datei auswählen!');
-            return false;
-        }
-        if (fi.files[0].size > 100 * 1024 * 1024) {
-            alert('Datei ist zu groß! Maximal 100 MB erlaubt.');
-            return false;
-        }
-        const btn = document.getElementById('uploadBtn');
-        btn.textContent = '⏳ Wird hochgeladen...';
-        btn.disabled    = true;
-		  // ✅ Timeout: Button nach 30s wieder aktivieren falls Fehler
-		setTimeout(function() {
-        if (btn.disabled) {
-            btn.innerHTML = '⬆️ Hochladen';
-            btn.disabled  = false;
-            alert('⚠️ Upload-Timeout. Bitte erneut versuchen.');
-        }
-    }, 30000);
-        return true;
-    }
-
-    function resetForm() {
+    // ══════════════════════════════════════════════════════
+    // FORMULAR ZURÜCKSETZEN
+    // ══════════════════════════════════════════════════════
+    function resetUploadForm() {
         document.getElementById('uploadForm').reset();
-        document.getElementById('selectedFileName').textContent
-            = 'Keine Datei ausgewählt';
+        document.getElementById('selectedFileName').textContent = 'Keine Datei ausgewählt';
         document.getElementById('selectedFileName').style.color = '#0066cc';
-        document.getElementById('uploadBtn').textContent = '⬆️ Hochladen';
-        document.getElementById('uploadBtn').disabled    = false;
+        document.getElementById('uploadBtn').disabled           = false;
+        document.getElementById('uploadBtn').textContent        = '⬆️ Hochladen';
+        document.getElementById('uploadSpinner').style.display  = 'none';
     }
 
-    function confirmDelete(fileName) {
-        return confirm('Datei "' + fileName
-            + '" wirklich löschen?\nDiese Aktion kann nicht rückgängig gemacht werden!');
+    // ══════════════════════════════════════════════════════
+    // LÖSCHEN BESTÄTIGEN
+    // ✅ data-filename statt th:onsubmit → kein Escaping-Problem
+    // ══════════════════════════════════════════════════════
+    function confirmDelete(form) {
+        const fileName = form.getAttribute('data-filename');
+        return confirm(
+            'Datei "' + fileName + '" wirklich löschen?\n' +
+            'Diese Aktion kann nicht rückgängig gemacht werden!'
+        );
     }
 
-    // Drag & Drop
-    const area = document.querySelector('.upload-area');
-    if (area) {
-        area.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.background   = '#deeaff';
-            this.style.borderColor  = '#004a99';
-        });
-        area.addEventListener('dragleave', function() {
-            this.style.background   = '#f0f6ff';
-            this.style.borderColor  = '#0066cc';
-        });
-        area.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.background  = '#f0f6ff';
-            this.style.borderColor = '#0066cc';
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                document.getElementById('fileInput').files = files;
-                updateFileName(document.getElementById('fileInput'));
-            }
-        });
+    // ══════════════════════════════════════════════════════
+    // DRAG & DROP
+    // ══════════════════════════════════════════════════════
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.currentTarget.style.background  = '#deeaff';
+        event.currentTarget.style.borderColor = '#004a99';
     }
 
-    // Alerts nach 5s ausblenden
-    setTimeout(function() {
-        document.querySelectorAll('.alert-success').forEach(function(el) {
-            el.style.transition = 'opacity 0.5s';
-            el.style.opacity    = '0';
-            setTimeout(function() { el.style.display = 'none'; }, 500);
-        });
-    }, 5000);
+    function handleDragLeave(event) {
+        event.currentTarget.style.background  = '#f0f6ff';
+        event.currentTarget.style.borderColor = '#0066cc';
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        event.currentTarget.style.background  = '#f0f6ff';
+        event.currentTarget.style.borderColor = '#0066cc';
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            const fi = document.getElementById('fileInput');
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fi.files = dt.files;
+            updateFileName(fi);
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // SUCCESS ALERTS AUTO-HIDE
+    // ══════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            document.querySelectorAll('.alert-success').forEach(function (el) {
+                el.style.transition = 'opacity 0.5s ease';
+                el.style.opacity    = '0';
+                setTimeout(function () { el.style.display = 'none'; }, 500);
+            });
+        }, 5000);
+    });
 </script>
 
 </body>

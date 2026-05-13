@@ -52,26 +52,28 @@ public class DatasetController {
         Dataset dataset = datasetService.getDataset(datasetId);
         return ResponseEntity.ok(dataset);
     }
-	
-	
 
     @GetMapping("/{datasetId}/download")
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<Resource> downloadDataset(@PathVariable Long datasetId) throws MalformedURLException {
+    public ResponseEntity<Resource> downloadDataset(
+            @PathVariable Long datasetId) throws MalformedURLException {
         Resource resource = datasetService.loadDatasetAsResource(datasetId);
-        Dataset dataset = datasetService.getDataset(datasetId);
-        
+        Dataset dataset   = datasetService.getDataset(datasetId);
+
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(dataset.getMimeType() != null ? 
-                dataset.getMimeType() : MediaType.APPLICATION_OCTET_STREAM_VALUE))
-            .header(HttpHeaders.CONTENT_DISPOSITION, 
-                "attachment; filename=\"" + dataset.getFileName() + "\"")
-            .body(resource);
+                .contentType(MediaType.parseMediaType(
+                        dataset.getMimeType() != null
+                                ? dataset.getMimeType()
+                                : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + dataset.getFileName() + "\"")
+                .body(resource);
     }
 
     @DeleteMapping("/{datasetId}")
     @PreAuthorize("hasAuthority('DELETE')")
-    public ResponseEntity<Void> deleteDataset(@PathVariable Long datasetId) throws IOException {
+    public ResponseEntity<Void> deleteDataset(
+            @PathVariable Long datasetId) throws IOException {
         datasetService.deleteDataset(datasetId);
         return ResponseEntity.noContent().build();
     }

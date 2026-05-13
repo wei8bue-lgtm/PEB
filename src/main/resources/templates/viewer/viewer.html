@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="icon" href="data:,">
+    <title th:text="${objectName} + ' - 3D Viewer - PEB'">3D Viewer - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <!-- ── Import Map für Three.js ES-Module ── -->
+	<script type="importmap">
+	{
+	  "imports": {
+		"three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+		"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+	  }
+	}
+	</script>
+
+    <!-- ── Viewer-Logik als ES-Module ── -->
+	<script type="module" src="/js/viewer-init.js"></script>
+
+    <style>
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .viewer-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .assembly-list {
+            max-height: 520px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+        .assembly-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+        .assembly-item:last-child  { border-bottom: none; }
+        .assembly-item:hover       { background: #e9ecef; }
+        .assembly-item.active      { background: #d0e8ff;
+                                     border-left: 3px solid #0066cc; }
+        .assembly-item.not-3d      { opacity: 0.6; }
+        .assembly-order-badge {
+            min-width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 50%;
+            background: #0066cc;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .assembly-info     { flex: 1; min-width: 0; }
+        .assembly-name     { font-weight: 500; font-size: 0.9rem;
+                             white-space: nowrap; overflow: hidden;
+                             text-overflow: ellipsis; }
+        .assembly-category { font-size: 0.75rem; color: #6c757d;
+                             margin-top: 0.1rem; }
+        .category-tag {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #0066cc;
+            color: white;
+        }
+        .category-tag.tag-pdf        { background: #dc3545; }
+        .category-tag.tag-nx         { background: #6f42c1; }
+        .category-tag.tag-inventor   { background: #e83e8c; }
+        .category-tag.tag-solidedge  { background: #fd7e14; }
+        .category-tag.tag-rendering  { background: #20c997; }
+        .category-tag.tag-other      { background: #6c757d; }
+        .viewer-canvas-wrapper {
+            background: #1a1a2e;
+            border-radius: 8px;
+            min-height: 560px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .viewer-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+        }
+        .viewer-btn {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .viewer-btn:hover  { background: rgba(255,255,255,0.22); }
+        .viewer-btn.active { background: #0066cc; border-color: #0066cc; }
+        #viewerCanvas {
+            flex: 1;
+            width: 100%;
+            min-height: 460px;
+            display: block;
+        }
+        .viewer-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            padding: 2rem;
+            text-align: center;
+        }
+        .viewer-placeholder-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .viewer-loading {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.7);
+            gap: 1rem;
+        }
+        .progress-bar-wrapper {
+            width: 260px;
+            height: 6px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #0066cc;
+            border-radius: 3px;
+            transition: width 0.2s ease;
+            width: 0%;
+        }
+        .viewer-info-bar {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .category-filter {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .filter-chip {
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+            background: white;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: #343a40;
+        }
+        .filter-chip:hover    { background: #e9ecef; }
+        .filter-chip.selected { background: #0066cc;
+                                color: white;
+                                border-color: #0066cc; }
+        .stat-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .stat-box {
+            background: #f8f9fa; border: 1px solid #dee2e6;
+            border-radius: 6px; padding: 0.6rem 1rem;
+            text-align: center; min-width: 90px;
+        }
+        .stat-box .val { font-size: 1.4rem; font-weight: 700;
+                         color: #0066cc; }
+        .stat-box .lbl { font-size: 0.75rem; color: #6c757d; }
+        @media (max-width: 900px) {
+            .viewer-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>3D Viewer — <span th:text="${objectName}">Objekt</span></h1>
+    <div style="margin-left: auto;">
+        <button onclick="history.back()" class="btn btn-primary">← Zurück</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Statistiken ── -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between;
+                    align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <strong th:text="${objectId}">DS00000001</strong>
+                &nbsp;|&nbsp; Revision-ID:
+                <strong th:text="${revisionId}">1</strong>
+                &nbsp;|&nbsp; Typ:
+                <span th:text="${revisionType}">DESIGN</span>
+            </div>
+            <div class="stat-row">
+                <div class="stat-box">
+                    <div class="val" th:text="${totalCount}">0</div>
+                    <div class="lbl">Datasets</div>
+                </div>
+                <div class="stat-box">
+                    <div class="val" th:text="${viewerCount}">0</div>
+                    <div class="lbl">Viewer-Dateien</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Kategorie-Filter ── -->
+    <div class="card" style="padding-bottom:0.75rem;">
+        <div class="category-filter">
+            <a th:href="@{/viewer/{id}/revision/{rev}(
+                            id=${objectId},rev=${revisionId})}"
+               class="filter-chip"
+               th:classappend="${filterCategory == null} ? ' selected' : ''">
+                Alle (<span th:text="${totalCount}">0</span>)
+            </a>
+            <a th:each="cat : ${availableCategories}"
+               th:href="@{/viewer/{id}/revision/{rev}(
+                            id=${objectId},
+                            rev=${revisionId},
+                            filterCategory=${cat.name()})}"
+               class="filter-chip"
+               th:classappend="${filterCategory == cat} ? ' selected' : ''"
+               th:text="${cat.displayName}">
+                Kategorie
+            </a>
+        </div>
+        <small style="color:#6c757d;">
+            Reihenfolge nach <code>DatasetCategory.ordinal()</code> —
+            Viewer-Kompatibilität über <code>isViewerCompatible()</code>
+        </small>
+    </div>
+
+    <!-- ── Haupt-Layout ── -->
+    <div class="viewer-layout">
+
+        <!-- ── Sidebar ── -->
+        <div class="viewer-sidebar">
+            <div class="card" style="padding:1rem;">
+                <h3 style="margin:0 0 0.75rem;">
+                    📦 Baugruppen
+                    <span style="font-size:0.85rem; color:#6c757d;
+                                 font-weight:normal;">
+                        (sortiert nach Kategorie)
+                    </span>
+                </h3>
+
+                <div th:if="${datasets.empty}"
+                     style="color:#6c757d; padding:1rem 0;">
+                    Keine Datasets vorhanden.
+                </div>
+
+                <div class="assembly-list" th:unless="${datasets.empty}">
+                    <div th:each="ds, stat : ${datasets}"
+                         class="assembly-item"
+                         th:classappend="${ds.category == null
+                                          or not ds.category.isViewerCompatible()}
+                                         ? ' not-3d' : ''"
+                         th:data-dataset-id="${ds.datasetId}"
+                         th:data-file-name="${ds.fileName}"
+                         th:data-category="${ds.category != null
+                                            ? ds.category.name() : ''}"
+                         th:data-viewer-compatible="${ds.category != null
+                                                     and ds.category.isViewerCompatible()
+                                                     ? 'true' : 'false'}"
+                         th:data-glb-url="@{/api/v1/viewer/{id}/glb(
+                                              id=${ds.datasetId})}"
+                         th:data-download-url="@{/api/v1/datasets/{id}/download(
+                                                   id=${ds.datasetId})}"
+                         onclick="selectAssembly(this)">
+
+                        <!-- Positions-Badge -->
+                        <div class="assembly-order-badge">
+                            <span th:text="${stat.index + 1}">1</span>
+                        </div>
+
+                        <!-- Icon -->
+                        <div style="font-size:1.4rem;">
+                            <span th:switch="${ds.category != null
+                                              ? ds.category.name() : 'NONE'}">
+                                <span th:case="'PDF_DOCUMENT'">📋</span>
+                                <span th:case="'DESIGN_NX'">🔷</span>
+                                <span th:case="'DESIGN_INVENTOR'">🔶</span>
+                                <span th:case="'DESIGN_SOLIDEDGE'">🟠</span>
+                                <span th:case="'DESIGN_RENDERING'">🖼️</span>
+                                <span th:case="*">📄</span>
+                            </span>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="assembly-info">
+                            <div class="assembly-name"
+                                 th:text="${ds.fileName}">datei.glb</div>
+                            <div class="assembly-category">
+
+                                <!-- Kategorie-Tag -->
+                                <span th:if="${ds.category != null}"
+                                      class="category-tag"
+                                      th:classappend="
+                                        ${ds.category.name() == 'PDF_DOCUMENT'}
+                                        ? ' tag-pdf'
+                                        : (${ds.category.name() == 'DESIGN_NX'}
+                                           ? ' tag-nx'
+                                           : (${ds.category.name() == 'DESIGN_INVENTOR'}
+                                              ? ' tag-inventor'
+                                              : (${ds.category.name() == 'DESIGN_SOLIDEDGE'}
+                                                 ? ' tag-solidedge'
+                                                 : (${ds.category.name() == 'DESIGN_RENDERING'}
+                                                    ? ' tag-rendering'
+                                                    : ' tag-other'))))"
+                                      th:text="${ds.category.displayName}">
+                                    Kategorie
+                                </span>
+                                <span th:unless="${ds.category != null}"
+                                      class="category-tag tag-other">
+                                    Keine Kategorie
+                                </span>
+
+                                <!-- Viewer-Badge -->
+                                <span th:if="${ds.category != null
+                                              and ds.category.isViewerCompatible()}"
+                                      style="font-size:0.68rem;
+                                             color:#28a745; font-weight:600;">
+                                    ✓ Viewer
+                                </span>
+
+                                <!-- Ordinal -->
+                                <span th:if="${ds.category != null}"
+                                      style="color:#adb5bd; font-size:0.68rem;"
+                                      th:text="'#' + ${ds.category.ordinal()}">
+                                    #0
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Download -->
+                        <a th:href="@{/api/v1/datasets/{id}/download(
+                                        id=${ds.datasetId})}"
+                           onclick="event.stopPropagation()"
+                           title="Herunterladen"
+                           style="color:#0066cc; font-size:1.1rem;
+                                  text-decoration:none;">⬇</a>
+                    </div>
+                </div>
+
+                <!-- Sortier-Legende -->
+                <div style="margin-top:0.75rem; font-size:0.75rem;
+                            color:#6c757d;">
+                    <strong>Sortierung:</strong>
+                    <span th:each="cat, s : ${allCategories}"
+                          th:text="${cat.ordinal() + ':' + cat.displayName
+                                     + (s.last ? '' : ' → ')}">
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Viewer Canvas ── -->
+        <div class="viewer-canvas-wrapper">
+
+            <!-- Toolbar -->
+            <div class="viewer-toolbar">
+                <button class="viewer-btn active"
+                        onclick="setView('perspective')"
+                        id="btn-perspective">Perspektive</button>
+                <button class="viewer-btn"
+                        onclick="setView('front')"
+                        id="btn-front">Vorne</button>
+                <button class="viewer-btn"
+                        onclick="setView('top')"
+                        id="btn-top">Oben</button>
+                <button class="viewer-btn"
+                        onclick="setView('side')"
+                        id="btn-side">Seite</button>
+                <span style="flex:1;"></span>
+                <button class="viewer-btn"
+                        onclick="resetView()">⟳ Reset</button>
+                <button class="viewer-btn"
+                        onclick="toggleWireframe()"
+                        id="btn-wireframe">Wireframe</button>
+                <button class="viewer-btn"
+                        onclick="downloadSelected()"
+                        id="btn-download" disabled>⬇ Download</button>
+            </div>
+
+            <!-- Canvas für Three.js -->
+            <canvas id="viewerCanvas" style="display:none;"></canvas>
+
+            <!-- Ladeindikator -->
+            <div class="viewer-loading" id="viewerLoading">
+                <div style="font-size:2rem;">⏳</div>
+                <div id="loadingText">Lade 3D-Modell...</div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <div id="loadingPercent"
+                     style="font-size:0.8rem; color:rgba(255,255,255,0.5);">
+                    0%
+                </div>
+            </div>
+
+            <!-- Placeholder -->
+            <div class="viewer-placeholder" id="viewerPlaceholder">
+                <div class="viewer-placeholder-icon">🔷</div>
+                <p style="margin:0; font-size:1.1rem;">
+                    Baugruppe aus der Liste auswählen
+                </p>
+                <p style="margin:0.5rem 0 0; font-size:0.85rem;">
+                    Viewer-kompatible Dateien sind mit ✓ Viewer markiert
+                </p>
+                <!--
+                    loaderStatus: wird von viewer-init.js über
+                    window.dispatchEvent('viewerReady') befüllt
+                    und vom UI-Brücken-Script unten aktualisiert
+                -->
+                <p style="margin:0.5rem 0 0; font-size:0.75rem; opacity:0.5;"
+                   id="loaderStatus">
+                    Lade Three.js (ES Module)...
+                </p>
+            </div>
+
+            <!-- Info-Bar -->
+            <div class="viewer-info-bar">
+                <span id="infoFileName">Keine Datei geladen</span>
+                <span id="infoCategory"></span>
+                <span id="infoPolycount"></span>
+                <span style="flex:1;"></span>
+                <span id="infoView">Ansicht: Perspektive</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── API Info ── -->
+    <div class="card" sec:authorize="hasAuthority('EXECUTE')">
+        <h3>🔌 API-Endpunkte</h3>
+        <code style="display:block; background:#f8f9fa; padding:0.75rem;
+                     border-radius:4px; font-size:0.82rem; line-height:1.9;">
+            GET /api/v1/viewer/<span th:text="${objectId}">DS00000001</span>/revision/<span
+                th:text="${revisionId}">1</span>/assemblies<br>
+            GET /api/v1/viewer/{datasetId}/glb<br>
+            GET /api/v1/viewer/category-order
+        </code>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     UI-Brücke: verbindet HTML-Toolbar mit viewer-init.js (ES-Module)
+     viewer-init.js exportiert Funktionen über window.*
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+    /* ── Loader-Status im Placeholder aktualisieren ── */
+    document.addEventListener('DOMContentLoaded', function () {
+        const loaderStatus = document.getElementById('loaderStatus');
+        if (loaderStatus) {
+            loaderStatus.textContent = 'Lade Three.js (ES Module)...';
+        }
+
+        /* viewer-init.js meldet Bereitschaft über CustomEvent 'viewerReady' */
+        window.addEventListener('viewerReady', function (e) {
+            if (loaderStatus) {
+                loaderStatus.textContent =
+                    e.detail && e.detail.message
+                        ? e.detail.message
+                        : '✓ Viewer bereit';
+            }
+        });
+    });
+
+    /* ── Toolbar-Funktionen ──────────────────────────────────────
+       Alle Aufrufe delegieren an window.* – gesetzt von viewer-init.js.
+       Fallback-Warnung wenn viewer-init.js noch nicht geladen ist.
+    ────────────────────────────────────────────────────────────── */
+
+    function selectAssembly(element) {
+        if (typeof window.selectAssembly === 'function') {
+            window.selectAssembly(element);
+        } else {
+            console.warn('viewer-init.js noch nicht bereit – selectAssembly');
+        }
+    }
+
+    function setView(view) {
+        if (typeof window.setView === 'function') {
+            window.setView(view);
+        } else {
+            console.warn('viewer-init.js noch nicht bereit – setView');
+        }
+    }
+
+    function resetView() {
+        if (typeof window.resetView === 'function') {
+            window.resetView();
+        } else {
+            console.warn('viewer-init.js noch nicht bereit – resetView');
+        }
+    }
+
+    function toggleWireframe() {
+        if (typeof window.toggleWireframe === 'function') {
+            window.toggleWireframe();
+        } else {
+            console.warn('viewer-init.js noch nicht bereit – toggleWireframe');
+        }
+    }
+
+    function downloadSelected() {
+        if (typeof window.downloadSelected === 'function') {
+            window.downloadSelected();
+        } else {
+            console.warn('viewer-init.js noch nicht bereit – downloadSelected');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -15,19 +15,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * REST API für Dataset-Operationen
  * Optimiert für VBScript / externe Clients
  *
  * Basis-URL: /api/v1/datasets
- *
- * AUTHENTIFIZIERUNG:
- *   Erst POST /api/login aufrufen → sessionId merken
- *   Dann alle Requests mit Cookie: JSESSIONID={sessionId} senden
  */
 @RestController
 @RequestMapping("/api/v1/datasets")
@@ -37,11 +33,11 @@ public class DatasetApiController {
 
     private final DatasetService datasetService;
 
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
     // LIST - Alle Datasets einer Revision abrufen
     // GET /api/v1/datasets?revisionId=123&revisionType=DESIGN
     // GET /api/v1/datasets?revisionId=123&revisionType=EBOM&category=PDF_DOCUMENT
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
 
     @GetMapping
     @PreAuthorize("hasAuthority('READ')")
@@ -54,10 +50,9 @@ public class DatasetApiController {
                     ? datasetService.getDatasetsByCategory(revisionId, revisionType, category)
                     : datasetService.getDatasets(revisionId, revisionType);
 
-            // VBScript-freundliche Antwort
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("count", datasets.size());
+            response.put("success",  true);
+            response.put("count",    datasets.size());
             response.put("datasets", datasets.stream()
                     .map(this::toSimpleMap)
                     .toList());
@@ -70,10 +65,10 @@ public class DatasetApiController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
     // GET ONE - Einzelnes Dataset abrufen
     // GET /api/v1/datasets/{datasetId}
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
 
     @GetMapping("/{datasetId}")
     @PreAuthorize("hasAuthority('READ')")
@@ -93,10 +88,10 @@ public class DatasetApiController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
     // DOWNLOAD - Datei herunterladen
     // GET /api/v1/datasets/{datasetId}/download
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
 
     @GetMapping("/{datasetId}/download")
     @PreAuthorize("hasAuthority('READ')")
@@ -109,14 +104,13 @@ public class DatasetApiController {
                     ? dataset.getMimeType()
                     : MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
-            // Content-Disposition: attachment → VBScript speichert direkt
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(mimeType))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=\"" + dataset.getFileName() + "\"")
-                    .header("X-Dataset-Id",   String.valueOf(dataset.getDatasetId()))
-                    .header("X-File-Size",    String.valueOf(dataset.getFileSize()))
-                    .header("X-Revision-Id",  String.valueOf(dataset.getRevisionId()))
+                    .header("X-Dataset-Id",  String.valueOf(dataset.getDatasetId()))
+                    .header("X-File-Size",   String.valueOf(dataset.getFileSize()))
+                    .header("X-Revision-Id", String.valueOf(dataset.getRevisionId()))
                     .body(resource);
 
         } catch (MalformedURLException e) {
@@ -128,13 +122,10 @@ public class DatasetApiController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
     // UPLOAD - Neue Datei hochladen
     // POST /api/v1/datasets/upload
-    //   Parameter: revisionId, revisionType, file, category (optional)
-    // ══════════════════════════════════════════════════════════
-	
-	
+    // ══════════════════════════════════════════════════════
 
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('WRITE')")
@@ -145,8 +136,8 @@ public class DatasetApiController {
             @RequestParam(required = false) DatasetCategory category) {
         try {
             log.info("Upload: RevisionId={}, Type={}, Datei={}, Größe={} bytes",
-                     revisionId, revisionType,
-                     file.getOriginalFilename(), file.getSize());
+                    revisionId, revisionType,
+                    file.getOriginalFilename(), file.getSize());
 
             Dataset dataset = datasetService.createDataset(
                     revisionId, revisionType, file, category);
@@ -168,14 +159,14 @@ public class DatasetApiController {
             return ResponseEntity.badRequest().body(errorMap(e.getMessage()));
         } catch (IOException e) {
             log.error("IO-Fehler beim Upload: {}", e.getMessage());
-            return ResponseEntity.status(500).body(errorMap("Fehler beim Speichern der Datei"));
+            return ResponseEntity.status(500).body(errorMap("Fehler beim Speichern"));
         }
     }
 
-    // ══════════════════════════════════════════════════════════
-    // UPDATE CATEGORY - Kategorie ändern
-    // PATCH /api/v1/datasets/{datasetId}/category?category=PDF_DOCUMENT
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
+    // UPDATE CATEGORY
+    // PATCH /api/v1/datasets/{datasetId}/category
+    // ══════════════════════════════════════════════════════
 
     @PatchMapping("/{datasetId}/category")
     @PreAuthorize("hasAuthority('WRITE')")
@@ -198,17 +189,16 @@ public class DatasetApiController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
     // DELETE - Dataset löschen
     // DELETE /api/v1/datasets/{datasetId}
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
 
     @DeleteMapping("/{datasetId}")
     @PreAuthorize("hasAuthority('DELETE')")
     public ResponseEntity<?> deleteDataset(@PathVariable Long datasetId) {
         try {
-            // Infos vor dem Löschen merken
-            Dataset dataset = datasetService.getDataset(datasetId);
+            Dataset dataset  = datasetService.getDataset(datasetId);
             String  fileName = dataset.getFileName();
 
             datasetService.deleteDataset(datasetId);
@@ -222,21 +212,21 @@ public class DatasetApiController {
 
         } catch (IOException e) {
             log.error("Fehler beim Löschen von Dataset {}: {}", datasetId, e.getMessage());
-            return ResponseEntity.status(500).body(errorMap("Fehler beim Löschen der Datei"));
+            return ResponseEntity.status(500).body(errorMap("Fehler beim Löschen"));
         } catch (Exception e) {
             return ResponseEntity.status(404).body(errorMap(e.getMessage()));
         }
     }
 
-    // ══════════════════════════════════════════════════════════
-    // CHECK - Prüfen ob Datei bereits existiert
-    // GET /api/v1/datasets/exists?revisionId=123&revisionType=DESIGN&fileName=test.pdf
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
+    // EXISTS CHECK
+    // GET /api/v1/datasets/exists?revisionId=&revisionType=&fileName=
+    // ══════════════════════════════════════════════════════
 
     @GetMapping("/exists")
     @PreAuthorize("hasAuthority('READ')")
     public ResponseEntity<?> checkExists(
-            @RequestParam Long revisionId,
+            @RequestParam Long   revisionId,
             @RequestParam String revisionType,
             @RequestParam String fileName) {
 
@@ -244,22 +234,23 @@ public class DatasetApiController {
                 revisionId, revisionType, fileName);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("exists",  exists);
+        response.put("success",  true);
+        response.put("exists",   exists);
         response.put("fileName", fileName);
 
         return ResponseEntity.ok(response);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // CATEGORIES - Verfügbare Kategorien abrufen
+    // ══════════════════════════════════════════════════════
+    // CATEGORIES - Verfügbare Kategorien
     // GET /api/v1/datasets/categories
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
 
     @GetMapping("/categories")
     @PreAuthorize("hasAuthority('READ')")
     public ResponseEntity<?> getCategories() {
-        List<Map<String, String>> categories = List.of(DatasetCategory.values()).stream()
+        List<Map<String, String>> categories = List.of(DatasetCategory.values())
+                .stream()
                 .map(cat -> Map.of(
                         "name",        cat.name(),
                         "displayName", cat.getDisplayName()))
@@ -271,26 +262,131 @@ public class DatasetApiController {
 
         return ResponseEntity.ok(response);
     }
+	
+	@GetMapping("/object/{objectId}/revision/{revisionId}")
+	@PreAuthorize("hasAuthority('READ')")
+	public ResponseEntity<?> getDatasetsByObjectAndRevision(
+        @PathVariable String objectId,
+        @PathVariable Long   revisionId) {
+    try {
+        // RevisionType aus Präfix ableiten
+        String prefix       = objectId.substring(0, 2).toUpperCase();
+        String revisionType = switch (prefix) {
+            case "DS" -> "DESIGN";
+            case "DR" -> "DRAWING";
+            default   -> "EBOM";
+        };
 
-    // ──────────────────────────────────────────────
+        List<Dataset> datasets =
+                datasetService.getDatasets(revisionId, revisionType);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success",      true);
+        response.put("objectId",     objectId);
+        response.put("revisionId",   revisionId);
+        response.put("revisionType", revisionType);
+        response.put("count",        datasets.size());
+        response.put("datasets",     datasets.stream()
+                                             .map(this::toDetailMap)
+                                             .toList());
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+        log.error("Fehler: {}", e.getMessage());
+        return ResponseEntity.status(500).body(errorMap(e.getMessage()));
+    }
+}
+
+	
+@GetMapping("/object/{objectId}/latest")
+@PreAuthorize("hasAuthority('READ')")
+public ResponseEntity<?> getDatasetsByObjectLatest(
+        @PathVariable String objectId) {
+    try {
+        // ✅ getDatasetsByObjectId() aus Service nutzen
+        List<Dataset> datasets =
+                datasetService.getDatasetsByObjectId(objectId);
+
+        // Nur neueste RevisionId behalten
+        if (!datasets.isEmpty()) {
+            Long latestRevId = datasets.stream()
+                    .mapToLong(Dataset::getRevisionId)
+                    .max()
+                    .orElse(-1L);
+
+            datasets = datasets.stream()
+                    .filter(d -> d.getRevisionId().equals(latestRevId))
+                    .toList();
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success",  true);
+        response.put("objectId", objectId);
+        response.put("count",    datasets.size());
+        response.put("datasets", datasets.stream()
+                                         .map(this::toDetailMap)
+                                         .toList());
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+        log.error("Fehler: {}", e.getMessage());
+        return ResponseEntity.status(500).body(errorMap(e.getMessage()));
+    }
+}
+
+	
+@GetMapping("/object/{objectId}/all")
+@PreAuthorize("hasAuthority('READ')")
+public ResponseEntity<?> getDatasetsByObject(
+        @PathVariable String objectId) {
+    try {
+        // ✅ getDatasetsByObjectId() aus Service nutzen
+        List<Dataset> datasets =
+                datasetService.getDatasetsByObjectId(objectId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success",    true);
+        response.put("objectId",   objectId);
+        response.put("objectType", objectId.length() >= 2
+                                    ? objectId.substring(0, 2) : "unknown");
+        response.put("count",      datasets.size());
+        response.put("datasets",   datasets.stream()
+                                           .map(this::toDetailMap)
+                                           .toList());
+
+        return ResponseEntity.ok(response);
+
+    } catch (IllegalArgumentException e) {
+        log.warn("Ungültige Object-ID: {}", objectId);
+        return ResponseEntity.badRequest().body(errorMap(e.getMessage()));
+    } catch (Exception e) {
+        log.error("Fehler: {}", e.getMessage());
+        return ResponseEntity.status(500).body(errorMap(e.getMessage()));
+    }
+}
+
+
+
+    // ══════════════════════════════════════════════════════
     // HILFSMETHODEN
-    // ──────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
 
-    /** Kompakte Darstellung für Listen */
     private Map<String, Object> toSimpleMap(Dataset d) {
         Map<String, Object> map = new HashMap<>();
         map.put("datasetId",   d.getDatasetId());
         map.put("fileName",    d.getFileName());
         map.put("fileSize",    d.getFileSize());
         map.put("mimeType",    d.getMimeType());
-        map.put("category",    d.getCategory() != null ? d.getCategory().name() : null);
+        map.put("category",    d.getCategory() != null
+                                ? d.getCategory().name() : null);
         map.put("createdDate", d.getCreatedDate() != null
                                 ? d.getCreatedDate().toString() : null);
         map.put("createdBy",   d.getCreatedBy());
         return map;
     }
 
-    /** Detaillierte Darstellung für Einzelabruf */
     private Map<String, Object> toDetailMap(Dataset d) {
         Map<String, Object> map = toSimpleMap(d);
         map.put("revisionId",   d.getRevisionId());

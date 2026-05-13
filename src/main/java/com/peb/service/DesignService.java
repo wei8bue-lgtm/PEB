@@ -9,6 +9,7 @@ import com.peb.repository.DesignRevisionRepository;
 import com.peb.util.ObjectType;
 import com.peb.util.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,14 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DesignService {
 
-    private final DesignRepository designRepository;
-    private final DesignRevisionRepository designRevisionRepository;
-    private final IDGeneratorService idGeneratorService;
-    private final SynchronizationService synchronizationService;
-    private final EBOMService ebomService;
+    private final DesignRepository           designRepository;
+    private final DesignRevisionRepository   designRevisionRepository;
+    private final IDGeneratorService         idGeneratorService;
+    private final SynchronizationService     synchronizationService;
+    private final EBOMService                ebomService;
 
     @Transactional
     public Design createDesign(String name, String department) {
@@ -42,7 +44,6 @@ public class DesignService {
         revision.setRevision("01");
         revision.setReleaseStatus(ReleaseStatus.WORKING);
         revision.syncFromParent();
-
         designRevisionRepository.save(revision);
 
         return design;
@@ -51,7 +52,8 @@ public class DesignService {
     @Transactional(readOnly = true)
     public Design getDesign(String id) {
         return designRepository.findById(id)
-            .orElseThrow(() -> new ObjectNotFoundException("Design not found: " + id));
+                .orElseThrow(() -> new ObjectNotFoundException(
+                        "Design not found: " + id));
     }
 
     @Transactional(readOnly = true)
@@ -59,32 +61,67 @@ public class DesignService {
         return designRepository.findAll();
     }
 
+    /**
+     * Design aktualisieren.
+     *
+     * Sync-Reihenfolge ist entscheidend:
+     * 1. Alte Werte merken
+     * 2. Design speichern  ← ERST DANN in DB vorhanden
+     * 3. Sync ausführen    ← liest neue Werte aus DB
+     */
     @Transactional
-    public Design updateDesign(String id, String name, String department, String mass, String material) {
+    public Design updateDesign(String id, String name, String department,
+                               String mass, String material, String childView) {
         Design design = getDesign(id);
-        
-        String oldMass = design.getMass();
-        
+
+        // 1. Alte Werte merken (VOR setMass/setMaterial)
+        String oldMass     = design.getMass();
+        String oldMaterial = design.getMaterial();
+
+        // 2. Felder setzen
         design.setName(name);
         design.setDepartment(department);
         design.setMass(mass);
         design.setMaterial(material);
+        design.setChildView(childView);
 
-        // Sync to latest working revision
+        // Revision synchronisieren
         DesignRevision latestRevision = design.getLatestRevision();
-        if (latestRevision != null && latestRevision.getReleaseStatus() == ReleaseStatus.WORKING) {
+        if (latestRevision != null
+                && latestRevision.getReleaseStatus() == ReleaseStatus.WORKING) {
             latestRevision.syncFromParent();
             designRevisionRepository.save(latestRevision);
         }
 
+        // 3. ERST speichern – dann Sync (damit DB aktuell ist)
         Design savedDesign = designRepository.save(design);
+        designRepository.flush(); // sicherstellen dass Werte in DB sind
 
-        // Sync mass to linked eBOM objects if mass changed
+        // 4. Mass geändert → alle verlinkten eBOM-Objekte aktualisieren
         if (mass != null && !mass.equals(oldMass)) {
+            log.info("Design[{}] mass geändert: '{}' → '{}' → Sync zu eBOM",
+                     id, oldMass, mass);
             syncMassToLinkedEBOMObjects(id);
         }
 
+        // 5. Material geändert → Info loggen
+        //    (Material-Sync läuft eBOM → Design, nicht andersrum)
+        if (material != null && !material.equals(oldMaterial)) {
+            log.info("Design[{}] material geändert: '{}' → '{}'",
+                     id, oldMaterial, material);
+        }
+
         return savedDesign;
+    }
+
+    /**
+     * Überladene Methode für Rückwärtskompatibilität
+     * (falls andere Stellen updateDesign ohne childView aufrufen)
+     */
+    @Transactional
+    public Design updateDesign(String id, String name, String department,
+                               String mass, String material) {
+        return updateDesign(id, name, department, mass, material, null);
     }
 
     @Transactional
@@ -99,16 +136,19 @@ public class DesignService {
     }
 
     /**
-     * Sync mass from this design to all linked eBOM objects
+     * Mass aus diesem Design an alle verlinkten eBOM-Objekte propagieren.
+     * Wird nach designRepository.flush() aufgerufen damit DB-Werte aktuell.
      */
     @Transactional
     public void syncMassToLinkedEBOMObjects(String designId) {
         List<EBOMObject> allEBOMObjects = ebomService.getAllEBOMObjects();
-        
-        for (EBOMObject ebom : allEBOMObjects) {
-            if (designId.equals(ebom.getLinkedDesignId())) {
-                synchronizationService.syncMassFromDesign(designId, ebom.getId());
-            }
-        }
+
+        long count = allEBOMObjects.stream()
+                .filter(ebom -> designId.equals(ebom.getLinkedDesignId()))
+                .peek(ebom -> synchronizationService
+                        .syncMassFromDesign(designId, ebom.getId()))
+                .count();
+
+        log.info("Mass-Sync Design[{}] → {} verlinkte eBOM-Objekte", designId, count);
     }
 }

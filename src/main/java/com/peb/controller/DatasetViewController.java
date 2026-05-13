@@ -1,5 +1,6 @@
 package com.peb.controller;
 
+import com.peb.exception.ObjectNotFoundException;
 import com.peb.model.base.Dataset;
 import com.peb.model.ebom.DatasetCategory;
 import com.peb.service.DatasetService;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Controller für Dataset-Verwaltungsseiten
+ * Controller für Dataset-Verwaltungsseiten (Thymeleaf Views)
  */
 @Controller
 @RequestMapping("/datasets")
@@ -25,6 +26,10 @@ public class DatasetViewController {
 
     private final DatasetService datasetService;
 
+    // ══════════════════════════════════════════════════
+    // DATASET SEITE ANZEIGEN
+    // ══════════════════════════════════════════════════
+
     @GetMapping("/manage/{revisionType}/{revisionId}")
     public String manageDatasets(
             @PathVariable String revisionType,
@@ -32,39 +37,33 @@ public class DatasetViewController {
             Model model) {
 
         try {
-            List<Dataset> datasets = datasetService.getDatasets(revisionId, revisionType);
+            List<Dataset> datasets = datasetService
+                    .getDatasets(revisionId, revisionType);
 
-            // ── Statistiken im Controller berechnen ──────────────
-            long totalSize     = 0;
-            long withCategory  = 0;
+            // Statistiken im Controller berechnen
+            long totalBytes = 0L;
+            long countWithCategory = 0L;
 
             for (Dataset d : datasets) {
                 if (d.getFileSize() != null) {
-                    totalSize += d.getFileSize();
+                    totalBytes += d.getFileSize();
                 }
                 if (d.getCategory() != null) {
-                    withCategory++;
+                    countWithCategory++;
                 }
             }
 
             // Größe formatieren
             String totalSizeFormatted;
-            if (totalSize >= 1048576) {
-                totalSizeFormatted = String.format("%.1f MB", totalSize / 1048576.0);
-            } else if (totalSize >= 1024) {
-                totalSizeFormatted = String.format("%.1f KB", totalSize / 1024.0);
+            if (totalBytes >= 1048576) {
+                totalSizeFormatted = String.format("%.1f MB",
+                        totalBytes / 1048576.0);
+            } else if (totalBytes >= 1024) {
+                totalSizeFormatted = String.format("%.1f KB",
+                        totalBytes / 1024.0);
             } else {
-                totalSizeFormatted = totalSize + " Bytes";
+                totalSizeFormatted = totalBytes + " Bytes";
             }
-
-            // Model befüllen
-            model.addAttribute("datasets",            datasets);
-            model.addAttribute("revisionId",          revisionId);
-            model.addAttribute("revisionType",        revisionType);
-            model.addAttribute("categories",          DatasetCategory.values());
-            model.addAttribute("totalCount",          datasets.size());
-            model.addAttribute("totalSizeFormatted",  totalSizeFormatted);
-            model.addAttribute("withCategoryCount",   withCategory);
 
             // Seitentitel
             String pageTitle = switch (revisionType.toUpperCase()) {
@@ -73,61 +72,91 @@ public class DatasetViewController {
                 case "DRAWING" -> "Datasets - Drawing Revision";
                 default        -> "Datasets - Revision " + revisionId;
             };
-            model.addAttribute("pageTitle", pageTitle);
+
+            model.addAttribute("datasets",          datasets);
+            model.addAttribute("revisionId",        revisionId);
+            model.addAttribute("revisionType",      revisionType);
+            model.addAttribute("categories",        DatasetCategory.values());
+            model.addAttribute("pageTitle",         pageTitle);
+            model.addAttribute("totalSize",         totalSizeFormatted);
+            model.addAttribute("countWithCategory", countWithCategory);
+            model.addAttribute("datasetCount",      datasets.size());
+
+            log.info("Dataset-Seite: type={}, revisionId={}, count={}",
+                     revisionType, revisionId, datasets.size());
 
         } catch (Exception e) {
-            log.error("Fehler beim Laden der Datasets: {}", e.getMessage(), e);
-            model.addAttribute("error",           "Fehler beim Laden: " + e.getMessage());
-            model.addAttribute("datasets",         List.of());
-            model.addAttribute("revisionId",       revisionId);
-            model.addAttribute("revisionType",     revisionType);
-            model.addAttribute("categories",       DatasetCategory.values());
-            model.addAttribute("totalCount",       0);
-            model.addAttribute("totalSizeFormatted", "0 Bytes");
-            model.addAttribute("withCategoryCount",  0);
-            model.addAttribute("pageTitle",        "Datasets");
+            log.error("Fehler beim Laden der Datasets: {}", e.getMessage());
+            model.addAttribute("error",             "Fehler: " + e.getMessage());
+            model.addAttribute("datasets",          List.of());
+            model.addAttribute("revisionId",        revisionId);
+            model.addAttribute("revisionType",      revisionType);
+            model.addAttribute("categories",        DatasetCategory.values());
+            model.addAttribute("pageTitle",         "Datasets");
+            model.addAttribute("totalSize",         "0 Bytes");
+            model.addAttribute("countWithCategory", 0L);
+            model.addAttribute("datasetCount",      0);
         }
 
         return "dataset-manage";
     }
+
+    // ══════════════════════════════════════════════════
+    // UPLOAD
+    // ══════════════════════════════════════════════════
 
     @PostMapping("/upload")
     public String uploadDataset(
             @RequestParam Long                          revisionId,
             @RequestParam String                        revisionType,
             @RequestParam MultipartFile                 file,
-            @RequestParam(required = false) DatasetCategory category,
+            @RequestParam(required = false)
+                          DatasetCategory               category,
             RedirectAttributes                          redirectAttributes) {
 
+        String redirectUrl = "redirect:/datasets/manage/"
+                + revisionType + "/" + revisionId;
+
         try {
-            if (file.isEmpty()) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Bitte eine Datei auswählen!");
-                return "redirect:/datasets/manage/" + revisionType + "/" + revisionId;
+            if (file == null || file.isEmpty()) {
+                redirectAttributes.addFlashAttribute(
+                        "error", "Bitte eine Datei auswählen!");
+                return redirectUrl;
             }
 
             Dataset dataset = datasetService.createDataset(
                     revisionId, revisionType, file, category);
 
-            redirectAttributes.addFlashAttribute("success",
-                    "Datei '" + dataset.getFileName() + "' erfolgreich hochgeladen!");
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Datei '" + dataset.getFileName()
+                    + "' erfolgreich hochgeladen!");
+
+            log.info("Upload OK: {}, RevisionId={}",
+                     dataset.getFileName(), revisionId);
 
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Validierungsfehler: " + e.getMessage());
+            log.warn("Upload Validierung: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "error", "Validierungsfehler: " + e.getMessage());
+
         } catch (IOException e) {
-            log.error("Upload-Fehler: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error",
-                    "Upload fehlgeschlagen: " + e.getMessage());
+            log.error("Upload IO-Fehler: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "error", "Upload fehlgeschlagen: " + e.getMessage());
+
+        } catch (Exception e) {
+            log.error("Upload unbekannter Fehler: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "error", "Unbekannter Fehler: " + e.getMessage());
         }
 
-        return "redirect:/datasets/manage/" + revisionType + "/" + revisionId;
+        return redirectUrl;
     }
 
-    @GetMapping("/download/{datasetId}")
-    public String downloadDataset(@PathVariable Long datasetId) {
-        return "redirect:/api/v1/datasets/" + datasetId + "/download";
-    }
+    // ══════════════════════════════════════════════════
+    // DELETE
+    // ══════════════════════════════════════════════════
 
     @PostMapping("/delete/{datasetId}")
     public String deleteDataset(
@@ -136,24 +165,55 @@ public class DatasetViewController {
             @RequestParam String       revisionType,
             RedirectAttributes         redirectAttributes) {
 
+        String redirectUrl = "redirect:/datasets/manage/"
+                + revisionType + "/" + revisionId;
+
         try {
-            Dataset dataset  = datasetService.getDataset(datasetId);
-            String  fileName = dataset.getFileName();
+            // ── Dateiname VOR dem Löschen holen ──────────────
+            // Direkt aus der Liste der Revision holen
+            // um getDataset() zu vermeiden falls nicht vorhanden
+            List<Dataset> datasets = datasetService
+                    .getDatasets(revisionId, revisionType);
+
+            String fileName = datasets.stream()
+                    .filter(d -> d.getDatasetId().equals(datasetId))
+                    .map(Dataset::getFileName)
+                    .findFirst()
+                    .orElse("ID: " + datasetId);
 
             datasetService.deleteDataset(datasetId);
 
-            redirectAttributes.addFlashAttribute("success",
+            redirectAttributes.addFlashAttribute(
+                    "success",
                     "Datei '" + fileName + "' erfolgreich gelöscht!");
 
+            log.info("Dataset gelöscht: ID={}", datasetId);
+
         } catch (IOException e) {
-            log.error("Lösch-Fehler: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error",
-                    "Löschen fehlgeschlagen: " + e.getMessage());
+            log.error("Lösch IO-Fehler: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "error", "Löschen fehlgeschlagen: " + e.getMessage());
+
+        } catch (ObjectNotFoundException e) {
+            log.warn("Dataset nicht gefunden: ID={}", datasetId);
+            redirectAttributes.addFlashAttribute(
+                    "error", "Dataset nicht gefunden: " + datasetId);
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Fehler: " + e.getMessage());
+            log.error("Lösch-Fehler: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(
+                    "error", "Fehler beim Löschen: " + e.getMessage());
         }
 
-        return "redirect:/datasets/manage/" + revisionType + "/" + revisionId;
+        return redirectUrl;
+    }
+
+    // ══════════════════════════════════════════════════
+    // DOWNLOAD REDIRECT
+    // ══════════════════════════════════════════════════
+
+    @GetMapping("/download/{datasetId}")
+    public String downloadRedirect(@PathVariable Long datasetId) {
+        return "redirect:/api/v1/datasets/" + datasetId + "/download";
     }
 }

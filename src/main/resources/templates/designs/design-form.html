@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="icon" href="data:,">
     <title>Create Design - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
     <div class="header">
@@ -28,31 +29,39 @@
             <form th:action="@{/designs}" th:object="${design}" method="post">
                 <div class="form-group">
                     <label for="name">Name *</label>
-                    <input type="text" id="name" th:field="*{name}" required maxlength="256" 
+                    <input type="text" id="name" th:field="*{name}"
+                           required maxlength="256"
                            placeholder="Enter design name">
                 </div>
 
                 <div class="form-group">
                     <label for="department">Department</label>
-                    <input type="text" id="department" th:field="*{department}" maxlength="128" 
+                    <input type="text" id="department" th:field="*{department}"
+                           maxlength="128"
                            placeholder="Enter department (optional)">
                 </div>
 
                 <div class="form-group">
                     <label for="mass">Mass (kg)</label>
-                    <input type="text" id="mass" th:field="*{mass}" maxlength="8" 
+                    <input type="text" id="mass" th:field="*{mass}"
+                           maxlength="8"
                            placeholder="e.g., 100.5">
                 </div>
 
                 <div class="form-group">
                     <label for="material">Material</label>
-                    <input type="text" id="material" th:field="*{material}" maxlength="256" 
+                    <input type="text" id="material" th:field="*{material}"
+                           maxlength="256"
                            placeholder="e.g., Steel, Aluminum">
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success">Create Design</button>
-                    <a th:href="@{/designs}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        Create Design
+                    </button>
+                    <a th:href="@{/designs}" class="btn btn-secondary">
+                        Cancel
+                    </a>
                 </div>
             </form>
         </div>
@@ -61,20 +70,20 @@
             <h3>Information</h3>
             <ul>
                 <li>Name is required (max 256 characters)</li>
-                <li>A unique ID will be automatically generated (format: DS00000001)</li>
-                <li>An initial revision (01) will be created automatically</li>
-                <li>The initial revision status will be "Working"</li>
+                <li>ID wird automatisch generiert (Format: DS00000001)</li>
+                <li>Revision 01 wird automatisch angelegt</li>
+                <li>Initialer Status: "Working"</li>
             </ul>
         </div>
     </div>
 
     <style>
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .alert-danger {
+            background-color: #f8d7da; color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 1rem; border-radius: 4px; margin-bottom: 1rem;
         }
     </style>
 </body>

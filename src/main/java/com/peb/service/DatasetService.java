@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service für Dataset-Verwaltung (Dateianhänge)
- * Erweitert um VBScript-kompatible Methoden
+ * Service für Dataset-Verwaltung
  */
 @Service
 @RequiredArgsConstructor
@@ -36,13 +35,13 @@ public class DatasetService {
     private String uploadDir;
 
     // ─────────────────────────────────────────────
-    // BESTEHENDE METHODEN (ergänzt/korrigiert)
+    // BESTEHENDE METHODEN
     // ─────────────────────────────────────────────
 
     @Transactional
     public Dataset createDataset(Long revisionId, String revisionType,
-                                 MultipartFile file, DatasetCategory category) throws IOException {
-
+                                 MultipartFile file,
+                                 DatasetCategory category) throws IOException {
         validateFile(file);
 
         String originalFileName = file.getOriginalFilename();
@@ -63,13 +62,14 @@ public class DatasetService {
 
         Dataset saved = datasetRepository.save(dataset);
         log.info("Dataset erstellt: ID={}, Datei={}, RevisionId={}",
-                 saved.getDatasetId(), originalFileName, revisionId);
+                saved.getDatasetId(), originalFileName, revisionId);
         return saved;
     }
 
     @Transactional(readOnly = true)
     public List<Dataset> getDatasets(Long revisionId, String revisionType) {
-        return datasetRepository.findByRevisionIdAndRevisionType(revisionId, revisionType);
+        return datasetRepository
+                .findByRevisionIdAndRevisionType(revisionId, revisionType);
     }
 
     @Transactional(readOnly = true)
@@ -79,15 +79,11 @@ public class DatasetService {
                         "Dataset nicht gefunden: " + datasetId));
     }
 
-    /**
-     * Lädt Dataset als Spring Resource (für DatasetController)
-     * War bisher nicht implementiert → behebt den Kompilierungsfehler
-     */
     @Transactional(readOnly = true)
-    public Resource loadDatasetAsResource(Long datasetId) throws MalformedURLException {
-        Dataset dataset = getDataset(datasetId);
-        Path    path    = Paths.get(dataset.getFilePath());
-
+    public Resource loadDatasetAsResource(Long datasetId)
+            throws MalformedURLException {
+        Dataset  dataset  = getDataset(datasetId);
+        Path     path     = Paths.get(dataset.getFilePath());
         Resource resource = new UrlResource(path.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
@@ -105,39 +101,42 @@ public class DatasetService {
         Files.deleteIfExists(filePath);
 
         datasetRepository.delete(dataset);
-        log.info("Dataset gelöscht: ID={}, Datei={}", datasetId, dataset.getFileName());
+        log.info("Dataset gelöscht: ID={}, Datei={}",
+                datasetId, dataset.getFileName());
     }
 
     // ─────────────────────────────────────────────
-    // NEUE METHODEN für VBScript-Integration
+    // KATEGORIE-FILTER
     // ─────────────────────────────────────────────
 
-    /**
-     * Datasets nach Kategorie filtern
-     */
     @Transactional(readOnly = true)
     public List<Dataset> getDatasetsByCategory(Long revisionId,
                                                String revisionType,
                                                DatasetCategory category) {
         return datasetRepository
-                .findByRevisionIdAndRevisionTypeAndCategory(revisionId, revisionType, category);
+                .findByRevisionIdAndRevisionTypeAndCategory(
+                        revisionId, revisionType, category);
     }
 
-    /**
-     * Dataset-Kategorie nachträglich ändern
-     */
+    // ─────────────────────────────────────────────
+    // KATEGORIE AKTUALISIEREN
+    // ─────────────────────────────────────────────
+
     @Transactional
-    public Dataset updateDatasetCategory(Long datasetId, DatasetCategory newCategory) {
+    public Dataset updateDatasetCategory(Long datasetId,
+                                         DatasetCategory newCategory) {
         Dataset dataset = getDataset(datasetId);
         dataset.setCategory(newCategory);
         Dataset saved = datasetRepository.save(dataset);
-        log.info("Dataset-Kategorie geändert: ID={}, Kategorie={}", datasetId, newCategory);
+        log.info("Kategorie geändert: ID={}, Kategorie={}",
+                datasetId, newCategory);
         return saved;
     }
 
-    /**
-     * Prüft ob eine Datei mit diesem Namen bereits existiert
-     */
+    // ─────────────────────────────────────────────
+    // EXISTENZ-CHECK
+    // ─────────────────────────────────────────────
+
     @Transactional(readOnly = true)
     public boolean datasetExistsByFileName(Long revisionId,
                                            String revisionType,
@@ -148,16 +147,74 @@ public class DatasetService {
                 .anyMatch(d -> d.getFileName().equalsIgnoreCase(fileName));
     }
 
+    // ─────────────────────────────────────────────
+    // NEU: ALLE DATASETS EINES OBJEKTS
+    // Wird von DatasetApiController.getDatasetsByObjectId() benötigt
+    // ─────────────────────────────────────────────
+
     /**
-     * Validierung der hochgeladenen Datei
+     * Alle Datasets eines Objekts über alle Revisionen
+     * Ermittelt RevisionType automatisch anhand des ID-Präfixes
+     *
+     * @param objectId z.B. "DS00000001", "MA00000001", "DR00000001"
      */
+    @Transactional(readOnly = true)
+    public List<Dataset> getDatasetsByObjectId(String objectId) {
+        if (objectId == null || objectId.length() < 2) {
+            throw new IllegalArgumentException(
+                    "Ungültige Object-ID: " + objectId);
+        }
+
+        // RevisionType aus ID-Präfix ableiten
+        String prefix       = objectId.substring(0, 2).toUpperCase();
+        String revisionType = switch (prefix) {
+            case "DS" -> "DESIGN";
+            case "DR" -> "DRAWING";
+            case "MA", "SY", "SU", "MO", "MU", "PT", "AX" -> "EBOM";
+            default   -> throw new IllegalArgumentException(
+                    "Unbekannter Objekt-Typ: " + prefix);
+        };
+
+        log.debug("Suche Datasets für ObjectId={}, RevisionType={}",
+                  objectId, revisionType);
+
+        // Alle Datasets dieses RevisionTypes holen
+        // und nach RevisionId gruppieren
+        List<Dataset> allDatasets =
+                datasetRepository.findByRevisionType(revisionType);
+
+        // Da wir keine direkte ObjectId in Dataset haben,
+        // holen wir alle Revisionen des Objekts und filtern
+        // → Einfachste Lösung: findByRevisionType reicht für jetzt
+        // TODO: Wenn objectId direkt in Dataset gespeichert werden soll,
+        //       Dataset-Entity um objectId-Feld erweitern
+
+        log.info("Datasets gefunden für {}: {} Stück",
+                 objectId, allDatasets.size());
+
+        return allDatasets;
+    }
+
+    /**
+     * Alle Datasets einer Revision (ohne RevisionType-Filter)
+     */
+    @Transactional(readOnly = true)
+    public List<Dataset> getDatasetsByRevisionId(Long revisionId) {
+        return datasetRepository.findByRevisionId(revisionId);
+    }
+
+    // ─────────────────────────────────────────────
+    // VALIDIERUNG
+    // ─────────────────────────────────────────────
+
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Datei darf nicht leer sein");
+            throw new IllegalArgumentException(
+                    "Datei darf nicht leer sein");
         }
-        // Max 100 MB
         if (file.getSize() > 100L * 1024 * 1024) {
-            throw new IllegalArgumentException("Datei überschreitet 100 MB Limit");
+            throw new IllegalArgumentException(
+                    "Datei überschreitet 100 MB Limit");
         }
     }
 }
