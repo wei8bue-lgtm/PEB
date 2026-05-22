@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Line Balancing – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .kpi-card {
+            background: #f0f4ff;
+            border: 1px solid #c8d8ff;
+            border-radius: 8px;
+            padding: 1.2rem;
+            text-align: center;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #003d7a;
+            line-height: 1;
+        }
+        .kpi-label {
+            font-size: .8rem;
+            color: #6c757d;
+            margin-top: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+        .station-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .station-head {
+            background: #0056b3;
+            color: white;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: .9rem;
+        }
+        .station-body { padding: 12px 14px; }
+        .load-bar {
+            height: 22px;
+            background: #e9ecef;
+            border-radius: 11px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .load-fill {
+            height: 100%;
+            border-radius: 11px;
+            transition: width .5s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            font-size: .75rem;
+            color: white;
+            font-weight: 600;
+        }
+        .load-green  { background: #28a745; }
+        .load-yellow { background: #ffc107; color: #333; }
+        .load-red    { background: #dc3545; }
+        .kv { display: flex; justify-content: space-between;
+              font-size: .85rem; padding: 2px 0;
+              border-bottom: 1px solid #f0f0f0; }
+        .kv:last-child { border: none; }
+        .kv .k { color: #6c757d; }
+        .kv .v { font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>⚖️ Line Balancing</h1>
+    <div style="margin-left:auto;display:flex;gap:.5rem;">
+        <a th:href="@{/plant-bop/{id}(id=${plantBOP.id})}"
+           class="btn btn-primary">← Plant BOP</a>
+        <a th:href="@{/plant-bop}" class="btn btn-primary">
+            🏭 Alle Plant BOPs
+        </a>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h2 style="margin-top:0;">
+            ⚖️ Line Balancing –
+            <span th:text="${result.plantBOPName()}">Name</span>
+        </h2>
+
+        <!-- ── KPIs ── -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value"
+                     th:text="${#numbers.formatDecimal(
+                                 result.efficiency(), 1, 1)} + '%'">
+                    0%
+                </div>
+                <div class="kpi-label">Balance Efficiency</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value"
+                     th:text="${#numbers.formatDecimal(
+                                 result.balanceLoss(), 1, 1)} + '%'">
+                    0%
+                </div>
+                <div class="kpi-label">Balance Loss</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value"
+                     th:text="${result.bottleneck()} + 's'">0s</div>
+                <div class="kpi-label">Bottleneck (Taktzeit)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value"
+                     th:text="${result.totalWork()} + 's'">0s</div>
+                <div class="kpi-label">Gesamter Arbeitsinhalt</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value"
+                     th:text="${#lists.size(result.stations())}">0</div>
+                <div class="kpi-label">Workstations</div>
+            </div>
+        </div>
+
+        <!-- ── Workstation Cards ── -->
+        <h3>Workstation-Auslastung</h3>
+
+        <div th:if="${#lists.isEmpty(result.stations())}"
+             style="text-align:center;color:#6c757d;padding:2rem;
+                    border:2px dashed #dee2e6;border-radius:6px;">
+            Keine Workstation-Daten.<br>
+            Weise den Operationen Workstations zu.
+        </div>
+
+        <div class="station-grid"
+			 th:unless="${#lists.isEmpty(result.stations())}">
+			<div th:each="ws : ${result.stations()}"
+				 class="station-card">
+				<div class="station-head"
+					 th:text="${ws.name()}">WS-01</div>
+				<div class="station-body">
+
+					<!-- Auslastungsbalken – VEREINFACHT -->
+					<div class="load-bar">
+						<div class="load-fill"
+							 th:classappend="${ws.loadCssClass(
+											 result.bottleneck())}"
+							 th:style="'width:' + ${ws.loadPct(
+										result.bottleneck())} + '%'"
+							 th:text="${#numbers.formatDecimal(
+										 ws.loadPct(result.bottleneck()),
+										 1, 0)} + '%'">
+						</div>
+					</div>
+
+					<!-- Kennzahlen – unverändert -->
+					<div class="kv">
+						<span class="k">Sollzeit</span>
+						<span class="v"
+							  th:text="${ws.totalTarget()} + 's'">
+						</span>
+					</div>
+					<div class="kv">
+						<span class="k">Istzeit</span>
+						<span class="v"
+							  th:text="${ws.totalActual()} + 's'">
+						</span>
+					</div>
+					<div class="kv">
+						<span class="k">Leerlauf</span>
+						<span class="v"
+							  th:text="${ws.idleTime(
+										 result.bottleneck())} + 's'">
+						</span>
+					</div>
+					<div class="kv">
+						<span class="k">Auslastung</span>
+						<span class="v"
+							  th:text="${#numbers.formatDecimal(
+										 ws.loadPct(result.bottleneck()),
+										 1, 1)} + '%'">
+						</span>
+					</div>
+					<div class="kv">
+						<span class="k">Ops</span>
+						<span class="v"
+							  th:text="${#lists.size(ws.operations())}">
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+</body>
+</html>

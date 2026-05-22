@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Data – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>📦 Product Data</h1>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a th:href="@{/}" class="btn btn-primary">🏠 Home</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;border-color:#c3e6cb;padding:1rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+    <div th:if="${errorMessage}" class="card"
+         style="background:#f8d7da;border-color:#f5c6cb;padding:1rem;">
+        <p style="margin:0;color:#721c24;"
+           th:text="${errorMessage}"></p>
+    </div>
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;">Product Data Liste</h2>
+            <a th:href="@{/product-data/new}"
+               class="btn btn-primary"
+               sec:authorize="hasAuthority('WRITE')">
+                ➕ Neue ProductData
+            </a>
+        </div>
+
+        <!-- Suche -->
+        <form method="get"
+              style="display:flex;gap:.5rem;margin-bottom:1.5rem;">
+            <input type="text" name="search"
+                   th:value="${search}"
+                   placeholder="Name / ID / Abteilung suchen…"
+                   class="search-box"
+                   style="flex:1;max-width:400px;">
+            <button type="submit"
+                    class="btn btn-primary">🔍 Suchen</button>
+            <a th:href="@{/product-data}"
+               class="btn btn-primary">✖ Reset</a>
+        </form>
+
+        <!-- Tabelle -->
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #ddd;">
+                    <th style="padding:.75rem;text-align:left;">ID</th>
+                    <th style="padding:.75rem;text-align:left;">Name</th>
+                    <th style="padding:.75rem;text-align:left;">Typ</th>
+                    <th style="padding:.75rem;text-align:left;">Abteilung</th>
+                    <th style="padding:.75rem;text-align:left;">Status</th>
+                    <th style="padding:.75rem;text-align:left;">BOM</th>
+                    <th style="padding:.75rem;text-align:left;">Erstellt</th>
+                    <th style="padding:.75rem;text-align:left;">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(productDataList)}">
+                    <td colspan="8"
+                        style="padding:2rem;text-align:center;
+                               color:#6c757d;">
+                        Keine ProductData gefunden.
+                    </td>
+                </tr>
+                <tr th:each="pd : ${productDataList}"
+                    style="border-bottom:1px solid #eee;">
+                    <td style="padding:.75rem;font-family:monospace;">
+                        <a th:href="@{/product-data/{id}(id=${pd.id})}"
+                           th:text="${pd.id}"
+                           style="color:#0066cc;font-weight:600;">
+                        </a>
+                    </td>
+                    <td style="padding:.75rem;"
+                        th:text="${pd.name}">—</td>
+                    <td style="padding:.75rem;"
+                        th:text="${pd.productType}">—</td>
+                    <td style="padding:.75rem;"
+                        th:text="${pd.department}">—</td>
+                    <td style="padding:.75rem;">
+                        <span class="status-badge"
+                              th:classappend="
+                                ${pd.status.name() == 'RELEASED'}
+                                    ? ' status-released'
+                                    : (${pd.status.name() == 'OBSOLETE'}
+                                       ? ' status-obsolete'
+                                       : ' status-working')"
+                              th:text="${pd.status.icon
+                                        + ' ' + pd.status.displayName}">
+                        </span>
+                    </td>
+                    <td style="padding:.75rem;">
+                        <a th:if="${pd.productBOM != null}"
+                           th:href="@{/product-bom/{id}(
+                                        id=${pd.productBOM.id})}"
+                           style="color:#28a745;text-decoration:none;">
+                            ✅ BOM vorhanden
+                        </a>
+                        <span th:if="${pd.productBOM == null}"
+                              style="color:#6c757d;">— Keine BOM</span>
+                    </td>
+                    <td style="padding:.75rem;font-size:.85rem;
+                               color:#6c757d;"
+                        th:text="${pd.createdDate != null
+                            ? #temporals.format(pd.createdDate,
+                                'dd.MM.yyyy')
+                            : '—'}">
+                    </td>
+                    <td style="padding:.75rem;">
+                        <div style="display:flex;gap:.35rem;">
+                            <a th:href="@{/product-data/{id}(id=${pd.id})}"
+                               class="btn btn-primary btn-sm">
+                                👁️
+                            </a>
+                            <a th:href="@{/product-data/{id}/edit(
+                                            id=${pd.id})}"
+                               class="btn btn-primary btn-sm"
+                               sec:authorize="hasAuthority('WRITE')">
+                                ✏️
+                            </a>
+                            <form th:action="@{/product-data/{id}/delete(
+                                                id=${pd.id})}"
+                                  method="post"
+                                  sec:authorize="hasAuthority('DELETE')"
+                                  onsubmit="return confirm(
+                                      'ProductData löschen?');">
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Statistik -->
+        <div style="margin-top:1rem;font-size:.85rem;color:#6c757d;">
+            Gesamt:
+            <strong th:text="${#lists.size(productDataList)}">0</strong>
+            Einträge
+        </div>
+    </div>
+</div>
+</body>
+</html>

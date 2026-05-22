@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${isNew} ? 'Neue ProductData – PEB'
+                             : 'ProductData bearbeiten – PEB'">
+        ProductData
+    </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .form-card  { max-width: 700px; }
+        .field-err  {
+            color: #dc3545;
+            font-size: .82rem;
+            margin-top: 3px;
+        }
+        .form-group input.err,
+        .form-group select.err,
+        .form-group textarea.err {
+            border-color: #dc3545;
+        }
+        .hint {
+            font-size: .8rem;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+        .required-star { color: #dc3545; margin-left: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="${isNew} ? '➕ Neue ProductData'
+                          : '✏️ ProductData bearbeiten'">
+        ProductData
+    </h1>
+    <div style="margin-left:auto;">
+        <a th:href="@{/product-data}"
+           class="btn btn-primary">← Zurück zur Liste</a>
+    </div>
+</div>
+
+<div class="container">
+<div class="card form-card">
+
+    <!--
+      KRITISCH: th:object="${productData}"
+      Der Name "productData" MUSS exakt mit:
+        1. model.addAttribute("productData", ...) im Controller
+        2. @ModelAttribute("productData") im POST-Handler
+      übereinstimmen.
+    -->
+    <form th:action="${isNew}
+                     ? @{/product-data/new}
+                     : @{/product-data/{id}/edit(
+                           id=${productData.id})}"
+          th:object="${productData}"
+          method="post"
+          novalidate>
+
+        <!-- Globale Fehlermeldung -->
+        <div th:if="${#fields.hasErrors('*')}"
+             style="background:#f8d7da;border:1px solid #f5c6cb;
+                    border-radius:6px;padding:1rem;
+                    margin-bottom:1rem;color:#721c24;">
+            <strong>⚠️ Bitte Eingaben korrigieren:</strong>
+            <ul style="margin:.5rem 0 0 1rem;padding:0;">
+                <li th:each="err : ${#fields.errors('*')}"
+                    th:text="${err}">Fehler</li>
+            </ul>
+        </div>
+
+        <!-- ID (readonly – wird automatisch generiert) -->
+        <div class="form-group">
+            <label>ID</label>
+            <input type="text"
+                   th:value="${productData.id}"
+                   readonly
+                   placeholder="Wird automatisch generiert
+                                (PD00000001)"
+                   style="background:#f8f9fa;
+                          color:#6c757d;
+                          cursor:not-allowed;">
+            <div class="hint">
+                Format: PD + 8 Ziffern (z.B. PD00000001)
+            </div>
+        </div>
+
+        <!-- Name (Pflichtfeld) -->
+        <div class="form-group">
+            <label>
+                Name
+                <span class="required-star">*</span>
+            </label>
+            <input type="text"
+                   th:field="*{name}"
+                   th:classappend="${#fields.hasErrors('name')}
+                                   ? 'err' : ''"
+                   required
+                   placeholder="z.B. Akku-Bohrmaschine XR-20"
+                   maxlength="256">
+            <div class="field-err"
+                 th:if="${#fields.hasErrors('name')}"
+                 th:errors="*{name}">
+            </div>
+        </div>
+
+        <!-- Produkttyp -->
+        <div class="form-group">
+            <label>Produkttyp</label>
+            <input type="text"
+                   th:field="*{productType}"
+                   placeholder="z.B. Akku Bohrmaschine,
+                                Elektromotor, Gehäuse"
+                   maxlength="100">
+            <div class="hint">
+                Produktkategorie oder Baugruppen-Typ
+            </div>
+        </div>
+
+        <!-- Abteilung -->
+        <div class="form-group">
+            <label>Abteilung</label>
+            <input type="text"
+                   th:field="*{department}"
+                   placeholder="z.B. Engineering, Assembly,
+                                R&amp;D"
+                   maxlength="128">
+        </div>
+
+        <!-- Beschreibung -->
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea th:field="*{description}"
+                      rows="4"
+                      placeholder="Kurze Beschreibung der
+                                   Produktdaten / Baugruppe…"
+                      maxlength="1000"
+                      style="width:100%;
+                             padding:.5rem;
+                             border:1px solid #ddd;
+                             border-radius:4px;
+                             font-family:inherit;
+                             font-size:1rem;
+                             resize:vertical;">
+            </textarea>
+            <div class="hint">
+                Max. 1000 Zeichen
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+            <label>Status</label>
+            <select th:field="*{status}"
+                    style="width:100%;
+                           padding:.5rem;
+                           border:1px solid #ddd;
+                           border-radius:4px;
+                           font-size:1rem;">
+                <option th:each="s : ${statuses}"
+                        th:value="${s.name()}"
+                        th:text="${s.icon
+                                   + ' '
+                                   + s.displayName}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;
+                    gap:.75rem;
+                    margin-top:1.5rem;
+                    padding-top:1rem;
+                    border-top:1px solid #dee2e6;">
+            <button type="submit"
+                    class="btn btn-primary">
+                💾 Speichern
+            </button>
+            <a th:href="${isNew}
+                        ? @{/product-data}
+                        : @{/product-data/{id}(
+                              id=${productData.id})}"
+               class="btn btn-primary"
+               style="background:#6c757d;">
+                ✖ Abbrechen
+            </a>
+
+            <!-- Löschen (nur im Edit-Modus) -->
+            <form th:if="${!isNew}"
+                  th:action="@{/product-data/{id}/delete(
+                                  id=${productData.id})}"
+                  method="post"
+                  style="margin-left:auto;"
+                  onsubmit="return confirm(
+                      'ProductData '
+                      + [[${productData.id}]]
+                      + ' wirklich löschen?');">
+                <button type="submit"
+                        class="btn btn-danger">
+                    🗑️ Löschen
+                </button>
+            </form>
+        </div>
+    </form>
+
+</div>
+</div>
+</body>
+</html>

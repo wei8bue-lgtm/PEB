@@ -1,0 +1,121 @@
+<!-- src/main/resources/templates/plant-bop/fragments/tree-node.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:fragment="node(node, plantId)">
+
+    <!-- Null-Guard: Knoten überspringen wenn null -->
+    <th:block th:if="${node != null and node.id != null}">
+
+    <div th:id="'node-' + ${node.id}">
+
+        <!-- ── Knotenzeile ──────────────────────────────────── -->
+        <div class="t-row"
+             th:classappend="${node.nodeType != null
+                 and node.nodeType.name() == 'FOLDER'}
+                     ? ' t-folder'
+                 : (${node.nodeType != null
+                    and node.nodeType.name() == 'PRODUCT_BOP'}
+                     ? ' t-pbop'
+                 : (${node.nodeType != null
+                    and node.nodeType.name() == 'MANUFACTURING_BOM'}
+                     ? ' t-mfgbom'
+                     : ' t-boe'))">
+
+            <!-- Toggle -->
+            <span th:if="${node.children != null
+                           and !node.children.empty}"
+                  class="t-toggle"
+                  th:id="'tg-' + ${node.id}"
+                  th:onclick="'toggleNode(' + ${node.id} + ')'">
+                ▼
+            </span>
+            <span th:if="${node.children == null
+                           or node.children.empty}"
+                  class="t-toggle"
+                  style="color:#dee2e6;">·</span>
+
+            <!-- Icon -->
+            <span th:text="${node.nodeType != null}
+                            ? ${node.nodeType.icon}
+                            : '📄'">
+                📄
+            </span>
+
+            <!-- Name -->
+            <span class="t-label"
+                  th:text="${node.name ?: '—'}">
+                Knoten
+            </span>
+
+            <!-- Typ-Badge -->
+            <span style="font-size:.72rem;padding:1px 6px;
+                         background:#e9ecef;border-radius:8px;
+                         color:#6c757d;"
+                  th:text="${node.nodeType != null}
+                             ? ${node.nodeType.displayName}
+                             : ''">
+            </span>
+
+            <!-- Referenz-Links -->
+            <a th:if="${node.productBOP != null}"
+               th:href="@{/product-bop/{id}(
+                            id=${node.productBOP.id})}"
+               class="t-ref"
+               th:text="'→ ' + ${node.productBOP.name}">
+            </a>
+
+            <a th:if="${node.manufacturingBOM != null}"
+               th:href="@{/manufacturing-bom/{id}(
+                            id=${node.manufacturingBOM.id})}"
+               class="t-ref"
+               th:text="'→ ' + ${node.manufacturingBOM.name}">
+            </a>
+
+            <span th:if="${node.boeName != null
+                           and !#strings.isEmpty(node.boeName)}"
+                  class="t-ref"
+                  th:text="'→ ' + ${node.boeName}">
+            </span>
+
+            <!-- Löschen-Button -->
+            <div class="t-actions"
+                 sec:authorize="hasAuthority('DELETE')">
+                <form th:action="@{/plant-bop/{pid}/nodes/{nid}/delete(
+                                    pid=${plantId},
+                                    nid=${node.id})}"
+                      method="post"
+                      th:onsubmit="'return confirm(\'Knoten löschen?\');'">
+                    <button type="submit"
+                            class="btn btn-danger"
+                            style="padding:2px 8px;
+                                   font-size:.75rem;">
+                        🗑️
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── Kinder rekursiv ───────────────────────────────── -->
+        <div th:if="${node.children != null
+                      and !node.children.empty}"
+             class="t-children"
+             th:id="'ch-' + ${node.id}">
+
+            <div th:each="child : ${node.children}"
+                 th:if="${child != null}"
+                 th:replace="~{plant-bop/fragments/tree-node
+                              :: node(${child}, ${plantId})}">
+            </div>
+        </div>
+
+    </div>
+
+    </th:block><!-- /null-guard -->
+
+</th:block>
+
+</body>
+</html>

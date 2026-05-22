@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${mfgBOM.name} + ' – Mfg BOM – PEB'">
+        Manufacturing BOM
+    </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        /* ── Baum ────────────────────────────────────────────── */
+        .tree-wrap  { font-size:.9rem; }
+        .t-node     {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            margin: 2px 0;
+        }
+        .t-node.root {
+            background:#e7f0ff;
+            font-weight:700;
+            font-size:1rem;
+            border-left:4px solid #0056b3;
+        }
+        .t-node.pbom {
+            margin-left:1.5rem;
+            border-left:3px solid #6f42c1;
+            background:#f8f5ff;
+        }
+        .t-node.pdata {
+            margin-left:3rem;
+            border-left:3px solid #28a745;
+            background:#f0fff4;
+        }
+        .t-ref {
+            font-size:.8rem;color:#6c757d;
+            text-decoration:none;
+        }
+        .t-ref:hover { color:#0066cc; }
+
+        /* ── Zeitbadges ─────────────────────────────────────── */
+        .tbadge {
+            display:inline-block;
+            padding:2px 10px;
+            border-radius:12px;
+            font-size:.78rem;
+            font-weight:600;
+        }
+        .tbadge-target { background:#cce5ff;color:#004085; }
+        .tbadge-actual { background:#d4edda;color:#155724; }
+        .tbadge-takt   { background:#fff3cd;color:#856404; }
+        .tbadge-wait   { background:#f8d7da;color:#721c24; }
+        .tbadge-empty  { background:#e9ecef;color:#6c757d; }
+
+        /* ── Ops Formular ────────────────────────────────────── */
+        .op-form {
+            background:#f8f9fa;
+            border-radius:6px;
+            padding:1.25rem;
+            border:1px solid #dee2e6;
+        }
+        .form-grid-4 {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+            gap:.75rem;
+        }
+        .fg { display:flex;flex-direction:column;gap:3px; }
+        .fg label {
+            font-size:.8rem;font-weight:600;
+            color:#495057;
+        }
+        .fg input, .fg select, .fg textarea {
+            padding:.35rem .5rem;
+            border:1px solid #ced4da;
+            border-radius:4px;
+            font-size:.87rem;
+            font-family:inherit;
+        }
+        .fg input:focus, .fg select:focus {
+            outline:none;border-color:#0066cc;
+            box-shadow:0 0 0 2px rgba(0,102,204,.15);
+        }
+
+        /* ── Ops Tabelle ─────────────────────────────────────── */
+        .ops-table { width:100%;border-collapse:collapse; }
+        .ops-table th {
+            padding:.6rem .75rem;
+            text-align:left;
+            background:#f8f9fa;
+            border-bottom:2px solid #dee2e6;
+            font-size:.82rem;
+            white-space:nowrap;
+        }
+        .ops-table td {
+            padding:.6rem .75rem;
+            border-bottom:1px solid #eee;
+            font-size:.87rem;
+            vertical-align:middle;
+        }
+        .ops-table tr:hover td { background:#fafbff; }
+
+        /* ── Zusammenfassung ─────────────────────────────────── */
+        .summary-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+            gap:1rem;
+            margin-bottom:1rem;
+        }
+        .summary-card {
+            background:#f0f4ff;
+            border:1px solid #c8d8ff;
+            border-radius:6px;
+            padding:1rem;
+            text-align:center;
+        }
+        .summary-val {
+            font-size:1.6rem;font-weight:700;
+            color:#003d7a;line-height:1;
+        }
+        .summary-lbl {
+            font-size:.75rem;color:#6c757d;
+            margin-top:.3rem;
+            text-transform:uppercase;
+            letter-spacing:.4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>🔧 Manufacturing BOM</h1>
+    <div style="margin-left:auto;display:flex;gap:.5rem;">
+        <a th:href="@{/manufacturing-bom/{id}/work-instruction(
+                        id=${mfgBOM.id})}"
+           class="btn btn-primary"
+           target="_blank"
+           title="Arbeitsanweisung öffnen">
+            📄 Arbeitsanweisung
+        </a>
+        <a th:href="@{/manufacturing-bom}"
+           class="btn btn-primary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;padding:.75rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+
+    <!-- ── Stammdaten ─────────────────────────────────────────── -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;"
+                th:text="${mfgBOM.name}">Name</h2>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+                <span style="background:#e9ecef;padding:3px 12px;
+                             border-radius:12px;font-size:.85rem;"
+                      th:text="'Version: ' + ${mfgBOM.bomVersion}">
+                </span>
+            </div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <th style="width:180px;padding:.5rem;text-align:left;
+                           background:#f8f9fa;">ID</th>
+                <td style="padding:.5rem;font-family:monospace;
+                           font-weight:600;"
+                    th:text="${mfgBOM.id}">1</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Beschreibung</th>
+                <td style="padding:.5rem;"
+                    th:text="${mfgBOM.description ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt von</th>
+                <td style="padding:.5rem;"
+                    th:text="${mfgBOM.createdBy ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt am</th>
+                <td style="padding:.5rem;"
+                    th:text="${mfgBOM.createdDate != null
+                        ? #temporals.format(mfgBOM.createdDate,
+                            'dd.MM.yyyy HH:mm')
+                        : '—'}">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── Zusammenfassung Zeiten ─────────────────────────────── -->
+    <div class="card"
+         th:if="${!#lists.isEmpty(mfgBOM.operations)}">
+        <h3 style="margin-top:0;">⏱️ Zeitübersicht</h3>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-val"
+                     th:text="${#aggregates.sum(
+                         mfgBOM.operations.![cycleTimeTarget != null
+                             ? cycleTimeTarget : 0])} + 's'">
+                    0s
+                </div>
+                <div class="summary-lbl">Sollzeit gesamt</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-val"
+                     th:text="${#aggregates.sum(
+                         mfgBOM.operations.![cycleTimeActual != null
+                             ? cycleTimeActual : 0])} + 's'">
+                    0s
+                </div>
+                <div class="summary-lbl">Istzeit gesamt</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-val"
+                     th:text="${#lists.size(mfgBOM.operations)}">
+                    0
+                </div>
+                <div class="summary-lbl">Operationen</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-val"
+                     th:text="${#lists.size(mfgBOM.productBOMs)}">
+                    0
+                </div>
+                <div class="summary-lbl">Product BOMs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Baumstruktur ProductBOMs ───────────────────────────── -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h3 style="margin:0;">🌳 Struktur (Product BOMs)</h3>
+
+            <!-- ProductBOM hinzufügen -->
+            <form th:action="@{/manufacturing-bom/{id}/product-boms/add(
+                                id=${mfgBOM.id})}"
+                  method="post"
+                  style="display:flex;gap:.5rem;"
+                  sec:authorize="hasAuthority('WRITE')">
+                <select name="productBomId"
+                        style="padding:.35rem .5rem;
+                               border:1px solid #ced4da;
+                               border-radius:4px;
+                               font-size:.87rem;
+                               min-width:220px;">
+                    <option value="">— ProductBOM auswählen —</option>
+                    <option th:each="pb : ${availableProductBOMs}"
+                            th:value="${pb.id}"
+                            th:text="${pb.name
+                                      + (pb.productData != null
+                                         ? ' ['
+                                           + pb.productData.id
+                                           + ']'
+                                         : '')}">
+                    </option>
+                </select>
+                <button type="submit"
+                        class="btn btn-primary btn-sm">
+                    ➕ Hinzufügen
+                </button>
+            </form>
+        </div>
+
+        <div class="tree-wrap">
+
+            <!-- Root: ManufacturingBOM -->
+            <div class="t-node root">
+                <span>🔧</span>
+                <span th:text="${mfgBOM.name}">MfgBOM</span>
+                <span class="t-ref"
+                      th:text="'v' + ${mfgBOM.bomVersion}">
+                </span>
+            </div>
+
+            <!-- Ebene 1: ProductBOMs -->
+            <div th:if="${#lists.isEmpty(mfgBOM.productBOMs)}"
+                 style="margin-left:1.5rem;color:#6c757d;
+                        padding:.5rem;">
+                Noch keine ProductBOMs zugewiesen.
+            </div>
+
+            <div th:each="pb : ${mfgBOM.productBOMs}">
+                <div class="t-node pbom">
+                    <span>├──</span>
+                    <span>📋</span>
+                    <a th:href="@{/product-bom/{id}(id=${pb.id})}"
+                       th:text="${pb.name}"
+                       style="font-weight:500;color:#6f42c1;
+                              text-decoration:none;">
+                    </a>
+                    <span class="t-ref"
+                          th:text="'v' + ${pb.bomVersion}">
+                    </span>
+
+                    <!-- Entfernen-Button -->
+                    <form th:action="@{/manufacturing-bom/{id}/product-boms/{pbId}/remove(
+                                        id=${mfgBOM.id},
+                                        pbId=${pb.id})}"
+                          method="post"
+                          style="margin-left:auto;"
+                          onsubmit="return confirm(
+                              'ProductBOM entfernen?');"
+                          sec:authorize="hasAuthority('DELETE')">
+                        <button type="submit"
+                                class="btn btn-danger"
+                                style="padding:1px 7px;
+                                       font-size:.75rem;">
+                            ✕
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Ebene 2: ProductData (falls vorhanden) -->
+                <div th:if="${pb.productData != null}"
+                     class="t-node pdata">
+                    <span style="color:#dee2e6;">│</span>
+                    <span style="margin-left:.5rem;">└──</span>
+                    <span>📦</span>
+                    <a th:href="@{/product-data/{id}(
+                                    id=${pb.productData.id})}"
+                       th:text="${pb.productData.id
+                                  + ' – '
+                                  + pb.productData.name}"
+                       style="font-size:.85rem;color:#28a745;
+                              text-decoration:none;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Operationen Tabelle ─────────────────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">⚙️ Operationen &amp; Prozesse</h3>
+
+        <!-- Tabelle -->
+        <div style="overflow-x:auto;">
+            <table class="ops-table">
+                <thead>
+                    <tr>
+                        <th>Nr.</th>
+                        <th>Typ</th>
+                        <th>Name</th>
+                        <th>Workstation</th>
+                        <th>MA</th>
+                        <th title="Sollzeit (Sekunden)">
+                            <span class="tbadge tbadge-target">
+                                Sollzeit (s)
+                            </span>
+                        </th>
+                        <th title="Istzeit (Sekunden)">
+                            <span class="tbadge tbadge-actual">
+                                Istzeit (s)
+                            </span>
+                        </th>
+                        <th title="Linientaktzeit (Sekunden)">
+                            <span class="tbadge tbadge-takt">
+                                Taktzeit (s)
+                            </span>
+                        </th>
+                        <th title="Wartezeit (Sekunden)">
+                            <span class="tbadge tbadge-wait">
+                                Wartezeit (s)
+                            </span>
+                        </th>
+                        <th sec:authorize="hasAuthority('DELETE')">
+                            Aktion
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(mfgBOM.operations)}">
+                        <td colspan="10"
+                            style="padding:1.5rem;text-align:center;
+                                   color:#6c757d;">
+                            Noch keine Operationen vorhanden.
+                        </td>
+                    </tr>
+                    <tr th:each="op : ${mfgBOM.operations}">
+                        <td style="font-family:monospace;
+                                   font-weight:600;"
+                            th:text="${op.operationNumber ?: '—'}">
+                        </td>
+                        <td th:text="${op.operationType.icon
+                                      + ' '
+                                      + op.operationType.displayName}">
+                        </td>
+                        <td style="font-weight:500;"
+                            th:text="${op.name}">
+                        </td>
+                        <td th:text="${op.workstation ?: '—'}"></td>
+                        <td style="text-align:center;"
+                            th:text="${op.workerCount ?: 1}">
+                        </td>
+                        <td style="text-align:center;">
+                            <span th:if="${op.cycleTimeTarget != null}"
+                                  class="tbadge tbadge-target"
+                                  th:text="${op.cycleTimeTarget}">
+                            </span>
+                            <span th:if="${op.cycleTimeTarget == null}"
+                                  class="tbadge tbadge-empty">—</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span th:if="${op.cycleTimeActual != null}"
+                                  class="tbadge tbadge-actual"
+                                  th:text="${op.cycleTimeActual}">
+                            </span>
+                            <span th:if="${op.cycleTimeActual == null}"
+                                  class="tbadge tbadge-empty">—</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span th:if="${op.lineTaktTime != null}"
+                                  class="tbadge tbadge-takt"
+                                  th:text="${op.lineTaktTime}">
+                            </span>
+                            <span th:if="${op.lineTaktTime == null}"
+                                  class="tbadge tbadge-empty">—</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span th:if="${op.waitTime != null}"
+                                  class="tbadge tbadge-wait"
+                                  th:text="${op.waitTime}">
+                            </span>
+                            <span th:if="${op.waitTime == null}"
+                                  class="tbadge tbadge-empty">—</span>
+                        </td>
+                        <td sec:authorize="hasAuthority('DELETE')">
+                            <form th:action="@{/manufacturing-bom/{id}/operations/{opId}/delete(
+                                                id=${mfgBOM.id},
+                                                opId=${op.id})}"
+                                  method="post"
+                                  onsubmit="return confirm(
+                                      'Operation löschen?');">
+                                <button type="submit"
+                                        class="btn btn-danger"
+                                        style="padding:2px 8px;
+                                               font-size:.75rem;">
+                                    🗑️
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── Neue Operation hinzufügen ──────────────────────── -->
+        <div class="op-form"
+             style="margin-top:1.5rem;"
+             sec:authorize="hasAuthority('WRITE')">
+            <h4 style="margin:0 0 1rem;">
+                ➕ Operation / Prozess hinzufügen
+            </h4>
+
+            <form th:action="@{/manufacturing-bom/{id}/operations/add(
+                                id=${mfgBOM.id})}"
+                  method="post">
+
+                <!-- Zeile 1: Typ, Nummer, Name, Workstation, MA -->
+                <div class="form-grid-4"
+                     style="margin-bottom:.75rem;">
+                    <div class="fg">
+                        <label>Typ *</label>
+                        <select name="operationType" required>
+                            <option th:each="t : ${operationTypes}"
+                                    th:value="${t.name()}"
+                                    th:text="${t.icon
+                                              + ' '
+                                              + t.displayName}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Nummer</label>
+                        <input type="text"
+                               name="operationNumber"
+                               placeholder="OP010">
+                    </div>
+                    <div class="fg" style="grid-column:span 2;">
+                        <label>Name *</label>
+                        <input type="text"
+                               name="name"
+                               required
+                               placeholder="z.B. Schraube M6 eindrehen">
+                    </div>
+                    <div class="fg">
+                        <label>Workstation</label>
+                        <input type="text"
+                               name="workstation"
+                               placeholder="WS-01">
+                    </div>
+                    <div class="fg">
+                        <label>Mitarbeiter</label>
+                        <input type="number"
+                               name="workerCount"
+                               value="1"
+                               min="1"
+                               max="99">
+                    </div>
+                    <div class="fg">
+                        <label>Sequenz</label>
+                        <input type="number"
+                               name="sequenceNumber"
+                               placeholder="Auto">
+                    </div>
+                </div>
+
+                <!-- Zeile 2: Zeitfelder -->
+                <div style="background:#fff;border:1px solid #dee2e6;
+                            border-radius:6px;padding:1rem;
+                            margin-bottom:.75rem;">
+                    <div style="font-size:.82rem;font-weight:700;
+                                color:#495057;margin-bottom:.75rem;">
+                        ⏱️ Zeitfelder (Sekunden)
+                    </div>
+                    <div class="form-grid-4">
+                        <div class="fg">
+                            <label style="color:#004085;">
+                                Sollzeit (s)
+                            </label>
+                            <input type="number"
+                                   name="cycleTimeTarget"
+                                   step="0.001"
+                                   min="0"
+                                   placeholder="z.B. 30.000">
+                        </div>
+                        <div class="fg">
+                            <label style="color:#155724;">
+                                Istzeit (s)
+                            </label>
+                            <input type="number"
+                                   name="cycleTimeActual"
+                                   step="0.001"
+                                   min="0"
+                                   placeholder="z.B. 28.500">
+                        </div>
+                        <div class="fg">
+                            <label style="color:#856404;">
+                                Linientaktzeit (s)
+                            </label>
+                            <input type="number"
+                                   name="lineTaktTime"
+                                   step="0.001"
+                                   min="0"
+                                   placeholder="z.B. 60.000">
+                        </div>
+                        <div class="fg">
+                            <label style="color:#721c24;">
+                                Wartezeit (s)
+                            </label>
+                            <input type="number"
+                                   name="waitTime"
+                                   step="0.001"
+                                   min="0"
+                                   placeholder="z.B. 5.000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zeile 3: Texte -->
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;
+                            gap:.75rem;margin-bottom:.75rem;">
+                    <div class="fg">
+                        <label>🔧 Benötigte Werkzeuge</label>
+                        <input type="text"
+                               name="toolsRequired"
+                               placeholder="Akkuschrauber, Drehmomentschlüssel">
+                    </div>
+                    <div class="fg">
+                        <label>📋 Arbeitsschritte</label>
+                        <textarea name="workInstructions"
+                                  rows="2"
+                                  placeholder="Schritt 1: …&#10;Schritt 2: …"
+                                  style="resize:vertical;">
+                        </textarea>
+                    </div>
+                    <div class="fg" style="grid-column:span 2;">
+                        <label>⚠️ Sicherheitshinweise</label>
+                        <textarea name="safetyNotes"
+                                  rows="2"
+                                  placeholder="PSA tragen, Schutzbrille erforderlich …"
+                                  style="resize:vertical;">
+                        </textarea>
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    ➕ Operation speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

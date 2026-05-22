@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Plant BOP – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>🏭 Plant BOP</h1>
+    <div style="margin-left:auto;display:flex;gap:.5rem;">
+        <a th:href="@{/}" class="btn btn-primary">🏠 Home</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;padding:1rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;">Plant BOP Liste</h2>
+            <a th:href="@{/plant-bop/new}"
+               class="btn btn-primary"
+               sec:authorize="hasAuthority('WRITE')">
+                ➕ Neue Plant BOP
+            </a>
+        </div>
+
+        <!-- Tabelle -->
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #ddd;">
+                    <th style="padding:.75rem;text-align:left;">ID</th>
+                    <th style="padding:.75rem;text-align:left;">Name</th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Werk
+                    </th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Version
+                    </th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Knoten
+                    </th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Erstellt von
+                    </th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Erstellt am
+                    </th>
+                    <th style="padding:.75rem;text-align:left;">
+                        Aktionen
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(plantBOPs)}">
+                    <td colspan="8"
+                        style="padding:2rem;text-align:center;
+                               color:#6c757d;">
+                        Keine Plant BOPs vorhanden.
+                    </td>
+                </tr>
+                <tr th:each="pbop : ${plantBOPs}"
+                    style="border-bottom:1px solid #eee;">
+                    <td style="padding:.75rem;
+                               font-family:monospace;
+                               font-weight:600;"
+                        th:text="${pbop.id}">
+                    </td>
+                    <td style="padding:.75rem;">
+                        <a th:href="@{/plant-bop/{id}(
+                                        id=${pbop.id})}"
+                           th:text="${pbop.name}"
+                           style="color:#0066cc;font-weight:500;
+                                  text-decoration:none;">
+                        </a>
+                    </td>
+                    <td style="padding:.75rem;font-size:.85rem;"
+                        th:text="${pbop.plantCode ?: '—'}">
+                    </td>
+                    <td style="padding:.75rem;text-align:center;">
+                        <span style="font-size:.8rem;padding:2px 8px;
+                                     background:#e9ecef;
+                                     border-radius:10px;"
+                              th:text="${pbop.bopVersion}">01</span>
+                    </td>
+                    <td style="padding:.75rem;text-align:center;
+                               font-weight:600;"
+                        th:text="${#lists.size(pbop.nodes)}">
+                        0
+                    </td>
+                    <td style="padding:.75rem;font-size:.85rem;"
+                        th:text="${pbop.createdBy ?: '—'}">
+                    </td>
+                    <td style="padding:.75rem;font-size:.85rem;
+                               color:#6c757d;"
+                        th:text="${pbop.createdDate != null
+                            ? #temporals.format(pbop.createdDate,
+                                'dd.MM.yyyy')
+                            : '—'}">
+                    </td>
+                    <td style="padding:.75rem;">
+                        <div style="display:flex;gap:.35rem;">
+                            <a th:href="@{/plant-bop/{id}(
+                                            id=${pbop.id})}"
+                               class="btn btn-primary btn-sm">
+                                👁️
+                            </a>
+                            <a th:href="@{/plant-bop/{id}/balancing(
+                                            id=${pbop.id})}"
+                               class="btn btn-primary btn-sm"
+                               title="Line Balancing">
+                                ⚖️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top:1rem;font-size:.85rem;color:#6c757d;">
+            Gesamt:
+            <strong th:text="${#lists.size(plantBOPs)}">0</strong>
+            Einträge
+        </div>
+    </div>
+</div>
+</body>
+</html>

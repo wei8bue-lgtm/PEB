@@ -9,6 +9,7 @@
     <link rel="icon" href="data:,">
     <title th:text="${design.name} + ' - PEB'">Design - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         .btn-sm { font-size:0.875rem; padding:0.25rem 0.5rem; }
 
@@ -115,6 +116,7 @@
         }
         .embedded-viewer-placeholder .icon { font-size: 4rem; opacity: 0.4; }
     </style>
+	
 </head>
 <body>
 
@@ -356,96 +358,82 @@
         </div>
     </div>
 
-    <!-- ══ Excel Viewer Karte ══════════════════════════════════ -->
-    <div class="card" th:if="${excelDataset != null}">
+<!-- ══ Excel Viewer Karte ══════════════════════════════════ -->
+<div class="card" th:if="${excelDataset != null}">
 
-        <div style="display:flex; justify-content:space-between;
-                    align-items:center; margin-bottom:1rem;">
-            <h3 style="margin:0;">
-                📊 Excel Table
-                <span style="font-size:0.8rem; color:#6c757d;
-                             font-weight:normal;">
-                    — Revision
-                    <span th:text="${design.latestRevision.revision}">
-                        01
-                    </span>
-                </span>
-            </h3>
-
-            <div style="display:flex; gap:0.5rem; align-items:center;">
-
-                <!-- Download -->
-                <a th:href="@{/datasets/{id}/stream(
-                                id=${excelDataset.datasetId})}"
-                   download
-                   class="btn btn-primary btn-sm"
-                   title="Excel herunterladen">
-                    ⬇️ Download
-                </a>
-
-                <a th:href="@{/datasets/manage/DESIGN/{id}(
-                                id=${design.latestRevision.revisionId})}"
-                   class="btn btn-primary btn-sm"
-                   title="Dataset verwalten">
-                    📎 Dataset
-                </a>
-            </div>
-        </div>
-
-        <!-- Excel Placeholder mit Konvertierungs-Button -->
-        <div class="embedded-viewer-wrapper" id="excelViewerWrapper">
-            <div class="embedded-viewer-placeholder" id="excelPlaceholder">
-                <div class="icon">📊</div>
-                <p style="font-weight:500; margin:0;">
-                    Excel-Datei:
-                    <strong th:text="${excelDataset.fileName}">
-                        Datei.xlsx
-                    </strong>
-                </p>
-                <p style="color:#6c757d; font-size:0.85rem;
-                          margin:0.25rem 0 0;">
-                    Klicke auf "Als PDF anzeigen" für die
-                    eingebettete Vorschau.
-                </p>
-                <div style="display:flex; gap:0.5rem;
-                            margin-top:0.75rem; flex-wrap:wrap;">
-
-                    <!-- Download -->
-                    <a th:href="@{/datasets/{id}/stream(
-                                    id=${excelDataset.datasetId})}"
-                       download
-                       class="btn btn-primary btn-sm">
-                        ⬇️ Herunterladen & Öffnen
-                    </a>
-
-                    <!-- Als PDF anzeigen -->
-                    <button class="btn btn-primary btn-sm"
-                            th:data-dataset-id="${excelDataset.datasetId}"
-                            th:data-file-name="${excelDataset.fileName}"
-                            onclick="requestExcelAsPdf(
-                                this.dataset.datasetId,
-                                this.dataset.fileName)">
-                        👁️ Als PDF anzeigen
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metainfo -->
-        <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
-                    display:flex; justify-content:space-between;">
-            <span>
-                Kategorie:
-                <code>DatasetCategory.EXCEL_TABLE</code>
+    <div style="display:flex; justify-content:space-between;
+                align-items:center; margin-bottom:1rem;">
+        <h3 style="margin:0;">
+            📊 Excel Table
+            <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
+                — Revision
+                <span th:text="${design.latestRevision.revision}">01</span>
             </span>
-            <span>
-                Datei:
-                <strong th:text="${excelDataset.fileName}">
-                    tabelle.xlsx
-                </strong>
-            </span>
+        </h3>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+            <a th:href="@{/datasets/{id}/stream(id=${excelDataset.datasetId})}"
+               download
+               class="btn btn-primary btn-sm">⬇️ Download</a>
+
+            <!-- Sheet-Auswahl (wird dynamisch befüllt) -->
+            <select id="sheetSelector"
+                    class="btn btn-primary btn-sm"
+                    onchange="renderSheet(this.value)"
+                    style="display:none;">
+            </select>
+
+            <a th:href="@{/datasets/manage/DESIGN/{id}(
+                            id=${design.latestRevision.revisionId})}"
+               class="btn btn-primary btn-sm">📎 Dataset</a>
         </div>
     </div>
+
+    <!-- SheetJS Viewer Container -->
+    <div class="embedded-viewer-wrapper" id="excelViewerWrapper">
+        <div class="embedded-viewer-placeholder" id="excelPlaceholder">
+            <div class="icon">📊</div>
+            <p style="font-weight:500; margin:0;">
+                Excel-Datei:
+                <strong th:text="${excelDataset.fileName}">Datei.xlsx</strong>
+            </p>
+            <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+
+                <button class="btn btn-primary btn-sm"
+                        th:data-dataset-id="${excelDataset.datasetId}"
+                        th:data-file-name="${excelDataset.fileName}"
+                        onclick="loadExcelWithSheetJS(
+                            this.dataset.datasetId,
+                            this.dataset.fileName)">
+                    👁️ Direkt anzeigen (SheetJS)
+                </button>
+
+                <button class="btn btn-primary btn-sm"
+                        th:data-dataset-id="${excelDataset.datasetId}"
+                        th:data-file-name="${excelDataset.fileName}"
+                        onclick="requestExcelAsPdf(
+                            this.dataset.datasetId,
+                            this.dataset.fileName)">
+                    📄 Als PDF anzeigen
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabelle wird hier gerendert -->
+        <div id="excelTableContainer"
+             style="display:none;
+                    overflow:auto;
+                    max-height:600px;
+                    padding:1rem;">
+        </div>
+    </div>
+
+    <!-- Metainfo -->
+    <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
+                display:flex; justify-content:space-between;">
+        <span>Kategorie: <code>DatasetCategory.EXCEL_TABLE</code></span>
+        <span>Datei: <strong th:text="${excelDataset.fileName}">tabelle.xlsx</strong></span>
+    </div>
+</div>
 
     <!-- ══ Kein Dokument vorhanden ═════════════════════════════ -->
     <div class="card"
@@ -707,6 +695,109 @@ function requestExcelAsPdf(datasetId, fileName) {
             </div>`;
     });
 }
+    let workbookGlobal = null;
+
+    async function loadExcelWithSheetJS(datasetId, fileName) {
+        const placeholder    = document.getElementById('excelPlaceholder');
+        const tableContainer = document.getElementById('excelTableContainer');
+        const sheetSelector  = document.getElementById('sheetSelector');
+
+        // Lade-Anzeige
+        placeholder.innerHTML = `
+            <div class="icon">⏳</div>
+            <p style="margin:0; font-weight:500;">
+                Lade <em>${fileName}</em>…
+            </p>
+            <p style="margin:0.25rem 0 0; font-size:0.85rem; color:#6c757d;">
+                Wird direkt im Browser verarbeitet, kein Server nötig.
+            </p>`;
+
+        try {
+            // Excel-Datei laden
+            const response = await fetch(`/datasets/${datasetId}/stream`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const arrayBuffer = await response.arrayBuffer();
+
+            // SheetJS parsen
+            workbookGlobal = XLSX.read(arrayBuffer, {
+                type:      'array',
+                cellDates: true,
+            });
+
+            // Sheet-Auswahl befüllen
+            sheetSelector.innerHTML = '';
+            workbookGlobal.SheetNames.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.text  = name;
+                sheetSelector.appendChild(opt);
+            });
+            sheetSelector.style.display = 'block';
+
+            // Placeholder ausblenden, Tabelle anzeigen
+            placeholder.style.display    = 'none';
+            tableContainer.style.display = 'block';
+
+            // Erstes Sheet rendern
+            renderSheet(workbookGlobal.SheetNames[0]);
+
+        } catch (err) {
+            placeholder.innerHTML = `
+                <div class="icon">⚠️</div>
+                <p style="margin:0; font-weight:500; color:#dc3545;">
+                    Fehler beim Laden
+                </p>
+                <p style="font-size:0.85rem;">${err.message}</p>
+                <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+                    <button class="btn btn-primary btn-sm"
+                            onclick="loadExcelWithSheetJS('${datasetId}','${fileName}')">
+                        🔄 Erneut versuchen
+                    </button>
+                    <a href="/datasets/${datasetId}/stream"
+                       download class="btn btn-primary btn-sm">
+                        ⬇️ Herunterladen
+                    </a>
+                </div>`;
+        }
+    }
+
+    function renderSheet(sheetName) {
+        const tableContainer = document.getElementById('excelTableContainer');
+        if (!workbookGlobal) return;
+
+        const worksheet = workbookGlobal.Sheets[sheetName];
+
+        // SheetJS → HTML
+        const html = XLSX.utils.sheet_to_html(worksheet, {
+            id:       'excelRenderedTable',
+            editable: false,
+        });
+
+        tableContainer.innerHTML = html;
+        applyExcelTableStyles();
+    }
+
+    function applyExcelTableStyles() {
+        const table = document.getElementById('excelRenderedTable');
+        if (!table) return;
+
+        Object.assign(table.style, {
+            borderCollapse: 'collapse',
+            width:          '100%',
+            fontSize:       '0.85rem',
+            fontFamily:     'Calibri, Arial, sans-serif',
+        });
+
+        table.querySelectorAll('td, th').forEach(cell => {
+            Object.assign(cell.style, {
+                border:     '1px solid #dee2e6',
+                padding:    '0.3rem 0.5rem',
+                minWidth:   '80px',
+                whiteSpace: 'nowrap',
+            });
+        });
+    }
 </script>
 
 </body>

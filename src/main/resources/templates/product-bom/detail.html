@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${bom.name} + ' – Product BOM – PEB'">
+        Product BOM
+    </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .tree-view  { padding-left: 0; }
+        .tree-node  {
+            padding: .4rem .75rem;
+            margin: 2px 0;
+            border-left: 3px solid #dee2e6;
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .tree-node.level-0 {
+            border-left-color: #0056b3;
+            background: #e7f0ff;
+            font-weight: 700;
+        }
+        .tree-node.level-1 {
+            border-left-color: #6f42c1;
+            margin-left: 1.5rem;
+        }
+        .tree-node.level-2 {
+            border-left-color: #28a745;
+            margin-left: 3rem;
+        }
+        .badge {
+            font-size: .75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e9ecef;
+            color: #495057;
+        }
+        .section-box {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>📋 Product BOM</h1>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a th:href="@{/product-bom}" class="btn btn-primary">
+            ← Zurück
+        </a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;padding:1rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+    <div th:if="${errorMessage}" class="card"
+         style="background:#f8d7da;padding:1rem;">
+        <p style="margin:0;color:#721c24;"
+           th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- ── Stammdaten ─────────────────────────────────────────── -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;" th:text="${bom.name}">BOM Name</h2>
+            <span class="badge"
+                  th:text="'Version: ' + ${bom.bomVersion}">V01</span>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <th style="width:180px;padding:.5rem;text-align:left;
+                           background:#f8f9fa;">ID</th>
+                <td style="padding:.5rem;"
+                    th:text="${bom.id}">1</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Beschreibung</th>
+                <td style="padding:.5rem;"
+                    th:text="${bom.description ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt von</th>
+                <td style="padding:.5rem;"
+                    th:text="${bom.createdBy ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt am</th>
+                <td style="padding:.5rem;"
+                    th:text="${bom.createdDate != null
+                        ? #temporals.format(bom.createdDate,
+                            'dd.MM.yyyy HH:mm')
+                        : '—'}">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── ProductData Zuordnung (1:1) ───────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">📦 Zugeordnete ProductData (1:1)</h3>
+
+        <!-- Aktuell zugeordnet -->
+        <div th:if="${bom.productData != null}"
+             style="margin-bottom:1rem;">
+            <a th:href="@{/product-data/{id}(
+                            id=${bom.productData.id})}"
+               style="display:inline-flex;align-items:center;
+                      gap:.5rem;padding:.5rem 1rem;
+                      background:#e7f3ff;border:1px solid #b8daff;
+                      border-radius:6px;color:#004085;
+                      text-decoration:none;font-weight:500;">
+                📦
+                <span th:text="${bom.productData.name}">PD Name</span>
+                <span style="font-size:.8rem;color:#6c757d;"
+                      th:text="'(' + ${bom.productData.id} + ')'">
+                </span>
+            </a>
+        </div>
+        <div th:if="${bom.productData == null}"
+             style="color:#6c757d;margin-bottom:1rem;">
+            ⚠️ Noch keine ProductData zugewiesen
+        </div>
+
+        <!-- Zuordnung ändern -->
+        <div class="section-box" sec:authorize="hasAuthority('WRITE')">
+            <h4 style="margin:0 0 .75rem;">
+                🔄 ProductData zuweisen / ändern
+            </h4>
+            <form th:action="@{/product-bom/{id}/assign-product-data(
+                                id=${bom.id})}"
+                  method="post"
+                  style="display:flex;gap:.5rem;align-items:center;">
+                <select name="productDataId"
+                        style="flex:1;padding:.4rem;
+                               border:1px solid #ced4da;
+                               border-radius:4px;">
+                    <option value="">
+                        — Keine (Zuordnung entfernen) —
+                    </option>
+                    <!--
+                      Zeige alle nicht-zugewiesenen PDs +
+                      die aktuell zugewiesene PD
+                    -->
+                    <option th:if="${bom.productData != null}"
+                            th:value="${bom.productData.id}"
+                            th:text="${bom.productData.id
+                                      + ' – '
+                                      + bom.productData.name}"
+                            selected>
+                    </option>
+                    <option th:each="pd : ${availableProductData}"
+                            th:value="${pd.id}"
+                            th:text="${pd.id + ' – ' + pd.name}">
+                    </option>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    💾 Speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Zugehörige ManufacturingBOMs ──────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">
+            🔧 Verwendet in ManufacturingBOMs
+        </h3>
+
+        <div th:if="${bom.manufacturingBOMs.empty}"
+             style="color:#6c757d;">
+            Diese ProductBOM ist noch keiner ManufacturingBOM
+            zugeordnet.
+        </div>
+
+        <div th:each="mfg : ${bom.manufacturingBOMs}"
+             style="margin-bottom:.5rem;">
+            <a th:href="@{/manufacturing-bom/{id}(id=${mfg.id})}"
+               style="display:inline-flex;align-items:center;
+                      gap:.5rem;padding:.4rem .9rem;
+                      background:#e9f7ef;border:1px solid #c3e6cb;
+                      border-radius:6px;color:#155724;
+                      text-decoration:none;">
+                🔧
+                <span th:text="${mfg.name}">MfgBOM</span>
+                <span style="font-size:.8rem;color:#6c757d;"
+                      th:text="'(ID: ' + ${mfg.id} + ')'">
+                </span>
+            </a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

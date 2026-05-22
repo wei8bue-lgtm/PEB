@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Neue Manufacturing BOM – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>➕ Neue Manufacturing BOM</h1>
+    <div style="margin-left:auto;">
+        <a th:href="@{/manufacturing-bom}"
+           class="btn btn-primary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card" style="max-width:700px;">
+
+        <form th:action="@{/manufacturing-bom/new}"
+              th:object="${mfgBOM}"
+              method="post">
+
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text"
+                       th:field="*{name}"
+                       required
+                       placeholder="z.B. Mfg-BOM Akku-Bohrmaschine">
+            </div>
+
+            <div class="form-group">
+                <label>Version</label>
+                <input type="text"
+                       th:field="*{bomVersion}"
+                       placeholder="01">
+            </div>
+
+            <div class="form-group">
+                <label>Beschreibung</label>
+                <textarea th:field="*{description}"
+                          rows="3"
+                          placeholder="Beschreibung der Manufacturing BOM…"
+                          style="width:100%;padding:.5rem;
+                                 border:1px solid #ddd;
+                                 border-radius:4px;
+                                 font-family:inherit;
+                                 resize:vertical;">
+                </textarea>
+            </div>
+
+            <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+                <button type="submit"
+                        class="btn btn-primary">
+                    💾 Speichern
+                </button>
+                <a th:href="@{/manufacturing-bom}"
+                   class="btn btn-primary"
+                   style="background:#6c757d;">
+                    ✖ Abbrechen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

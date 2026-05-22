@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${bop.name} + ' – Product BOP – PEB'">
+        Product BOP
+    </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .t-node {
+            display:flex;align-items:center;gap:6px;
+            padding:5px 8px;border-radius:5px;margin:2px 0;
+        }
+        .t-node.root {
+            background:#e7f0ff;font-weight:700;
+            font-size:1rem;border-left:4px solid #0056b3;
+        }
+        .t-node.mfg {
+            margin-left:1.5rem;
+            border-left:3px solid #28a745;background:#f0fff4;
+        }
+        .t-node.ops {
+            margin-left:3rem;font-size:.82rem;
+            border-left:2px solid #dee2e6;color:#6c757d;
+        }
+        .badge-count {
+            font-size:.75rem;padding:2px 8px;
+            background:#e9ecef;border-radius:10px;
+            color:#495057;
+        }
+        .add-section {
+            background:#f8f9fa;border-radius:6px;
+            padding:1rem;border:1px solid #dee2e6;
+            margin-top:1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>⚙️ Product BOP</h1>
+    <div style="margin-left:auto;display:flex;gap:.5rem;">
+        <a th:href="@{/product-bop}"
+           class="btn btn-primary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;padding:.75rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+
+    <!-- ── Stammdaten ─────────────────────────────────────────── -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;"
+                th:text="${bop.name}">Product BOP</h2>
+            <span style="background:#e9ecef;padding:3px 12px;
+                         border-radius:12px;font-size:.85rem;"
+                  th:text="'Version: ' + ${bop.bopVersion}">
+            </span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <th style="width:180px;padding:.5rem;
+                           text-align:left;background:#f8f9fa;">
+                    ID
+                </th>
+                <td style="padding:.5rem;"
+                    th:text="${bop.id}">1</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Beschreibung</th>
+                <td style="padding:.5rem;"
+                    th:text="${bop.description ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt von</th>
+                <td style="padding:.5rem;"
+                    th:text="${bop.createdBy ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem;text-align:left;
+                           background:#f8f9fa;">Erstellt am</th>
+                <td style="padding:.5rem;"
+                    th:text="${bop.createdDate != null
+                        ? #temporals.format(bop.createdDate,
+                            'dd.MM.yyyy HH:mm')
+                        : '—'}">
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── Manufacturing BOMs ──────────────────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">
+            🔧 Manufacturing BOMs
+            <span class="badge-count"
+                  th:text="${#lists.size(
+                               bop.manufacturingBOMs)}">0</span>
+        </h3>
+
+        <!-- Baumstruktur -->
+        <div>
+            <!-- Root -->
+            <div class="t-node root">
+                <span>⚙️</span>
+                <span th:text="${bop.name}">Product BOP</span>
+                <span style="font-size:.8rem;color:#6c757d;"
+                      th:text="'v' + ${bop.bopVersion}">
+                </span>
+            </div>
+
+            <!-- Keine MfgBOMs -->
+            <div th:if="${#lists.isEmpty(bop.manufacturingBOMs)}"
+                 style="margin-left:1.5rem;color:#6c757d;
+                        padding:.5rem;">
+                Noch keine Manufacturing BOMs zugewiesen.
+            </div>
+
+            <!-- MfgBOM Knoten -->
+            <div th:each="mfg : ${bop.manufacturingBOMs}">
+                <div class="t-node mfg">
+                    <span>├──</span>
+                    <span>🔧</span>
+                    <a th:href="@{/manufacturing-bom/{id}(
+                                    id=${mfg.id})}"
+                       th:text="${mfg.name}"
+                       style="font-weight:500;color:#155724;
+                              text-decoration:none;">
+                    </a>
+                    <span class="badge-count"
+                          th:text="${#lists.size(mfg.operations)
+                                    + ' Ops'}">
+                    </span>
+
+                    <!-- Entfernen -->
+                    <form th:action="@{/product-bop/{id}/mfg-boms/{mfgId}/remove(
+                                        id=${bop.id},
+                                        mfgId=${mfg.id})}"
+                          method="post"
+                          style="margin-left:auto;"
+                          onsubmit="return confirm(
+                              'Manufacturing BOM entfernen?');"
+                          sec:authorize="hasAuthority('DELETE')">
+                        <button type="submit"
+                                class="btn btn-danger"
+                                style="padding:1px 7px;
+                                       font-size:.75rem;">
+                            ✕
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Operationen als Blätter -->
+                <div th:each="op : ${mfg.operations}"
+                     class="t-node ops">
+                    <span>│&nbsp;&nbsp;└──</span>
+                    <span th:text="${op.operationType.icon}">⚙️</span>
+                    <span th:text="${(op.operationNumber != null
+                                     ? op.operationNumber + ' – '
+                                     : '') + op.name}">
+                    </span>
+                    <span th:if="${op.workstation != null}"
+                          style="margin-left:auto;">
+                        🏭 <span th:text="${op.workstation}"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manufacturing BOM hinzufügen -->
+        <div class="add-section"
+             sec:authorize="hasAuthority('WRITE')">
+            <h4 style="margin:0 0 .75rem;">
+                ➕ Manufacturing BOM hinzufügen
+            </h4>
+            <form th:action="@{/product-bop/{id}/mfg-boms/add(
+                                id=${bop.id})}"
+                  method="post"
+                  style="display:flex;gap:.5rem;">
+                <select name="mfgBomId"
+                        style="flex:1;padding:.4rem .5rem;
+                               border:1px solid #ced4da;
+                               border-radius:4px;font-size:.87rem;">
+                    <option value="">
+                        — Manufacturing BOM wählen —
+                    </option>
+                    <option th:each="mb : ${availableMfgBOMs}"
+                            th:value="${mb.id}"
+                            th:text="${mb.name
+                                      + ' (v'
+                                      + mb.bomVersion
+                                      + ', '
+                                      + #lists.size(mb.operations)
+                                      + ' Ops)'}">
+                    </option>
+                </select>
+                <button type="submit"
+                        class="btn btn-primary">
+                    ➕ Hinzufügen
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${productData.name} + ' – PEB'">ProductData</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .detail-table { width:100%; border-collapse:collapse; }
+        .detail-table th {
+            width: 200px; padding: .5rem .75rem;
+            text-align: left; background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            color: #495057; font-weight: 600;
+        }
+        .detail-table td {
+            padding: .5rem .75rem;
+            border-bottom: 1px solid #eee;
+        }
+        .bom-link {
+            display: inline-flex; align-items: center;
+            gap: .4rem; padding: .4rem .8rem;
+            background: #e7f3ff; border: 1px solid #b8daff;
+            border-radius: 6px; color: #004085;
+            text-decoration: none; font-weight: 500;
+        }
+        .bom-link:hover { background: #cce5ff; }
+        .no-bom {
+            display: inline-flex; align-items: center;
+            gap: .4rem; padding: .4rem .8rem;
+            background: #f8f9fa; border: 1px solid #dee2e6;
+            border-radius: 6px; color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="${productData.name}">ProductData</h1>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a th:href="@{/product-data/{id}/edit(id=${productData.id})}"
+           class="btn btn-primary"
+           sec:authorize="hasAuthority('WRITE')">
+            ✏️ Bearbeiten
+        </a>
+        <form th:action="@{/product-data/{id}/delete(
+                             id=${productData.id})}"
+              method="post"
+              sec:authorize="hasAuthority('DELETE')"
+              onsubmit="return confirm(
+                  'ProductData ' + [[${productData.id}]]
+                  + ' wirklich löschen?');">
+            <button type="submit" class="btn btn-danger">
+                🗑️ Löschen
+            </button>
+        </form>
+        <a th:href="@{/product-data}" class="btn btn-primary">
+            ← Zurück
+        </a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda;border-color:#c3e6cb;padding:1rem;">
+        <p style="margin:0;color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+
+    <!-- ── Stammdaten ─────────────────────────────────────────── -->
+    <div class="card">
+        <h2 style="margin-top:0;">📦 Product Data Details</h2>
+
+        <table class="detail-table">
+            <tr>
+                <th>ID</th>
+                <td style="font-family:monospace;font-weight:600;
+                            color:#0066cc;"
+                    th:text="${productData.id}">PD00000001</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td th:text="${productData.name}">—</td>
+            </tr>
+            <tr>
+                <th>Produkttyp</th>
+                <td th:text="${productData.productType ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th>Abteilung</th>
+                <td th:text="${productData.department ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th>Beschreibung</th>
+                <td th:text="${productData.description ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>
+                    <span class="status-badge"
+                          th:classappend="
+                            ${productData.status.name() == 'RELEASED'}
+                                ? ' status-released'
+                                : (${productData.status.name()
+                                    == 'OBSOLETE'}
+                                   ? ' status-obsolete'
+                                   : ' status-working')"
+                          th:text="${productData.status.icon
+                                    + ' '
+                                    + productData.status.displayName}">
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Erstellt am</th>
+                <td th:text="${productData.createdDate != null
+                    ? #temporals.format(productData.createdDate,
+                        'dd.MM.yyyy HH:mm:ss')
+                    : '—'}">
+                </td>
+            </tr>
+            <tr>
+                <th>Erstellt von</th>
+                <td th:text="${productData.createdBy ?: '—'}">—</td>
+            </tr>
+            <tr>
+                <th>Geändert am</th>
+                <td th:text="${productData.lastModifiedDate != null
+                    ? #temporals.format(productData.lastModifiedDate,
+                        'dd.MM.yyyy HH:mm:ss')
+                    : '—'}">
+                </td>
+            </tr>
+            <tr>
+                <th>Geändert von</th>
+                <td th:text="${productData.lastModifiedBy ?: '—'}">—</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ── ProductBOM Verknüpfung ─────────────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">📋 Zugeordnete Product BOM</h3>
+
+        <!-- BOM vorhanden -->
+        <div th:if="${productData.productBOM != null}">
+            <a th:href="@{/product-bom/{id}(
+                            id=${productData.productBOM.id})}"
+               class="bom-link">
+                📋
+                <span th:text="${productData.productBOM.name}">
+                    BOM Name
+                </span>
+                <span style="font-size:.8rem;color:#6c757d;"
+                      th:text="'(ID: ' + ${productData.productBOM.id}
+                               + ')'">
+                </span>
+            </a>
+
+            <div style="margin-top:1rem;font-size:.85rem;
+                        color:#6c757d;">
+                <strong>Version:</strong>
+                <span th:text="${productData.productBOM.bomVersion}">
+                    01
+                </span>
+                &nbsp;|&nbsp;
+                <strong>Erstellt:</strong>
+                <span th:text="${productData.productBOM.createdDate
+                    != null
+                    ? #temporals.format(
+                        productData.productBOM.createdDate,
+                        'dd.MM.yyyy')
+                    : '—'}">
+                </span>
+            </div>
+        </div>
+
+        <!-- Keine BOM -->
+        <div th:if="${productData.productBOM == null}">
+            <span class="no-bom">
+                ⚠️ Noch keine ProductBOM zugewiesen
+            </span>
+            <div style="margin-top:1rem;">
+                <a th:href="@{/product-bom/new}"
+                   class="btn btn-primary btn-sm"
+                   sec:authorize="hasAuthority('WRITE')">
+                    ➕ ProductBOM erstellen &amp; zuweisen
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

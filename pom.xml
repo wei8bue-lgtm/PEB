@@ -149,6 +149,11 @@
 			<artifactId>three</artifactId>
 			<version>0.160.0</version>
 		</dependency> -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>html2pdf</artifactId>
+			<version>5.0.1</version>
+		</dependency>
     </dependencies>
 	
 

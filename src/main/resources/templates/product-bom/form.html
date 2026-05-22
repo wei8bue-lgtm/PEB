@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Product BOM – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>➕ Neue Product BOM</h1>
+    <div style="margin-left:auto;">
+        <a th:href="@{/product-bom}"
+           class="btn btn-primary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card" style="max-width:700px;">
+
+        <!-- Fehlerhinweis -->
+        <div th:if="${errorMessage}"
+             class="alert alert-danger"
+             style="margin-bottom:1rem;"
+             th:text="${errorMessage}">
+        </div>
+
+        <form th:action="@{/product-bom/new}"
+              th:object="${bom}"
+              method="post">
+
+            <!-- Name -->
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text"
+                       th:field="*{name}"
+                       required
+                       placeholder="z.B. BOM – Akku-Bohrmaschine XR-20">
+            </div>
+
+            <!-- Version -->
+            <div class="form-group">
+                <label>Version</label>
+                <input type="text"
+                       th:field="*{bomVersion}"
+                       placeholder="01">
+            </div>
+
+            <!-- Beschreibung -->
+            <div class="form-group">
+                <label>Beschreibung</label>
+                <textarea th:field="*{description}"
+                          rows="3"
+                          placeholder="Kurze Beschreibung…"
+                          style="width:100%;padding:.5rem;
+                                 border:1px solid #ddd;
+                                 border-radius:4px;
+                                 font-family:inherit;
+                                 resize:vertical;">
+                </textarea>
+            </div>
+
+            <!-- ProductData Auswahl (1:1) -->
+            <div class="form-group">
+                <label>
+                    ProductData zuweisen
+                    <span style="color:#6c757d;font-weight:400;">
+                        (Kardinalität 1:1 – optional)
+                    </span>
+                </label>
+                <select name="productDataId"
+                        style="width:100%;padding:.5rem;
+                               border:1px solid #ddd;
+                               border-radius:4px;">
+                    <option value="">
+                        — Keine (später zuweisbar) —
+                    </option>
+                    <option th:each="pd : ${availableProductData}"
+                            th:value="${pd.id}"
+                            th:text="${pd.id
+                                      + ' – '
+                                      + pd.name
+                                      + (pd.productType != null
+                                         ? ' ('
+                                           + pd.productType + ')'
+                                         : '')}">
+                    </option>
+                </select>
+                <small style="color:#6c757d;font-size:.82rem;">
+                    Es werden nur ProductData ohne bestehende BOM
+                    angezeigt.
+                </small>
+            </div>
+
+            <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+                <button type="submit"
+                        class="btn btn-primary">
+                    💾 Speichern
+                </button>
+                <a th:href="@{/product-bom}"
+                   class="btn btn-primary"
+                   style="background:#6c757d;">
+                    ✖ Abbrechen
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
