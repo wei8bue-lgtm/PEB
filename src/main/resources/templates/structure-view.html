@@ -4,37 +4,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Structure View - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
-        .tree-view {
-            padding-left: 0;
-            list-style: none;
-        }
-        .tree-node {
-            margin: 0.5rem 0;
-            padding: 0.75rem;
+        /* ── Tree ───────────────────────────────────────────── */
+        .tree-view   { padding-left: 0; list-style: none; }
+        .tree-node   {
+            margin: 0.35rem 0;
+            padding: 0.6rem 0.75rem;
             background: #f8f9fa;
             border-left: 3px solid #0066cc;
             border-radius: 4px;
         }
-        .tree-node:hover {
-            background: #e9ecef;
+        .tree-node:hover { background: #e9ecef; }
+        .tree-children   { padding-left: 2rem; margin-top: 0.25rem; }
+        .node-header     { display: flex; align-items: center;
+                           gap: 0.5rem; flex-wrap: wrap; }
+        .node-actions    { margin-left: auto; display: flex; gap: 0.4rem; }
+
+        /* ── BMK Table ──────────────────────────────────────── */
+        .bmk-table-wrapper { overflow-x: auto; }
+        .bmk-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
         }
-        .tree-children {
-            padding-left: 2rem;
-            margin-top: 0.5rem;
+        .bmk-table th {
+            background: #0066cc;
+            color: #fff;
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            white-space: nowrap;
         }
-        .node-header {
+        .bmk-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+        .bmk-table tr:hover td { background: #f0f4ff; }
+
+		/* indentation in BMK table – Objekt-Spalte */
+		.indent-0 { padding-left: 0.5rem; }
+		.indent-1 { padding-left: 1.75rem; }
+		.indent-2 { padding-left: 3.00rem; }
+		.indent-3 { padding-left: 4.25rem; }
+		.indent-4 { padding-left: 5.50rem; }
+		.indent-5 { padding-left: 6.75rem; }
+
+		/* Strukturlinie links vom eingerückten Eintrag */
+		.indent-1,
+		.indent-2,
+		.indent-3,
+		.indent-4,
+		.indent-5 {
+			border-left: 2px solid #dee2e6;
+			position: relative;
+		}
+
+		/* Verbindungsstrich zum Elternelement */
+		.tree-indent-cell::before {
+			content: '';
+			display: inline-block;
+			width: 0.75rem;
+			height: 1px;
+			background: #adb5bd;
+			margin-right: 0.35rem;
+			vertical-align: middle;
+		}
+
+        /* ── Badges ─────────────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-status-working  { background: #fff3cd; color: #856404;
+                                 border: 1px solid #ffc107; }
+        .badge-status-released { background: #d1e7dd; color: #0a3622;
+                                 border: 1px solid #198754; }
+        .badge-status-obsolete { background: #f8d7da; color: #58151c;
+                                 border: 1px solid #dc3545; }
+        .badge-refdes {
+            background: #e7f1ff;
+            color: #0d47a1;
+            border: 1px solid #90caf9;
+            font-family: monospace;
+        }
+        .badge-bmk {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #81c784;
+            font-family: monospace;
+        }
+        .badge-empty {
+            background: #f5f5f5;
+            color: #9e9e9e;
+            border: 1px dashed #bdbdbd;
+        }
+		
+		/* ── Click-to-Edit (Reference Designator inline) ────────── */
+		.refdes-display {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			cursor: pointer;
+		}
+		.refdes-display:hover .badge {
+			outline: 2px dashed #0066cc;
+			outline-offset: 2px;
+		}
+		.refdes-display:hover::after {
+			content: ' ✏️';
+			font-size: 0.75rem;
+			opacity: 0.7;
+		}
+
+		.refdes-edit-form {
+			display: none;           /* wird per JS eingeblendet */
+			align-items: center;
+			gap: 0.3rem;
+		}
+		.refdes-edit-form input {
+			border: 2px solid #0066cc;
+			border-radius: 4px;
+			padding: 0.2rem 0.45rem;
+			font-size: 0.82rem;
+			font-family: monospace;
+			width: 130px;
+			outline: none;
+		}
+		.refdes-edit-form input:focus {
+			box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+		}
+		.refdes-save-btn {
+			background: #198754;
+			color: #fff;
+			border: none;
+			border-radius: 4px;
+			padding: 0.2rem 0.45rem;
+			font-size: 0.78rem;
+			cursor: pointer;
+			line-height: 1.4;
+		}
+		.refdes-save-btn:hover  { background: #146c43; }
+		.refdes-cancel-btn {
+			background: #6c757d;
+			color: #fff;
+			border: none;
+			border-radius: 4px;
+			padding: 0.2rem 0.45rem;
+			font-size: 0.78rem;
+			cursor: pointer;
+			line-height: 1.4;
+		}
+		.refdes-cancel-btn:hover { background: #565e64; }
+
+		/* Saving-Spinner innerhalb der Zelle */
+		.refdes-saving {
+			font-size: 0.78rem;
+			color: #6c757d;
+			display: none;
+		}
+
+        /* ── Inline edit ────────────────────────────────────── */
+        .editable-cell {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
-        .node-actions {
-            margin-left: auto;
+        .editable-cell input {
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.82rem;
+            font-family: monospace;
+            width: 140px;
         }
+        .btn-xs {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+        }
+
+        /* ── Agent trigger panel ────────────────────────────── */
+        .agent-panel {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 0.75rem 1rem;
+            background: #f0f4ff;
+            border: 1px solid #90caf9;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .agent-status {
+            font-size: 0.85rem;
+            color: #555;
+        }
+        #agentSpinner { display: none; }
+
+        /* ── Add-child form ─────────────────────────────────── */
         .add-child-form {
             background: #fff;
             padding: 1.5rem;
@@ -42,290 +216,948 @@
             border: 2px dashed #0066cc;
             margin-top: 1rem;
         }
-        .component-option {
-            padding: 0.5rem;
+        .alert-warning {
+            background: #fff3cd; color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 1rem; border-radius: 4px;
         }
-        .component-option.no-revision {
-            color: #dc3545;
-        }
+        .component-option.no-revision { color: #dc3545; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1>Structure Management</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/ebom}" class="btn btn-primary">Back to eBOM</a>
-        </div>
-    </div>
 
-    <div class="container">
-        <div class="card">
-            <h2>Structure for: <span th:text="${objectId}">Object ID</span></h2>
-            
-            <div th:if="${revisionId == null}" class="alert alert-warning">
-                <strong>No revision found!</strong> 
-                <p>This object has no revisions yet. A revision was supposed to be created automatically when the object was created.</p>
-                <p>Please check the object details and ensure it has at least one revision before building a structure.</p>
-            </div>
-
-            <div th:if="${revisionId != null}">
-                <!-- Structure Tree -->
-                <div th:if="${structureTree != null}">
-                    <h3>Current Structure</h3>
-                    <div class="tree-view">
-                        <div th:replace="~{fragments/tree-node :: tree-node(node=${structureTree})}"></div>
-                    </div>
-                </div>
-
-                <!-- Add Child Form -->
-                <div class="card" style="margin-top: 2rem;" sec:authorize="hasAuthority('WRITE')">
-                    <h3>Add Component to Structure</h3>
-                    <div class="add-child-form">
-                        <form id="addChildForm">
-                            <input type="hidden" id="parentId" th:value="${objectId}">
-                            <input type="hidden" id="parentRevisionId" th:value="${revisionId}">
-
-                            <div class="form-group">
-                                <label for="childType">Component Type</label>
-                                <select id="childType" class="form-control" required>
-                                    <option value="">-- Select Type --</option>
-                                    <option th:each="type : ${allowedTypes}" 
-                                            th:value="${type}"
-                                            th:text="${#strings.equals(type, 'MA') ? 'Machine (MA)' :
-                                                      #strings.equals(type, 'SY') ? 'System (SY)' :
-                                                      #strings.equals(type, 'SU') ? 'Subsystem (SU)' :
-                                                      #strings.equals(type, 'MO') ? 'Module (MO)' :
-                                                      #strings.equals(type, 'MU') ? 'Submodule (MU)' :
-                                                      #strings.equals(type, 'PT') ? 'Part (PT)' :
-                                                      #strings.equals(type, 'AX') ? 'Auxiliary (AX)' :
-                                                      #strings.equals(type, 'DS') ? 'Design (DS)' :
-                                                      #strings.equals(type, 'DR') ? 'Drawing (DR)' : type}">
-                                        Type
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="childSelect">Select Component</label>
-                                <select id="childSelect" class="form-control" required disabled>
-                                    <option value="">-- Select type first --</option>
-                                </select>
-                                <small id="revisionWarning" style="display: none; color: #dc3545; margin-top: 0.5rem;">
-                                    ⚠ Selected component has no revision. Cannot add to structure.
-                                </small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="quantity">Quantity</label>
-                                <input type="number" id="quantity" class="form-control" 
-                                       value="1" min="1" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="positionNumber">Position Number (optional)</label>
-                                <input type="text" id="positionNumber" class="form-control" 
-                                       placeholder="e.g., 10, 20, 30">
-                            </div>
-
-                            <button type="submit" class="btn btn-success" id="submitBtn">Add to Structure</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Structure Rules Info -->
-                <div class="card" style="margin-top: 2rem;">
-                    <h3>Structure Rules</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background-color: #f8f9fa;">
-                                <th style="padding: 0.5rem; text-align: left;">Parent Type</th>
-                                <th style="padding: 0.5rem; text-align: left;">Can Contain</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 0.5rem;">Machine (MA)</td>
-                                <td style="padding: 0.5rem;">System, Part, Auxiliary, Drawing</td>
-                            </tr>
-                            <tr style="background-color: #f8f9fa;">
-                                <td style="padding: 0.5rem;">System (SY)</td>
-                                <td style="padding: 0.5rem;">Subsystem, Part, Auxiliary, Drawing</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 0.5rem;">Subsystem (SU)</td>
-                                <td style="padding: 0.5rem;">Module, Part, Auxiliary, Drawing</td>
-                            </tr>
-                            <tr style="background-color: #f8f9fa;">
-                                <td style="padding: 0.5rem;">Module (MO)</td>
-                                <td style="padding: 0.5rem;">Submodule, Part, Auxiliary, Drawing</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 0.5rem;">Submodule (MU)</td>
-                                <td style="padding: 0.5rem;">Part, Auxiliary, Drawing</td>
-                            </tr>
-                            <tr style="background-color: #f8f9fa;">
-                                <td style="padding: 0.5rem;">Part/Auxiliary (PT/AX)</td>
-                                <td style="padding: 0.5rem;">Drawing only</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 0.5rem;">Design (DS)</td>
-                                <td style="padding: 0.5rem;">Design, Drawing, Part, Auxiliary</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-	
-	<!-- Add this card after the Structure Rules card -->
-<div class="card" th:if="${revisionId != null}" sec:authorize="hasAuthority('READ')">
-    <h3>Export Structure</h3>
-    <p>Download the complete structure as XML for external processing.</p>
-    
-    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(id=${objectId},revId=${revisionId})}" 
-           class="btn btn-primary" download>
-            📄 Download XML (Simple)
-        </a>
-        <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(id=${objectId},revId=${revisionId})}" 
-           class="btn btn-success" download>
-            📋 Download XML (Detailed)
-        </a>
+<!-- ══ Header ════════════════════════════════════════════════ -->
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>Structure Management</h1>
+    <div style="margin-left: auto;">
+        <a th:href="@{/ebom}" class="btn btn-primary">Back to eBOM</a>
     </div>
 </div>
 
-<style>
-    .alert-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-        padding: 1rem;
-        border-radius: 4px;
+<div class="container">
+<div class="card">
+    <h2>Structure for: <span th:text="${objectId}">Object ID</span></h2>
+
+    <!-- ══ No revision warning ════════════════════════════════ -->
+    <div th:if="${revisionId == null}" class="alert alert-warning">
+        <strong>No revision found!</strong>
+        <p>This object has no revisions yet.</p>
+    </div>
+
+    <div th:if="${revisionId != null}">
+
+        <!-- ══════════════════════════════════════════════════
+             SECTION A: Classic tree (unchanged, collapsible)
+        ══════════════════════════════════════════════════════ -->
+        <details open>
+            <summary style="cursor:pointer; font-weight:600;
+                            font-size:1.05rem; margin-bottom:0.75rem;">
+                📂 Current Structure (Tree View)
+            </summary>
+            <div class="tree-view" th:if="${structureTree != null}">
+                <div th:replace="~{fragments/tree-node :: tree-node(
+                                    node=${structureTree})}">
+                </div>
+            </div>
+        </details>
+
+		<!-- ══════════════════════════════════════════════════════════
+			 SECTION B: BMK / Reference Designator Table
+			 Punkt 3: Nur anzeigen wenn Root-Objekt eine Maschine (MA) ist
+		══════════════════════════════════════════════════════════════ -->
+		<div style="margin-top: 2rem;"
+			 th:if="${objectId != null and #strings.startsWith(objectId, 'MA')}">
+
+			<div style="display:flex; justify-content:space-between;
+						align-items:center; margin-bottom:0.75rem;
+						flex-wrap:wrap; gap:0.5rem;">
+				<h3 style="margin:0;">
+					🏷️ BMK &amp; Reference Designator
+					<span style="font-size:0.8rem; color:#6c757d;
+								 font-weight:normal;">
+						(in-context, per Verbauungsposition)
+					</span>
+				</h3>
+
+				<!-- ── AI-Agent Trigger (nur mit WRITE-Recht) ── -->
+				<div sec:authorize="hasAuthority('WRITE')"
+				  class="agent-panel">
+
+				 <!-- Linke Seite: Status-Info -->
+				 <div style="flex:1; min-width:200px;">
+					 <strong>🤖 BMK Generierung</strong>
+					 <div class="agent-status" id="agentStatus">
+						 Bereit. Wähle einen Modus zur BMK-Generierung.
+					 </div>
+					 <!-- KI-Badge – zeigt welcher Modus zuletzt lief -->
+					 <div id="agentModeBadge" style="display:none; margin-top:0.3rem;">
+						 <span id="agentModeText"
+							   style="font-size:0.75rem; padding:0.15rem 0.5rem;
+									  border-radius:10px; font-weight:600;">
+						 </span>
+					 </div>
+				 </div>
+
+				 <!-- Rechte Seite: Zwei Buttons -->
+				 <div style="display:flex; gap:0.5rem; align-items:center;
+							 flex-wrap:wrap;">
+
+					 <!-- Button 1: Klassische In-Process Logik (bestehend) -->
+					 <div style="text-align:center;">
+						 <button id="triggerAgentBtn"
+								 class="btn btn-primary"
+								 th:data-root-id="${objectId}"
+								 th:data-root-rev="${revisionId}"
+								 onclick="triggerBmkAgent(this, false)"
+								 title="Bewährte Java-Logik: RefDes-Segmente werden
+										direkt konkateniert (deterministisch)">
+							 ⚙️ BMK generieren
+						 </button>
+						 <div style="font-size:0.68rem; color:#6c757d;
+									 margin-top:0.2rem;">
+							 In-Process Logik
+						 </div>
+					 </div>
+
+					 <!-- Trenner -->
+					 <div style="color:#dee2e6; font-size:1.2rem; padding:0 0.25rem;">
+						 |
+					 </div>
+
+					 <!-- Button 2: KI-Agent (NEU) -->
+					 <div style="text-align:center;">
+						 <button id="triggerAiAgentBtn"
+								 class="btn btn-success"
+								 th:data-root-id="${objectId}"
+								 th:data-root-rev="${revisionId}"
+								 onclick="triggerBmkAgent(this, true)"
+								 title="Gemini KI-Agent: Analysiert den gesamten Baum
+										und generiert BMKs nach N54 D6 / DIN EN 81346-2">
+							 🤖 KI-BMK generieren
+						 </button>
+						 <div style="font-size:0.68rem; color:#6c757d;
+									 margin-top:0.2rem;">
+							 Gemini Agent
+						 </div>
+					 </div>
+
+					 <!-- Spinner (für beide Buttons) -->
+					 <span id="agentSpinner"
+						   style="display:none; font-size:1.1rem;">
+						 ⏳
+					 </span>
+				 </div>
+				</div>
+			</div>
+
+			<!-- ── BMK Table ─────────────────────────────── -->
+			<div class="bmk-table-wrapper"
+				 th:if="${structureTree != null}">
+				<table class="bmk-table" id="bmkTable">
+					<thead>
+						<tr>
+							<th>Objekt</th>
+							<th>Name</th>
+							<th>Qty</th>
+							<th>Status</th>
+							<th title="Vom User eingegebener Teil-BMK">
+								Reference Designator
+							</th>
+							<th title="Vollständiges BMK, generiert vom Agenten">
+								BMK (generiert)
+							</th>
+							<th sec:authorize="hasAuthority('WRITE')">
+								Aktionen
+							</th>
+						</tr>
+					</thead>
+					<tbody id="bmkTableBody">
+						<!-- Rendered via JavaScript renderBmkTable() -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+        <!-- ══ Add Child Form ════════════════════════════════ -->
+        <div class="card" style="margin-top: 2rem;"
+             sec:authorize="hasAuthority('WRITE')">
+            <h3>Add Component to Structure</h3>
+            <div class="add-child-form">
+                <form id="addChildForm">
+                    <input type="hidden" id="parentId"
+                           th:value="${objectId}">
+                    <input type="hidden" id="parentRevisionId"
+                           th:value="${revisionId}">
+
+                    <div class="form-group">
+                        <label for="childType">Component Type</label>
+                        <select id="childType" required>
+                            <option value="">-- Select Type --</option>
+                            <option th:each="type : ${allowedTypes}"
+                                    th:value="${type}"
+                                    th:text="${
+                                      #strings.equals(type,'MA')?'Machine (MA)':
+                                      #strings.equals(type,'SY')?'System (SY)':
+                                      #strings.equals(type,'SU')?'Subsystem (SU)':
+                                      #strings.equals(type,'MO')?'Module (MO)':
+                                      #strings.equals(type,'MU')?'Submodule (MU)':
+                                      #strings.equals(type,'PT')?'Part (PT)':
+                                      #strings.equals(type,'AX')?'Auxiliary (AX)':
+                                      #strings.equals(type,'DS')?'Design (DS)':
+                                      #strings.equals(type,'DR')?'Drawing (DR)':type}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="childSelect">Select Component</label>
+                        <select id="childSelect" required disabled>
+                            <option value="">-- Select type first --</option>
+                        </select>
+                        <small id="revisionWarning"
+                               style="display:none; color:#dc3545;">
+                            ⚠ No revision – cannot add.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity"
+                               value="1" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="positionNumber">
+                            Position Number (optional)
+                        </label>
+                        <input type="text" id="positionNumber"
+                               placeholder="e.g., 10, 20, 30">
+                    </div>
+
+                    <!-- NEW: Reference Designator beim Hinzufügen -->
+                    <div class="form-group">
+                        <label for="referenceDesignator">
+                            Reference Designator
+                            <span style="font-weight:normal;
+                                         color:#6c757d; font-size:0.85rem;">
+                                (Teil-BMK, z.B.&nbsp;
+                                <code>=102</code>,&nbsp;
+                                <code>+M</code>,&nbsp;
+                                <code>-B301A</code>)
+                            </span>
+                        </label>
+                        <input type="text" id="referenceDesignator"
+                               maxlength="50"
+                               placeholder="z.B. =102 oder +M oder -B301A"
+                               style="font-family: monospace;">
+                        <small style="color:#6c757d;">
+                            Optional. Der BMK-Agent setzt den vollständigen
+                            Pfad aus den übergeordneten Werten zusammen.
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-success"
+                            id="submitBtn">
+                        Add to Structure
+                    </button>
+                    <small id="revisionWarningSubmit"
+                           style="display:none; color:#dc3545;">
+                        ⚠ Selected component has no revision.
+                    </small>
+                </form>
+            </div>
+        </div>
+
+        <!-- ══ Structure Rules ════════════════════════════════ -->
+        <div class="card" style="margin-top: 2rem;">
+            <h3>Structure Rules</h3>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th style="padding:0.5rem; text-align:left;">
+                            Parent Type</th>
+                        <th style="padding:0.5rem; text-align:left;">
+                            Can Contain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding:0.5rem;">Machine (MA)</td>
+                        <td style="padding:0.5rem;">
+                            System, Part, Auxiliary, Drawing</td></tr>
+                    <tr style="background:#f8f9fa;">
+                        <td style="padding:0.5rem;">System (SY)</td>
+                        <td style="padding:0.5rem;">
+                            Subsystem, Part, Auxiliary, Drawing</td></tr>
+                    <tr><td style="padding:0.5rem;">Subsystem (SU)</td>
+                        <td style="padding:0.5rem;">
+                            Module, Part, Auxiliary, Drawing</td></tr>
+                    <tr style="background:#f8f9fa;">
+                        <td style="padding:0.5rem;">Module (MO)</td>
+                        <td style="padding:0.5rem;">
+                            Submodule, Part, Auxiliary, Drawing</td></tr>
+                    <tr><td style="padding:0.5rem;">Submodule (MU)</td>
+                        <td style="padding:0.5rem;">
+                            Part, Auxiliary, Drawing</td></tr>
+                    <tr style="background:#f8f9fa;">
+                        <td style="padding:0.5rem;">
+                            Part / Auxiliary (PT/AX)</td>
+                        <td style="padding:0.5rem;">Drawing only</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ══ Export ════════════════════════════════════════ -->
+        <div class="card" style="margin-top:2rem;"
+             sec:authorize="hasAuthority('READ')">
+            <h3>Export Structure</h3>
+            <div style="display:flex; gap:1rem; margin-top:1rem;">
+                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(
+                               id=${objectId},revId=${revisionId})}"
+                   class="btn btn-primary" download>
+                    📄 XML (Simple)
+                </a>
+                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(
+                               id=${objectId},revId=${revisionId})}"
+                   class="btn btn-success" download>
+                    📋 XML (Detailed)
+                </a>
+            </div>
+        </div>
+
+    </div><!-- /revisionId != null -->
+</div><!-- /card -->
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════════════════
+     INLINE-EDIT MODAL (lightweight, no external dependency)
+══════════════════════════════════════════════════════════════ -->
+<div id="editModal" style="display:none; position:fixed; inset:0;
+     background:rgba(0,0,0,0.5); z-index:900;
+     align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:8px; padding:2rem;
+                min-width:400px; max-width:560px; width:90%;
+                box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0;">✏️ BMK bearbeiten</h3>
+        <input type="hidden" id="editRelationId">
+        <div class="form-group">
+            <label>Reference Designator
+                <small style="color:#6c757d;">
+                    (Teil-BMK, z.B. <code>=102</code>)
+                </small>
+            </label>
+            <input type="text" id="editRefDes"
+                   maxlength="50" style="font-family:monospace; width:100%;">
+        </div>
+        <div class="form-group">
+            <label>BMK (manuell korrigierbar)
+                <small style="color:#6c757d;">
+                    (vollständig, z.B. <code>=102+M-B301A</code>)
+                </small>
+            </label>
+            <input type="text" id="editBmk"
+                   maxlength="100" style="font-family:monospace; width:100%;">
+        </div>
+        <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+            <button class="btn btn-success" onclick="saveEdit()">
+                💾 Speichern
+            </button>
+            <button class="btn btn-secondary" onclick="closeModal()">
+                Abbrechen
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+
+// ── CSRF ──────────────────────────────────────────────────────
+const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')
+                             .getAttribute('content');
+const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')
+                             .getAttribute('content');
+
+// ── Structure tree (passed from Thymeleaf as JSON) ────────────
+// We re-fetch from the server to get the full node data including
+// relationId, bmk, referenceDesignator.
+const ROOT_OBJECT_ID  = /*[[${objectId}]]*/ 'UNKNOWN';
+const ROOT_REVISION_ID = /*[[${revisionId}]]*/ null;
+
+// ─────────────────────────────────────────────────────────────
+// BMK TABLE RENDERING
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the structure tree JSON and render the BMK table.
+ * We re-use the existing /api/structure/{id}/children endpoint
+ * approach, but for the full tree we call a new dedicated endpoint.
+ *
+ * For now we use the structureTree Thymeleaf object serialized
+ * to JSON via a hidden script block (see below).
+ */
+const STRUCTURE_TREE = /*[[${structureTree}]]*/ null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (STRUCTURE_TREE) {
+        renderBmkTable(STRUCTURE_TREE);
     }
-</style>
+    initAddForm();
+});
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const childTypeSelect = document.getElementById('childType');
-            const childSelect = document.getElementById('childSelect');
-            const addChildForm = document.getElementById('addChildForm');
-            const objectId = document.getElementById('parentId').value;
-            const submitBtn = document.getElementById('submitBtn');
-            const revisionWarning = document.getElementById('revisionWarning');
-            
-            let selectedComponents = [];
+function renderBmkTable(tree) {
+    const tbody = document.getElementById('bmkTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
-            // Load children when type changes
-            childTypeSelect.addEventListener('change', function() {
-                const selectedType = this.value;
-                
-                if (!selectedType) {
-                    childSelect.disabled = true;
-                    childSelect.innerHTML = '<option value="">-- Select type first --</option>';
-                    return;
-                }
+    // Punkt 1: Zeichnungen (DR-Prefix) werden übersprungen
+    // Punkt 2: depth wird für Einrückung mitgegeben
+    renderBmkRow(tbody, tree, 0, true);
+}
 
-                // Fetch available children for this type
-                fetch(`/api/structure/${objectId}/children?type=${selectedType}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        selectedComponents = data;
-                        childSelect.disabled = false;
-                        childSelect.innerHTML = '<option value="">-- Select component --</option>';
-                        
-                        data.forEach((item, index) => {
-                            const option = document.createElement('option');
-                            option.value = index; // Store index to retrieve full object later
-                            
-                            if (item.revisionId) {
-                                option.textContent = `${item.id} - ${item.name} (Rev: ${item.revision})`;
-                                option.className = 'component-option';
-                            } else {
-                                option.textContent = `${item.id} - ${item.name} (NO REVISION - Cannot use)`;
-                                option.className = 'component-option no-revision';
-                                option.disabled = true;
-                            }
-                            
-                            childSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading children:', error);
-                        alert('Failed to load available components');
-                    });
-            });
+// ── renderBmkRow() – ERSETZT die bisherige Implementierung ────────────────
 
-            // Validate selection
-            childSelect.addEventListener('change', function() {
-                const selectedIndex = this.value;
-                
-                if (!selectedIndex) {
-                    submitBtn.disabled = false;
-                    revisionWarning.style.display = 'none';
-                    return;
-                }
-                
-                const selectedComponent = selectedComponents[selectedIndex];
-                
-                if (!selectedComponent.revisionId) {
-                    submitBtn.disabled = true;
-                    revisionWarning.style.display = 'block';
-                } else {
-                    submitBtn.disabled = false;
-                    revisionWarning.style.display = 'none';
-                }
-            });
+function renderBmkRow(tbody, node, depth, isRoot) {
 
-            // Handle form submission
-            addChildForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+    // ── Punkt 1: Drawings herausfiltern ──────────────────────────────────
+    // Drawings (DR*) bekommen in der Praxis keine BMK → aus Tabelle ausblenden.
+    // Root-Node wird nie gefiltert (kann theoretisch kein DR sein bei MA-View,
+    // aber sicherheitshalber nur Kinder filtern).
+    if (!isRoot && node.objectId && node.objectId.startsWith('DR')) {
+        // Kinder von Drawings ebenfalls nicht rendern
+        return;
+    }
 
-                const selectedIndex = childSelect.value;
-                if (!selectedIndex) {
-                    alert('Please select a component');
-                    return;
-                }
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-relation-id', node.relationId ?? '');
+    tr.setAttribute('data-object-id',   node.objectId);
 
-                const selectedComponent = selectedComponents[selectedIndex];
+    // ── Punkt 2: Einrückung ───────────────────────────────────────────────
+    const indentClass   = 'indent-' + Math.min(depth, 5);
+    const showTreeLine  = depth > 0;   // Verbindungsstrich ab Ebene 1
 
-                if (!selectedComponent.revisionId) {
-                    alert('Selected component has no revision. Create a revision first.');
-                    return;
-                }
+    // ── Col 1: Object ID ──────────────────────────────────────────────────
+    const tdId = document.createElement('td');
+    tdId.className = `tree-indent-cell ${indentClass}`;
+    tdId.innerHTML =
+        `<a href="/ebom/${node.objectId}"
+            style="font-weight:600; font-family:monospace;">
+             ${escHtml(node.objectId)}
+         </a>`;
+    tr.appendChild(tdId);
 
-                const data = {
-                    parentId: document.getElementById('parentId').value,
-                    parentRevisionId: parseInt(document.getElementById('parentRevisionId').value),
-                    childId: selectedComponent.id,
-                    childRevisionId: selectedComponent.revisionId,
-                    quantity: parseInt(document.getElementById('quantity').value),
-                    positionNumber: document.getElementById('positionNumber').value || null
-                };
+    // ── Col 2: Name (ebenfalls eingerückt für optische Tiefe) ─────────────
+    const tdName = document.createElement('td');
+    tdName.style.paddingLeft = (depth * 1.25) + 'rem';
+    tdName.style.color = depth === 0 ? '#000' : '#333';
+    tdName.style.fontWeight = depth === 0 ? '600' : 'normal';
+    tdName.textContent = node.name ?? '—';
+    tr.appendChild(tdName);
 
-                fetch('/structure/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Component added to structure successfully!');
-                        window.location.reload();
+    // ── Col 3: Qty ────────────────────────────────────────────────────────
+    const tdQty = document.createElement('td');
+    tdQty.textContent = isRoot ? '—' : (node.quantity ?? 1);
+    tr.appendChild(tdQty);
+
+    // ── Col 4: Status badge ───────────────────────────────────────────────
+    const tdStatus = document.createElement('td');
+    tdStatus.innerHTML =
+        `<span class="badge ${statusBadgeClass(node.releaseStatus)}">
+             ${escHtml(node.releaseStatus ?? '—')}
+         </span>`;
+    tr.appendChild(tdStatus);
+
+    // ── Col 5: Reference Designator – CLICK-TO-EDIT ───────────────────────
+    const tdRefDes = document.createElement('td');
+
+    if (isRoot) {
+        tdRefDes.innerHTML = '<span style="color:#bbb;">—</span>';
+
+    } else if (!node.relationId) {
+        // Defensiv: relationId null → nur anzeigen
+        const refDesVal = node.referenceDesignator ?? '';
+        tdRefDes.innerHTML = refDesVal
+            ? `<span class="badge badge-refdes">${escHtml(refDesVal)}</span>`
+            : `<span class="badge badge-empty"
+                     title="Keine Relation-ID verfügbar">nicht gesetzt</span>`;
+
+    } else {
+        // Normalfall: Click-to-Edit aktiv
+        const refDesVal  = node.referenceDesignator ?? '';
+        const relationId = node.relationId;
+
+        const displayHtml = refDesVal
+            ? `<span class="badge badge-refdes">${escHtml(refDesVal)}</span>`
+            : `<span class="badge badge-empty">nicht gesetzt</span>`;
+
+        tdRefDes.innerHTML = `
+            <div class="refdes-display"
+                 title="Klicken zum Bearbeiten"
+                 onclick="startRefDesEdit(this, ${relationId},
+                          '${escJs(refDesVal)}')">
+                ${displayHtml}
+            </div>
+            <div class="refdes-edit-form"
+                 data-relation-id="${relationId}">
+                <input type="text"
+                       maxlength="50"
+                       placeholder="z.B. =102 oder -B301A"
+                       value="${escHtml(refDesVal)}"
+                       onkeydown="handleRefDesKey(event, this)"
+                       aria-label="Reference Designator bearbeiten">
+                <button class="refdes-save-btn"
+                        title="Speichern (Enter)"
+                        onclick="saveRefDes(this)">✓</button>
+                <button class="refdes-cancel-btn"
+                        title="Abbrechen (Escape)"
+                        onclick="cancelRefDesEdit(this)">✕</button>
+                <span class="refdes-saving">⏳</span>
+            </div>`;
+    }
+    tr.appendChild(tdRefDes);
+
+    // ── Col 6: BMK ────────────────────────────────────────────────────────
+    const tdBmk = document.createElement('td');
+    const bmkVal = node.bmk;
+    if (isRoot) {
+        tdBmk.innerHTML = '<span style="color:#bbb;">—</span>';
+    } else if (bmkVal) {
+        tdBmk.innerHTML =
+            `<span class="badge badge-bmk">${escHtml(bmkVal)}</span>`;
+    } else {
+        tdBmk.innerHTML =
+            `<span class="badge badge-empty">noch nicht generiert</span>`;
+    }
+    tr.appendChild(tdBmk);
+
+    // ── Col 7: Aktionen ───────────────────────────────────────────────────
+    const tdAct = document.createElement('td');
+    if (!isRoot && node.relationId) {
+        const refDesVal = node.referenceDesignator ?? '';
+        const bmkVal2   = node.bmk ?? '';
+        tdAct.innerHTML =
+            `<button class="btn btn-primary btn-xs"
+                     title="BMK vollständig bearbeiten"
+                     onclick="openEditModal(
+                         ${node.relationId},
+                         '${escJs(refDesVal)}',
+                         '${escJs(bmkVal2)}')">
+                 ✏️
+             </button>`;
+    }
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+
+    // ── Rekursion: Kinder rendern ─────────────────────────────────────────
+    if (node.children && node.children.length > 0) {
+        node.children.forEach(child =>
+            renderBmkRow(tbody, child, depth + 1, false));
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CLICK-TO-EDIT – Reference Designator
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Blendet den Display-Layer aus und den Edit-Layer ein.
+ *
+ * @param {HTMLElement} displayDiv  Das angeklickte .refdes-display Element
+ * @param {number}      relationId  ID der StructureRelation
+ * @param {string}      currentVal  Aktueller Wert (für Input-Vorbelegung)
+ */
+function startRefDesEdit(displayDiv, relationId, currentVal) {
+    const td       = displayDiv.closest('td');
+    const editForm = td.querySelector('.refdes-edit-form');
+    const input    = editForm.querySelector('input');
+
+    // Layer tauschen
+    displayDiv.style.display = 'none';
+    editForm.style.display   = 'inline-flex';
+
+    // Cursor ans Ende des Textes setzen
+    input.value = currentVal;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+}
+
+/**
+ * Tastatur-Shortcuts im Input-Feld:
+ *   Enter   → Speichern
+ *   Escape  → Abbrechen
+ */
+function handleRefDesKey(event, input) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        saveRefDes(input.closest('.refdes-edit-form')
+                        .querySelector('.refdes-save-btn'));
+    }
+    if (event.key === 'Escape') {
+        cancelRefDesEdit(input.closest('.refdes-cancel-btn') ??
+                         input.nextElementSibling.nextElementSibling);
+    }
+}
+
+/**
+ * Sendet den neuen Wert per PATCH an den Server und
+ * aktualisiert den Badge ohne Page-Reload.
+ *
+ * @param {HTMLElement} saveBtn  Der Speichern-Button
+ */
+function saveRefDes(saveBtn) {
+    const editForm   = saveBtn.closest('.refdes-edit-form');
+    const relationId = editForm.getAttribute('data-relation-id');
+    const input      = editForm.querySelector('input');
+    const newVal     = input.value.trim();
+    const spinner    = editForm.querySelector('.refdes-saving');
+    const cancelBtn  = editForm.querySelector('.refdes-cancel-btn');
+
+    // UI: Speichern läuft
+    saveBtn.disabled   = true;
+    cancelBtn.disabled = true;
+    spinner.style.display = 'inline';
+
+    fetch(`/api/bmk/relations/${relationId}/refdes`, {
+        method:  'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            [CSRF_HEADER]:  CSRF_TOKEN
+        },
+        body: JSON.stringify({ referenceDesignator: newVal || null })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(t => { throw new Error(t); });
+        }
+        return response.json();
+    })
+    .then(updatedRelation => {
+        // Badge im Display-Layer aktualisieren (kein Reload nötig)
+        const td           = editForm.closest('td');
+        const displayDiv   = td.querySelector('.refdes-display');
+        const savedVal     = updatedRelation.referenceDesignator ?? '';
+
+        if (savedVal) {
+            displayDiv.innerHTML =
+                `<span class="badge badge-refdes">${escHtml(savedVal)}</span>`;
+        } else {
+            displayDiv.innerHTML =
+                `<span class="badge badge-empty">nicht gesetzt</span>`;
+        }
+
+        // onclick-Attribut aktualisieren damit der nächste Edit-Klick
+        // den frischen Wert vorbelegt
+        displayDiv.setAttribute('onclick',
+            `startRefDesEdit(this, ${relationId}, '${escJs(savedVal)}')`);
+
+        // Input-Wert für nächste Bearbeitung aktualisieren
+        input.value = savedVal;
+
+        // Zurück zur Anzeige
+        spinner.style.display  = 'none';
+        saveBtn.disabled        = false;
+        cancelBtn.disabled      = false;
+        editForm.style.display  = 'none';
+        displayDiv.style.display = 'inline-flex';
+    })
+    .catch(err => {
+        spinner.style.display = 'none';
+        saveBtn.disabled       = false;
+        cancelBtn.disabled     = false;
+        alert('Fehler beim Speichern: ' + err.message);
+    });
+}
+
+/**
+ * Bricht die Inline-Bearbeitung ab und stellt
+ * den Display-Layer wieder her.
+ *
+ * @param {HTMLElement} cancelBtn  Der Abbrechen-Button
+ */
+function cancelRefDesEdit(cancelBtn) {
+    const editForm   = cancelBtn.closest('.refdes-edit-form');
+    const td         = editForm.closest('td');
+    const displayDiv = td.querySelector('.refdes-display');
+
+    // Input auf letzten gespeicherten Wert zurücksetzen
+    // (steht im onclick-Attribut des displayDiv)
+    editForm.style.display   = 'none';
+    displayDiv.style.display = 'inline-flex';
+}
+
+function statusBadgeClass(status) {
+    if (!status) return '';
+    if (status === 'WORKING')  return 'badge-status-working';
+    if (status === 'RELEASED') return 'badge-status-released';
+    if (status === 'OBSOLETE') return 'badge-status-obsolete';
+    return '';
+}
+
+// ─────────────────────────────────────────────────────────────
+// INLINE EDIT MODAL
+// ─────────────────────────────────────────────────────────────
+
+function openEditModal(relationId, refDes, bmk) {
+    document.getElementById('editRelationId').value = relationId;
+    document.getElementById('editRefDes').value     = refDes;
+    document.getElementById('editBmk').value        = bmk;
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+function saveEdit() {
+    const relationId = document.getElementById('editRelationId').value;
+    const refDes     = document.getElementById('editRefDes').value;
+    const bmk        = document.getElementById('editBmk').value;
+
+    fetch(`/api/bmk/relations/${relationId}`, {
+        method:  'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            [CSRF_HEADER]: CSRF_TOKEN
+        },
+        body: JSON.stringify({
+            relationId:          parseInt(relationId),
+            referenceDesignator: refDes,
+            bmk:                 bmk
+        })
+    })
+    .then(r => {
+        if (!r.ok) return r.text().then(t => { throw new Error(t); });
+        return r.json();
+    })
+    .then(() => {
+        closeModal();
+        window.location.reload();
+    })
+    .catch(err => alert('Fehler: ' + err.message));
+}
+
+// ─────────────────────────────────────────────────────────────
+// BMK AGENT TRIGGER (In-Process & KI-Agent)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Startet die BMK-Generierung im gewählten Modus.
+ *
+ * @param {HTMLElement} btn       Der geklickte Button
+ * @param {boolean}     useAiAgent  true → Gemini, false → In-Process
+ */
+function triggerBmkAgent(btn, useAiAgent) {
+ const rootId  = btn.getAttribute('data-root-id');
+ const rootRev = btn.getAttribute('data-root-rev');
+
+ const modusText = useAiAgent
+     ? 'KI-Agent (Gemini)'
+     : 'In-Process Logik';
+
+ if (!confirm(
+     `BMK-Generierung für "${rootId}" starten?\n\n` +
+     `Modus: ${modusText}\n` +
+     `Alle vorhandenen BMKs im Baum werden neu generiert.`
+ )) return;
+
+ // UI: Beide Buttons sperren
+ const btn1      = document.getElementById('triggerAgentBtn');
+ const btn2      = document.getElementById('triggerAiAgentBtn');
+ const statusEl  = document.getElementById('agentStatus');
+ const spinnerEl = document.getElementById('agentSpinner');
+ const badgeEl   = document.getElementById('agentModeBadge');
+ const badgeText = document.getElementById('agentModeText');
+
+ if (btn1) btn1.disabled = true;
+ if (btn2) btn2.disabled = true;
+ spinnerEl.style.display = 'inline';
+ badgeEl.style.display   = 'none';
+ statusEl.textContent    = `${modusText} läuft…`;
+
+ // Endpoint wählen
+ const endpoint = useAiAgent
+     ? '/api/bmk/generate-ai'
+     : '/api/bmk/generate';
+
+ fetch(endpoint, {
+     method:  'POST',
+     headers: {
+         'Content-Type': 'application/json',
+         [CSRF_HEADER]:  CSRF_TOKEN
+     },
+     body: JSON.stringify({
+         rootObjectId:   rootId,
+         rootRevisionId: parseInt(rootRev),
+         useAiAgent:     useAiAgent
+     })
+ })
+ .then(r => {
+     if (!r.ok) return r.text().then(t => { throw new Error(t); });
+     return r.json();
+ })
+ .then(data => {
+     // UI entsperren
+     spinnerEl.style.display = 'none';
+     if (btn1) btn1.disabled = false;
+     if (btn2) btn2.disabled = false;
+
+     // Ergebnis-Badge anzeigen
+     badgeEl.style.display  = 'block';
+     badgeText.textContent  = useAiAgent ? '🤖 KI-Agent' : '⚙️ In-Process';
+     badgeText.style.background  = useAiAgent ? '#d1e7dd' : '#cfe2ff';
+     badgeText.style.color       = useAiAgent ? '#0a3622' : '#084298';
+     badgeText.style.border      = useAiAgent
+         ? '1px solid #198754'
+         : '1px solid #0d6efd';
+
+     // Status-Meldung
+     let msg = data.message + '\n';
+     msg += `📊 ${data.updatedRelations} Relation(en) aktualisiert.`;
+
+     if (data.warnings && data.warnings.length > 0) {
+         msg += `\n⚠ ${data.warnings.length} Warnung(en):\n`;
+         msg += data.warnings.slice(0, 5).join('\n');
+         if (data.warnings.length > 5) {
+             msg += `\n... und ${data.warnings.length - 5} weitere.`;
+         }
+     }
+
+     statusEl.textContent = msg;
+
+     // Tabelle neu laden
+     window.location.reload();
+ })
+ .catch(err => {
+     spinnerEl.style.display = 'none';
+     if (btn1) btn1.disabled = false;
+     if (btn2) btn2.disabled = false;
+     statusEl.textContent    = '❌ Fehler: ' + err.message;
+     alert(`BMK-Generierung (${modusText}) Fehler:\n` + err.message);
+ });
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADD-CHILD FORM (existing logic + referenceDesignator field)
+// ─────────────────────────────────────────────────────────────
+
+function initAddForm() {
+    const childTypeSelect = document.getElementById('childType');
+    const childSelect     = document.getElementById('childSelect');
+    const addChildForm    = document.getElementById('addChildForm');
+    const submitBtn       = document.getElementById('submitBtn');
+    const revisionWarning = document.getElementById('revisionWarning');
+    const objectId        = document.getElementById('parentId').value;
+
+    if (!childTypeSelect) return;
+
+    let selectedComponents = [];
+
+    childTypeSelect.addEventListener('change', function () {
+        const selectedType = this.value;
+        if (!selectedType) {
+            childSelect.disabled = true;
+            childSelect.innerHTML = '<option value="">-- Select type first --</option>';
+            return;
+        }
+        fetch(`/api/structure/${objectId}/children?type=${selectedType}`)
+            .then(r => r.json())
+            .then(data => {
+                selectedComponents   = data;
+                childSelect.disabled = false;
+                childSelect.innerHTML =
+                    '<option value="">-- Select component --</option>';
+                data.forEach((item, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    if (item.revisionId) {
+                        opt.textContent =
+                            `${item.id} - ${item.name} (Rev: ${item.revision})`;
                     } else {
-                        return response.text().then(text => {
-                            throw new Error(text);
-                        });
+                        opt.textContent =
+                            `${item.id} - ${item.name} (NO REVISION)`;
+                        opt.disabled  = true;
+                        opt.className = 'component-option no-revision';
                     }
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
+                    childSelect.appendChild(opt);
                 });
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to load components');
             });
-        });
-    </script>
+    });
+
+    childSelect.addEventListener('change', function () {
+        const idx = this.value;
+        if (!idx) { submitBtn.disabled = false;
+                    revisionWarning.style.display = 'none'; return; }
+        const comp = selectedComponents[idx];
+        if (!comp.revisionId) {
+            submitBtn.disabled            = true;
+            revisionWarning.style.display = 'block';
+        } else {
+            submitBtn.disabled            = false;
+            revisionWarning.style.display = 'none';
+        }
+    });
+
+    addChildForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const idx = childSelect.value;
+        if (!idx) { alert('Please select a component'); return; }
+        const comp = selectedComponents[idx];
+        if (!comp.revisionId) {
+            alert('No revision – create a revision first.');
+            return;
+        }
+
+        const payload = {
+            parentId:           document.getElementById('parentId').value,
+            parentRevisionId:   parseInt(
+                                  document.getElementById('parentRevisionId').value),
+            childId:            comp.id,
+            childRevisionId:    comp.revisionId,
+            quantity:           parseInt(
+                                  document.getElementById('quantity').value),
+            positionNumber:     document.getElementById('positionNumber').value || null,
+            referenceDesignator: document.getElementById('referenceDesignator').value || null
+        };
+
+        fetch('/structure/add', {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [CSRF_HEADER]: CSRF_TOKEN
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => {
+            if (r.ok) { window.location.reload(); }
+            else return r.text().then(t => { throw new Error(t); });
+        })
+        .catch(err => alert('Error: ' + err.message));
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────────
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escJs(str) {
+    return String(str).replace(/'/g, "\\'").replace(/\\/g,'\\\\');
+}
+
+/*]]>*/
+</script>
 </body>
 </html>

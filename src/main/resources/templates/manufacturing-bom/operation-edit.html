@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Operation bearbeiten – PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .form-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,
+                                   minmax(180px, 1fr));
+            gap: .75rem;
+        }
+        .fg { display: flex; flex-direction: column; gap: 3px; }
+        .fg label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        .fg input, .fg select, .fg textarea {
+            padding: .4rem .5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: .87rem;
+            font-family: inherit;
+        }
+        .fg input:focus, .fg select:focus,
+        .fg textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0,102,204,.15);
+        }
+        .section-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .section-title {
+            font-size: .82rem;
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: .75rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>✏️ Operation bearbeiten</h1>
+    <div style="margin-left:auto;">
+        <a th:href="@{/manufacturing-bom/{id}(id=${mfgBOM.id})}"
+           class="btn btn-primary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card" style="max-width:800px;">
+
+        <!-- Kopfzeile -->
+        <div style="margin-bottom:1.5rem;">
+            <h2 style="margin:0;"
+                th:text="'✏️ ' + ${op.name}">
+            </h2>
+            <div style="font-size:.85rem;color:#6c757d;
+                        margin-top:.3rem;">
+                MfgBOM:
+                <strong th:text="${mfgBOM.name}"></strong>
+                &nbsp;|&nbsp; Operation ID:
+                <code th:text="${op.id}"></code>
+            </div>
+        </div>
+
+        <form th:action="@{/manufacturing-bom/{id}/operations/
+                          {opId}/edit(id=${mfgBOM.id},
+                          opId=${op.id})}"
+              method="post">
+
+            <!-- ── Abschnitt 1: Allgemein ── -->
+            <div class="section-box">
+                <div class="section-title">📋 Allgemein</div>
+                <div class="form-grid-4">
+
+                    <div class="fg">
+                        <label>Typ *</label>
+                        <select name="operationType" required>
+                            <option
+                                th:each="t : ${operationTypes}"
+                                th:value="${t.name()}"
+                                th:text="${t.icon
+                                          + ' ' + t.displayName}"
+                                th:selected="${t == op.operationType}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="fg">
+                        <label>Nummer</label>
+                        <input type="text"
+                               name="operationNumber"
+                               th:value="${op.operationNumber}"
+                               placeholder="OP010">
+                    </div>
+
+                    <div class="fg"
+                         style="grid-column:span 2;">
+                        <label>Name *</label>
+                        <input type="text"
+                               name="name"
+                               th:value="${op.name}"
+                               required
+                               placeholder="z.B. Schraube M6 eindrehen">
+                    </div>
+
+                    <div class="fg">
+                        <label>Workstation</label>
+                        <input type="text"
+                               name="workstation"
+                               th:value="${op.workstation}"
+                               placeholder="WS-01">
+                    </div>
+
+                    <div class="fg">
+                        <label>Mitarbeiter</label>
+                        <input type="number"
+                               name="workerCount"
+                               th:value="${op.workerCount ?: 1}"
+                               min="1"
+                               max="99">
+                    </div>
+
+                    <div class="fg">
+                        <label>Sequenz</label>
+                        <input type="number"
+                               name="sequenceNumber"
+                               th:value="${op.sequenceNumber}"
+                               placeholder="z.B. 10">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Abschnitt 2: Zeitfelder ── -->
+            <div class="section-box">
+                <div class="section-title">
+                    ⏱️ Zeitfelder (Sekunden)
+                </div>
+                <div class="form-grid-4">
+
+                    <div class="fg">
+                        <label style="color:#004085;">
+                            Sollzeit (s)
+                        </label>
+                        <input type="number"
+                               name="cycleTimeTarget"
+                               th:value="${op.cycleTimeTarget}"
+                               step="0.001"
+                               min="0"
+                               placeholder="z.B. 30.000">
+                    </div>
+
+                    <div class="fg">
+                        <label style="color:#155724;">
+                            Istzeit (s)
+                        </label>
+                        <input type="number"
+                               name="cycleTimeActual"
+                               th:value="${op.cycleTimeActual}"
+                               step="0.001"
+                               min="0"
+                               placeholder="z.B. 28.500">
+                    </div>
+
+                    <div class="fg">
+                        <label style="color:#856404;">
+                            Linientaktzeit (s)
+                        </label>
+                        <input type="number"
+                               name="lineTaktTime"
+                               th:value="${op.lineTaktTime}"
+                               step="0.001"
+                               min="0"
+                               placeholder="z.B. 60.000">
+                    </div>
+
+                    <div class="fg">
+                        <label style="color:#721c24;">
+                            Wartezeit (s)
+                        </label>
+                        <input type="number"
+                               name="waitTime"
+                               th:value="${op.waitTime}"
+                               step="0.001"
+                               min="0"
+                               placeholder="z.B. 5.000">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Abschnitt 3: Texte ── -->
+            <div class="section-box">
+                <div class="section-title">📝 Beschreibungen</div>
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;
+                            gap:.75rem;">
+
+                    <div class="fg">
+                        <label>🔧 Benötigte Werkzeuge</label>
+                        <input type="text"
+                               name="toolsRequired"
+                               th:value="${op.toolsRequired}"
+                               placeholder="Akkuschrauber, …">
+                    </div>
+
+                    <div class="fg">
+                        <label>📋 Arbeitsschritte</label>
+                        <textarea name="workInstructions"
+                                  rows="3"
+                                  style="resize:vertical;"
+                                  th:text="${op.workInstructions}">
+                        </textarea>
+                    </div>
+
+                    <div class="fg"
+                         style="grid-column:span 2;">
+                        <label>⚠️ Sicherheitshinweise</label>
+                        <textarea name="safetyNotes"
+                                  rows="2"
+                                  style="resize:vertical;"
+                                  th:text="${op.safetyNotes}">
+                        </textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Buttons ── -->
+            <div style="display:flex;gap:.5rem;">
+                <button type="submit"
+                        class="btn btn-primary">
+                    💾 Änderungen speichern
+                </button>
+                <a th:href="@{/manufacturing-bom/{id}(
+                               id=${mfgBOM.id})}"
+                   class="btn btn-primary"
+                   style="background:#6c757d;">
+                    ✖ Abbrechen
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+</body>
+</html>

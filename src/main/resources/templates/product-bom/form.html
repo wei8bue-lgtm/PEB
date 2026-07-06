@@ -2,16 +2,24 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Product BOM – PEB</title>
+    <title th:text="${isEdit} ? 'Product BOM bearbeiten – PEB'
+                              : 'Neue Product BOM – PEB'">
+        Product BOM – PEB
+    </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>➕ Neue Product BOM</h1>
+    <h1 th:text="${isEdit} ? '✏️ Product BOM bearbeiten'
+                           : '➕ Neue Product BOM'">
+        Product BOM
+    </h1>
     <div style="margin-left:auto;">
-        <a th:href="@{/product-bom}"
+        <a th:href="${isEdit}
+                    ? @{/product-bom/{id}(id=${bom.id})}
+                    : @{/product-bom}"
            class="btn btn-primary">← Zurück</a>
     </div>
 </div>
@@ -19,22 +27,47 @@
 <div class="container">
     <div class="card" style="max-width:700px;">
 
+        <!-- Info-Banner im Edit-Modus -->
+        <div th:if="${isEdit}"
+             style="background:#e7f3ff;border-left:4px solid
+                    #0056b3;padding:.75rem 1rem;
+                    border-radius:4px;margin-bottom:1.5rem;
+                    font-size:.9rem;">
+            <strong>✏️ Bearbeitungsmodus</strong> –
+            Product BOM ID:
+            <code th:text="${bom.id}"></code>
+            &nbsp;|&nbsp; Erstellt am:
+            <span th:text="${bom.createdDate != null
+                ? #temporals.format(bom.createdDate,
+                    'dd.MM.yyyy')
+                : '—'}">
+            </span>
+        </div>
+
         <!-- Fehlerhinweis -->
         <div th:if="${errorMessage}"
-             class="alert alert-danger"
-             style="margin-bottom:1rem;"
+             style="background:#f8d7da;border-left:4px solid
+                    #dc3545;padding:.75rem 1rem;
+                    border-radius:4px;margin-bottom:1rem;
+                    color:#721c24;"
              th:text="${errorMessage}">
         </div>
 
-        <form th:action="@{/product-bom/new}"
-              th:object="${bom}"
+        <!-- Formular:
+             /new     → Erstellen
+             /{id}/edit → Aktualisieren -->
+        <form th:action="${isEdit}
+                          ? @{/product-bom/{id}/edit(
+                              id=${bom.id})}
+                          : @{/product-bom/new}"
               method="post">
 
             <!-- Name -->
             <div class="form-group">
                 <label>Name *</label>
                 <input type="text"
-                       th:field="*{name}"
+                       name="name"
+                       th:value="${bom.name}"
                        required
                        placeholder="z.B. BOM – Akku-Bohrmaschine XR-20">
             </div>
@@ -43,26 +76,30 @@
             <div class="form-group">
                 <label>Version</label>
                 <input type="text"
-                       th:field="*{bomVersion}"
+                       name="bomVersion"
+                       th:value="${bom.bomVersion ?: '01'}"
                        placeholder="01">
             </div>
 
             <!-- Beschreibung -->
             <div class="form-group">
                 <label>Beschreibung</label>
-                <textarea th:field="*{description}"
+                <textarea name="description"
                           rows="3"
                           placeholder="Kurze Beschreibung…"
                           style="width:100%;padding:.5rem;
                                  border:1px solid #ddd;
                                  border-radius:4px;
                                  font-family:inherit;
-                                 resize:vertical;">
+                                 resize:vertical;"
+                          th:text="${bom.description}">
                 </textarea>
             </div>
 
-            <!-- ProductData Auswahl (1:1) -->
-            <div class="form-group">
+            <!-- ProductData – nur bei Neu-Erstellung anzeigen.
+                 Im Edit-Modus über Detail-Seite zuweisen. -->
+            <div class="form-group"
+                 th:unless="${isEdit}">
                 <label>
                     ProductData zuweisen
                     <span style="color:#6c757d;font-weight:400;">
@@ -83,22 +120,45 @@
                                       + pd.name
                                       + (pd.productType != null
                                          ? ' ('
-                                           + pd.productType + ')'
+                                           + pd.productType
+                                           + ')'
                                          : '')}">
                     </option>
                 </select>
                 <small style="color:#6c757d;font-size:.82rem;">
-                    Es werden nur ProductData ohne bestehende BOM
-                    angezeigt.
+                    Es werden nur ProductData ohne bestehende
+                    BOM angezeigt.
                 </small>
             </div>
 
-            <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+            <!-- Hinweis im Edit-Modus -->
+            <div th:if="${isEdit}"
+                 style="background:#fff3cd;border-left:4px solid
+                        #ffc107;padding:.75rem 1rem;
+                        border-radius:4px;margin-bottom:1rem;
+                        font-size:.85rem;color:#856404;">
+                💡 ProductData kann auf der
+                <a th:href="@{/product-bom/{id}(id=${bom.id})}"
+                   style="color:#856404;font-weight:600;">
+                    Detail-Seite
+                </a>
+                zugewiesen oder geändert werden.
+            </div>
+
+            <!-- Buttons -->
+            <div style="display:flex;gap:.5rem;
+                        margin-top:1.5rem;">
                 <button type="submit"
                         class="btn btn-primary">
-                    💾 Speichern
+                    <span th:text="${isEdit}
+                                   ? '💾 Änderungen speichern'
+                                   : '💾 Speichern'">
+                    </span>
                 </button>
-                <a th:href="@{/product-bom}"
+                <a th:href="${isEdit}
+                             ? @{/product-bom/{id}(
+                                 id=${bom.id})}
+                             : @{/product-bom}"
                    class="btn btn-primary"
                    style="background:#6c757d;">
                     ✖ Abbrechen

@@ -4,13 +4,14 @@ import com.peb.dto.DesignDTO;
 import com.peb.model.base.Dataset;
 import com.peb.model.cad.Design;
 import com.peb.model.ebom.DatasetCategory;
-import com.peb.service.DatasetService;   // ← NEU
+import com.peb.service.DatasetService;
 import com.peb.service.DesignService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
 public class DesignController {
 
     private final DesignService  designService;
-    private final DatasetService datasetService;  // ← NEU injizieren
+    private final DatasetService datasetService;
 
     @GetMapping
     public String listDesigns(Model model) {
@@ -51,7 +52,7 @@ public class DesignController {
     }
 
 @GetMapping("/{id}")
-public String viewDesign(@PathVariable String id, Model model) {
+public String viewDesign(@PathVariable String id, Model model,HttpServletResponse response) {
 
     Design design = designService.getDesign(id);
     model.addAttribute("design", design);

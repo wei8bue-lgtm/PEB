@@ -2,68 +2,93 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Neue Manufacturing BOM – PEB</title>
+    <title th:text="${isEdit} ? 'Mfg BOM bearbeiten – PEB' : 'Neue Manufacturing BOM – PEB'">
+        Manufacturing BOM – PEB
+    </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>➕ Neue Manufacturing BOM</h1>
+    <h1 th:text="${isEdit} ? '✏️ Manufacturing BOM bearbeiten' : '➕ Neue Manufacturing BOM'">
+        Manufacturing BOM
+    </h1>
     <div style="margin-left:auto;">
-        <a th:href="@{/manufacturing-bom}"
+        <a th:href="${isEdit} ? @{/manufacturing-bom/{id}(id=${mfgBOM.id})} : @{/manufacturing-bom}"
            class="btn btn-primary">← Zurück</a>
     </div>
 </div>
 
 <div class="container">
-    <div class="card" style="max-width:700px;">
+<div class="card" style="max-width:700px;">
 
-        <form th:action="@{/manufacturing-bom/new}"
-              th:object="${mfgBOM}"
-              method="post">
-
-            <div class="form-group">
-                <label>Name *</label>
-                <input type="text"
-                       th:field="*{name}"
-                       required
-                       placeholder="z.B. Mfg-BOM Akku-Bohrmaschine">
-            </div>
-
-            <div class="form-group">
-                <label>Version</label>
-                <input type="text"
-                       th:field="*{bomVersion}"
-                       placeholder="01">
-            </div>
-
-            <div class="form-group">
-                <label>Beschreibung</label>
-                <textarea th:field="*{description}"
-                          rows="3"
-                          placeholder="Beschreibung der Manufacturing BOM…"
-                          style="width:100%;padding:.5rem;
-                                 border:1px solid #ddd;
-                                 border-radius:4px;
-                                 font-family:inherit;
-                                 resize:vertical;">
-                </textarea>
-            </div>
-
-            <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
-                <button type="submit"
-                        class="btn btn-primary">
-                    💾 Speichern
-                </button>
-                <a th:href="@{/manufacturing-bom}"
-                   class="btn btn-primary"
-                   style="background:#6c757d;">
-                    ✖ Abbrechen
-                </a>
-            </div>
-        </form>
+    <!-- Info-Banner im Edit-Modus -->
+    <div th:if="${isEdit}"
+         style="background:#e7f3ff;border-left:4px solid #0056b3;
+                padding:.75rem 1rem;border-radius:4px;
+                margin-bottom:1.5rem;font-size:.9rem;">
+        <strong>✏️ Bearbeitungsmodus</strong> –
+        Manufacturing BOM ID:
+        <code th:text="${mfgBOM.id}"></code>
+        &nbsp;|&nbsp; Erstellt von:
+        <span th:text="${mfgBOM.createdBy ?: '—'}"></span>
     </div>
+
+    <!-- ── Speichern-Formular ──────────────────────────────── -->
+    <form th:action="${isEdit} ? @{/manufacturing-bom/{id}/edit(id=${mfgBOM.id})} : @{/manufacturing-bom/new}"
+          method="post">
+
+        <!-- Name -->
+        <div class="form-group">
+            <label>Name *</label>
+            <input type="text"
+                   name="name"
+                   th:value="${mfgBOM.name}"
+                   required
+                   placeholder="z.B. Mfg-BOM Akku-Bohrmaschine">
+        </div>
+
+        <!-- Version -->
+        <div class="form-group">
+            <label>Version</label>
+            <input type="text"
+                   name="bomVersion"
+                   th:value="${mfgBOM.bomVersion ?: '01'}"
+                   placeholder="01">
+        </div>
+
+        <!-- Beschreibung -->
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea name="description"
+                      rows="3"
+                      placeholder="Beschreibung der Manufacturing BOM…"
+                      style="width:100%;padding:.5rem;
+                             border:1px solid #ddd;
+                             border-radius:4px;
+                             font-family:inherit;
+                             resize:vertical;"
+                      th:text="${mfgBOM.description}">
+            </textarea>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${isEdit} ? '💾 Änderungen speichern' : '💾 Speichern'"></span>
+            </button>
+            <a th:href="${isEdit} ? @{/manufacturing-bom/{id}(id=${mfgBOM.id})} : @{/manufacturing-bom}"
+               class="btn btn-primary"
+               style="background:#6c757d;">
+                ✖ Abbrechen
+            </a>
+        </div>
+
+    </form>
+    <!-- ── Ende Speichern-Formular ─────────────────────────── -->
+
+</div>
 </div>
 </body>
 </html>

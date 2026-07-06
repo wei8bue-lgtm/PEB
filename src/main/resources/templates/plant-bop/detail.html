@@ -5,157 +5,68 @@
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="${plantBOP.name} + ' – Plant BOP – PEB'">
-        Plant BOP
-    </title>
+    <title th:text="${plantBOP.name} + ' – Plant BOP – PEB'">Plant BOP</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<script th:src="@{/js/lifecycle.js}"></script>
     <style>
-        /* ── Layout ──────────────────────────────────────────── */
-        .layout {
-            display: grid;
-            grid-template-columns: 1fr 360px;
-            gap: 1.5rem;
-            align-items: start;
-        }
-        @media (max-width: 960px) {
-            .layout { grid-template-columns: 1fr; }
-        }
-
-        /* ── Baumstruktur ────────────────────────────────────── */
-        .tree-wrap {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: .88rem;
-            line-height: 1.4;
-        }
-
-        /* Jede Zeile im Baum */
-        .t-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 7px;
-            border-radius: 5px;
-            margin: 1px 0;
-            position: relative;
-            transition: background .1s;
-        }
-        .t-row:hover { background: #f0f4ff; }
-        .t-row:hover .t-del { display: flex; }
-
-        /* Einrückung der Kinder */
-        .t-children {
-            margin-left: 22px;
-            border-left: 1px dashed #dee2e6;
-            padding-left: 6px;
-        }
-        .t-children.collapsed { display: none; }
-
-        /* Toggle-Pfeil */
-        .t-toggle {
-            width: 16px; min-width: 16px;
-            text-align: center;
-            cursor: pointer;
-            color: #6c757d;
-            font-size: .75rem;
-            user-select: none;
-            flex-shrink: 0;
-        }
-        .t-toggle.leaf { color: #dee2e6; cursor: default; }
-
-        /* Farben je Knotentyp */
-        .t-root     { background: #e7f0ff; font-weight: 700;
-                      font-size: .95rem; border-radius: 6px; }
-        .t-folder   { color: #856404; }
-        .t-pbop     { color: #004085; }
-        .t-mfgbom   { color: #155724; }
-        .t-boe      { color: #721c24; }
-
-        /* Unterknoten-Typen (Inhalte von BOP/BOM) */
-        .t-mfgbom-child { color: #0d6b38; }
-        .t-pbom         { color: #5a0080; }
-        .t-operation    { color: #495057; font-size: .82rem; }
-        .t-productdata  { color: #0056b3; font-size: .82rem; }
-
-        /* Labels und Links */
-        .t-label { font-weight: 500; }
-        .t-link  {
-            font-weight: 500;
-            text-decoration: none;
-            transition: opacity .15s;
-        }
-        .t-link:hover { opacity: .75; text-decoration: underline; }
-        .t-link.lnk-pbop   { color: #004085; }
-        .t-link.lnk-mfgbom { color: #155724; }
-        .t-link.lnk-pbom2  { color: #5a0080; }
-        .t-link.lnk-pd     { color: #0056b3; }
-        .t-link.lnk-boe    { color: #721c24; }
-
-        .t-badge {
-            font-size: .7rem; padding: 1px 6px;
-            background: #e9ecef; border-radius: 8px;
-            color: #6c757d; white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .t-badge-green {
-            background: #d4edda; color: #155724;
-        }
-        .t-badge-blue {
-            background: #cce5ff; color: #004085;
-        }
-        .t-badge-purple {
-            background: #e8d5f5; color: #5a0080;
-        }
-
-        /* Zeit-Pill */
-        .t-time {
-            font-size: .72rem; color: #495057;
-            background: #fff3cd; border-radius: 6px;
-            padding: 1px 6px; white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* Löschen-Button – nur bei Hover */
-        .t-del {
-            display: none;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-        .t-del form { margin: 0; }
-        .t-del button {
-            padding: 1px 7px; font-size: .72rem;
-            border: none; border-radius: 3px;
-            background: #dc3545; color: white;
-            cursor: pointer;
-        }
-        .t-del button:hover { background: #b02a37; }
-
-        /* Trennlinie zwischen Knoten-Gruppe und Inhalten */
-        .t-section-line {
-            border-left: 2px solid #dee2e6;
-            margin-left: 4px;
-            padding-left: 8px;
-        }
-
-        /* ── Hinzufügen-Panel ────────────────────────────────── */
-        .add-panel {
-            background: #f8f9fa; border-radius: 6px;
-            padding: 1rem; border: 1px solid #dee2e6;
-        }
-        .fp { margin-bottom: .65rem; }
-        .fp label {
-            display: block; font-size: .82rem;
-            font-weight: 600; color: #495057;
-            margin-bottom: 3px;
-        }
-        .fp input, .fp select {
-            width: 100%; padding: .38rem .5rem;
-            border: 1px solid #ced4da;
-            border-radius: 4px; font-size: .87rem;
-        }
-        .fp input:focus, .fp select:focus {
-            outline: none; border-color: #0066cc;
-            box-shadow: 0 0 0 2px rgba(0,102,204,.15);
-        }
+        .layout { display:grid; grid-template-columns:1fr 360px;
+                  gap:1.5rem; align-items:start; }
+        @media(max-width:960px){ .layout{ grid-template-columns:1fr; } }
+        .tree-wrap { font-family:'Segoe UI',sans-serif;
+                     font-size:.88rem; line-height:1.4; }
+        .t-row { display:flex; align-items:center; gap:5px;
+                 padding:4px 7px; border-radius:5px; margin:1px 0;
+                 transition:background .1s; }
+        .t-row:hover { background:#f0f4ff; }
+        .t-row:hover .t-del { display:flex; }
+        .t-children { margin-left:22px; border-left:1px dashed #dee2e6;
+                      padding-left:6px; }
+        .t-children.collapsed { display:none; }
+        .t-toggle { width:16px; min-width:16px; text-align:center;
+                    cursor:pointer; color:#6c757d; font-size:.75rem;
+                    user-select:none; flex-shrink:0; }
+        .t-toggle.leaf { color:#dee2e6; cursor:default; }
+        .t-root     { background:#e7f0ff; font-weight:700;
+                      font-size:.95rem; border-radius:6px; }
+        .t-folder   { color:#856404; }
+        .t-pbop     { color:#004085; }
+        .t-mfgbom   { color:#155724; }
+        .t-boe      { color:#721c24; }
+        .t-mfgbom-child { color:#0d6b38; }
+        .t-pbom     { color:#5a0080; }
+        .t-operation { color:#495057; font-size:.82rem; }
+        .t-productdata { color:#0056b3; font-size:.82rem; }
+        .t-label    { font-weight:500; }
+        .t-link     { font-weight:500; text-decoration:none;
+                      transition:opacity .15s; }
+        .t-link:hover { opacity:.75; text-decoration:underline; }
+        .t-link.lnk-pbop   { color:#004085; }
+        .t-link.lnk-mfgbom { color:#155724; }
+        .t-link.lnk-pbom2  { color:#5a0080; }
+        .t-link.lnk-pd     { color:#0056b3; }
+        .t-badge { font-size:.7rem; padding:1px 6px;
+                   background:#e9ecef; border-radius:8px;
+                   color:#6c757d; white-space:nowrap; flex-shrink:0; }
+        .t-badge-green  { background:#d4edda; color:#155724; }
+        .t-badge-blue   { background:#cce5ff; color:#004085; }
+        .t-badge-purple { background:#e8d5f5; color:#5a0080; }
+        .t-time { font-size:.72rem; color:#495057; background:#fff3cd;
+                  border-radius:6px; padding:1px 6px;
+                  white-space:nowrap; flex-shrink:0; }
+        .t-del { display:none; margin-left:auto; flex-shrink:0; }
+        .t-del form { margin:0; }
+        .t-del button { padding:1px 7px; font-size:.72rem;
+                        border:none; border-radius:3px;
+                        background:#dc3545; color:white; cursor:pointer; }
+        .t-del button:hover { background:#b02a37; }
+        .add-panel { background:#f8f9fa; border-radius:6px;
+                     padding:1rem; border:1px solid #dee2e6; }
+        .fp { margin-bottom:.65rem; }
+        .fp label { display:block; font-size:.82rem; font-weight:600;
+                    color:#495057; margin-bottom:3px; }
+        .fp input, .fp select { width:100%; padding:.38rem .5rem;
+                                 border:1px solid #ced4da;
+                                 border-radius:4px; font-size:.87rem; }
     </style>
 </head>
 <body>
@@ -163,17 +74,15 @@
 <div class="header">
     <div class="logo-placeholder">PEB</div>
     <h1>🏭 Plant BOP</h1>
-    <div style="margin-left:auto; display:flex; gap:.5rem;">
+    <div style="margin-left:auto;display:flex;gap:.5rem;">
         <a th:href="@{/plant-bop/{id}/balancing(id=${plantBOP.id})}"
            class="btn btn-primary">⚖️ Line Balancing</a>
-        <a th:href="@{/plant-bop}"
-           class="btn btn-primary">← Zurück</a>
+        <a th:href="@{/plant-bop}" class="btn btn-primary">← Zurück</a>
     </div>
 </div>
 
 <div class="container">
 
-    <!-- Flash -->
     <div th:if="${successMessage}" class="card"
          style="background:#d4edda;padding:.75rem;">
         <p style="margin:0;color:#155724;"
@@ -185,144 +94,352 @@
            th:text="${errorMessage}"></p>
     </div>
 
-    <!-- Kopf -->
-    <div class="card" style="padding:1rem 1.5rem;
-                              margin-bottom:1rem;">
+    <div class="card" style="padding:1rem 1.5rem;margin-bottom:1rem;">
         <div style="display:flex;justify-content:space-between;
                     align-items:flex-start;">
             <div>
-                <h2 style="margin:0;"
-                    th:text="${plantBOP.name}">Plant BOP</h2>
-                <div style="color:#6c757d;font-size:.85rem;
-                            margin-top:.3rem;">
+                <h2 style="margin:0;" th:text="${plantBOP.name}">Plant BOP</h2>
+                <div style="color:#6c757d;font-size:.85rem;margin-top:.3rem;">
                     <span th:if="${plantBOP.plantCode != null
                                    and !plantBOP.plantCode.isBlank()}"
-                          th:text="'🏭 ' + ${plantBOP.plantCode}
-                                   + '  |  '">
-                    </span>
-                    Version:
-                    <strong th:text="${plantBOP.bopVersion}">01</strong>
+                          th:text="'🏭 ' + ${plantBOP.plantCode} + '  |  '"></span>
+                    Version: <strong th:text="${plantBOP.bopVersion}">01</strong>
                     &nbsp;|&nbsp; Erstellt von:
-                    <strong th:text="${plantBOP.createdBy ?: '—'}">
-                    </strong>
+                    <strong th:text="${plantBOP.createdBy ?: '—'}"></strong>
                 </div>
                 <p th:if="${plantBOP.description != null
                             and !plantBOP.description.isBlank()}"
-                   style="margin:.5rem 0 0;color:#495057;
-                          font-size:.9rem;"
-                   th:text="${plantBOP.description}">
-                </p>
+                   style="margin:.5rem 0 0;color:#495057;font-size:.9rem;"
+                   th:text="${plantBOP.description}"></p>
             </div>
         </div>
     </div>
 
-    <!-- Haupt-Layout -->
     <div class="layout">
 
-        <!-- ════════════════════════════════════════════════════ -->
-        <!--  BAUMSTRUKTUR                                        -->
-        <!-- ════════════════════════════════════════════════════ -->
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  BAUMSTRUKTUR                                  -->
+        <!-- ══════════════════════════════════════════════ -->
         <div class="card">
-            <h3 style="margin-top:0;">
-                🌳 Vollständige Struktur
-                <span style="font-size:.78rem;color:#6c757d;
-                             font-weight:400;">
-                    (inkl. Product BOPs, Mfg BOMs,
-                     Operationen &amp; ProductData)
-                </span>
-            </h3>
+            <h3 style="margin-top:0;">🌳 Vollständige Struktur</h3>
 
             <div class="tree-wrap">
 
-                <!-- ── Root: PlantBOP ── -->
+                <!-- Root -->
                 <div class="t-row t-root">
                     <span class="t-toggle leaf">·</span>
                     <span>🏭</span>
                     <span class="t-label"
                           th:text="${plantBOP.name}">Plant BOP</span>
                     <span class="t-badge t-badge-blue"
-                          th:text="'v' + ${plantBOP.bopVersion}">
-                    </span>
+                          th:text="'v' + ${plantBOP.bopVersion}"></span>
                     <span class="t-badge"
-                          th:text="${#lists.size(rootNodes)}
-                                   + ' Knoten'">
-                    </span>
+                          th:text="${#lists.size(rootNodes)} + ' Knoten'"></span>
                 </div>
 
-                <!-- Leer-Hinweis -->
+                <!-- Leer -->
                 <div th:if="${#lists.isEmpty(rootNodes)}"
-                     style="margin:1rem 2rem;color:#6c757d;
-                            padding:.75rem;
-                            border:2px dashed #dee2e6;
-                            border-radius:6px;text-align:center;">
+                     style="margin:1rem 2rem;color:#6c757d;padding:.75rem;
+                            border:2px dashed #dee2e6;border-radius:6px;
+                            text-align:center;">
                     Noch keine Knoten vorhanden.<br>
                     <small>Füge rechts den ersten Knoten hinzu.</small>
                 </div>
 
-                <!-- ── Ebene 1 (Root-Knoten) ── -->
-                <div class="t-children"
-                     th:unless="${#lists.isEmpty(rootNodes)}">
-                    <div th:each="n1 : ${rootNodes}">
+				<!-- ══ EBENE 1 ══ -->
+				<div class="t-children"
+					 th:unless="${#lists.isEmpty(rootNodes)}">
 
-                        <!--
-                          Jeder Knoten wird durch das inline-Fragment
-                          "renderNode" dargestellt.
-                          Da Thymeleaf keine echte Rekursion in
-                          einem einzigen File unterstützt,
-                          rendern wir bis Tiefe 4 explizit –
-                          das reicht für die Praxis.
-                        -->
+					<div th:each="n1 : ${rootNodes}">
 
-                        <!-- Node L1 -->
-                        <div th:replace="~{this :: renderNode(
-                            ${n1}, ${plantBOP.id}, 1)}">
-                        </div>
+						<!-- ── Zeile n1 ── -->
+						<div class="t-row"
+							 th:id="'node-' + ${n1.id}"
+							 th:classappend="${n1.nodeType.name() == 'FOLDER' ? ' t-folder' : (n1.nodeType.name() == 'PRODUCT_BOP' ? ' t-pbop' : (n1.nodeType.name() == 'MANUFACTURING_BOM' ? ' t-mfgbom' : ' t-boe'))}">
+							<span th:if="${!#lists.isEmpty(n1.children)}" class="t-toggle" th:id="'tg-' + ${n1.id}" th:onclick="'toggleNode(' + ${n1.id} + ')'">▼</span>
+							<span th:unless="${!#lists.isEmpty(n1.children)}" class="t-toggle leaf">·</span>
+							<span th:text="${n1.nodeType.icon}">📁</span>
+							<span th:if="${n1.nodeType.name() == 'FOLDER'}" class="t-label" th:text="${n1.name}"></span>
+							<a th:if="${n1.nodeType.name() == 'PRODUCT_BOP' and n1.productBOP != null}" th:href="@{/product-bop/{id}(id=${n1.productBOP.id})}" class="t-link lnk-pbop" th:text="${n1.name}"></a>
+							<span th:if="${n1.nodeType.name() == 'PRODUCT_BOP' and n1.productBOP == null}" class="t-label" th:text="${n1.name}"></span>
+							<a th:if="${n1.nodeType.name() == 'MANUFACTURING_BOM' and n1.manufacturingBOM != null}" th:href="@{/manufacturing-bom/{id}(id=${n1.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="${n1.name}"></a>
+							<span th:if="${n1.nodeType.name() == 'MANUFACTURING_BOM' and n1.manufacturingBOM == null}" class="t-label" th:text="${n1.name}"></span>
+							<span th:if="${n1.nodeType.name() == 'BOE'}" class="t-label" th:text="${n1.name}"></span>
+							<span class="t-badge" th:text="${n1.nodeType.displayName}"></span>
+							<span th:if="${n1.nodeType.name() == 'BOE' and n1.boeId != null}" class="t-badge" th:text="'ID: ' + ${n1.boeId}"></span>
+							<div class="t-del" sec:authorize="hasAuthority('DELETE')">
+								<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n1.id})}" method="post">
+									<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+								</form>
+							</div>
+						</div>
 
-                    </div>
-                </div>
+						<!-- ── Inhalte n1 ── -->
+						<th:block th:if="${n1.productBOP != null}">
+							<div class="t-children">
+								<div class="t-row t-pbop" style="font-size:.82rem;">
+									<span class="t-toggle leaf">·</span><span>⚙️</span>
+									<a th:href="@{/product-bop/{id}(id=${n1.productBOP.id})}" class="t-link lnk-pbop" style="font-size:.82rem;" th:text="'Product BOP: ' + ${n1.productBOP.name}"></a>
+									<span class="t-badge t-badge-blue" th:text="'v' + ${n1.productBOP.bopVersion}"></span>
+								</div>
+								<div class="t-children">
+									<div th:each="mfg : ${n1.productBOP.manufacturingBOMs}" class="t-row t-mfgbom-child">
+										<span class="t-toggle leaf">·</span><span>🔧</span>
+										<a th:href="@{/manufacturing-bom/{id}(id=${mfg.id})}" class="t-link lnk-mfgbom" style="font-size:.82rem;" th:text="${mfg.name}"></a>
+										<span class="t-badge t-badge-green" th:text="'v' + ${mfg.bomVersion}"></span>
+										<span class="t-badge" th:text="${#lists.size(mfg.operations)} + ' Ops'"></span>
+									</div>
+								</div>
+							</div>
+						</th:block>
+						<th:block th:if="${n1.manufacturingBOM != null}">
+							<div class="t-children">
+								<div class="t-row t-mfgbom" style="font-size:.82rem;">
+									<span class="t-toggle" th:id="'tg-mfg-' + ${n1.manufacturingBOM.id}" th:onclick="'toggleNode(\'mfg-' + ${n1.manufacturingBOM.id} + '\')'">▼</span>
+									<span>🔧</span>
+									<a th:href="@{/manufacturing-bom/{id}(id=${n1.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="'Mfg BOM: ' + ${n1.manufacturingBOM.name}"></a>
+									<span class="t-badge t-badge-green" th:text="'v' + ${n1.manufacturingBOM.bomVersion}"></span>
+									<span class="t-badge" th:text="${#lists.size(n1.manufacturingBOM.operations)} + ' Ops'"></span>
+								</div>
+								<div class="t-children" th:id="'ch-mfg-' + ${n1.manufacturingBOM.id}">
+									<div th:each="op : ${n1.manufacturingBOM.operations}" class="t-row t-operation">
+										<span class="t-toggle leaf">·</span>
+										<span th:text="${op.operationType.icon}">⚙️</span>
+										<span th:text="${op.name}"></span>
+										<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
+										<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+									</div>
+								</div>
+							</div>
+						</th:block>
+
+						<!-- ══ EBENE 2 ══ -->
+						<div class="t-children" th:id="'ch-' + ${n1.id}" th:if="${!#lists.isEmpty(n1.children)}">
+							<div th:each="n2 : ${n1.children}">
+
+								<!-- ── Zeile n2 ── -->
+								<div class="t-row"
+									 th:id="'node-' + ${n2.id}"
+									 th:classappend="${n2.nodeType.name() == 'FOLDER' ? ' t-folder' : (n2.nodeType.name() == 'PRODUCT_BOP' ? ' t-pbop' : (n2.nodeType.name() == 'MANUFACTURING_BOM' ? ' t-mfgbom' : ' t-boe'))}">
+									<span th:if="${!#lists.isEmpty(n2.children)}" class="t-toggle" th:id="'tg-' + ${n2.id}" th:onclick="'toggleNode(' + ${n2.id} + ')'">▼</span>
+									<span th:unless="${!#lists.isEmpty(n2.children)}" class="t-toggle leaf">·</span>
+									<span th:text="${n2.nodeType.icon}">📁</span>
+									<span th:if="${n2.nodeType.name() == 'FOLDER'}" class="t-label" th:text="${n2.name}"></span>
+									<a th:if="${n2.nodeType.name() == 'PRODUCT_BOP' and n2.productBOP != null}" th:href="@{/product-bop/{id}(id=${n2.productBOP.id})}" class="t-link lnk-pbop" th:text="${n2.name}"></a>
+									<span th:if="${n2.nodeType.name() == 'PRODUCT_BOP' and n2.productBOP == null}" class="t-label" th:text="${n2.name}"></span>
+									<a th:if="${n2.nodeType.name() == 'MANUFACTURING_BOM' and n2.manufacturingBOM != null}" th:href="@{/manufacturing-bom/{id}(id=${n2.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="${n2.name}"></a>
+									<span th:if="${n2.nodeType.name() == 'MANUFACTURING_BOM' and n2.manufacturingBOM == null}" class="t-label" th:text="${n2.name}"></span>
+									<span th:if="${n2.nodeType.name() == 'BOE'}" class="t-label" th:text="${n2.name}"></span>
+									<span class="t-badge" th:text="${n2.nodeType.displayName}"></span>
+									<span th:if="${n2.nodeType.name() == 'BOE' and n2.boeId != null}" class="t-badge" th:text="'ID: ' + ${n2.boeId}"></span>
+									<div class="t-del" sec:authorize="hasAuthority('DELETE')">
+										<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n2.id})}" method="post">
+											<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+										</form>
+									</div>
+								</div>
+
+								<!-- ── Inhalte n2 ── -->
+								<th:block th:if="${n2.productBOP != null}">
+									<div class="t-children">
+										<div class="t-row t-pbop" style="font-size:.82rem;">
+											<span class="t-toggle leaf">·</span><span>⚙️</span>
+											<a th:href="@{/product-bop/{id}(id=${n2.productBOP.id})}" class="t-link lnk-pbop" style="font-size:.82rem;" th:text="'Product BOP: ' + ${n2.productBOP.name}"></a>
+											<span class="t-badge t-badge-blue" th:text="'v' + ${n2.productBOP.bopVersion}"></span>
+										</div>
+										<div class="t-children">
+											<div th:each="mfg : ${n2.productBOP.manufacturingBOMs}" class="t-row t-mfgbom-child">
+												<span class="t-toggle leaf">·</span><span>🔧</span>
+												<a th:href="@{/manufacturing-bom/{id}(id=${mfg.id})}" class="t-link lnk-mfgbom" style="font-size:.82rem;" th:text="${mfg.name}"></a>
+												<span class="t-badge t-badge-green" th:text="'v' + ${mfg.bomVersion}"></span>
+												<span class="t-badge" th:text="${#lists.size(mfg.operations)} + ' Ops'"></span>
+											</div>
+										</div>
+									</div>
+								</th:block>
+								<th:block th:if="${n2.manufacturingBOM != null}">
+									<div class="t-children">
+										<div class="t-row t-mfgbom" style="font-size:.82rem;">
+											<span class="t-toggle" th:id="'tg-mfg-' + ${n2.manufacturingBOM.id}" th:onclick="'toggleNode(\'mfg-' + ${n2.manufacturingBOM.id} + '\')'">▼</span>
+											<span>🔧</span>
+											<a th:href="@{/manufacturing-bom/{id}(id=${n2.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="'Mfg BOM: ' + ${n2.manufacturingBOM.name}"></a>
+											<span class="t-badge t-badge-green" th:text="'v' + ${n2.manufacturingBOM.bomVersion}"></span>
+											<span class="t-badge" th:text="${#lists.size(n2.manufacturingBOM.operations)} + ' Ops'"></span>
+										</div>
+										<div class="t-children" th:id="'ch-mfg-' + ${n2.manufacturingBOM.id}">
+											<div th:each="op : ${n2.manufacturingBOM.operations}" class="t-row t-operation">
+												<span class="t-toggle leaf">·</span>
+												<span th:text="${op.operationType.icon}">⚙️</span>
+												<span th:text="${op.name}"></span>
+												<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
+												<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+											</div>
+										</div>
+									</div>
+								</th:block>
+
+								<!-- ══ EBENE 3 ══ -->
+								<div class="t-children" th:id="'ch-' + ${n2.id}" th:if="${!#lists.isEmpty(n2.children)}">
+									<div th:each="n3 : ${n2.children}">
+
+										<!-- ── Zeile n3 ── -->
+										<div class="t-row"
+											 th:id="'node-' + ${n3.id}"
+											 th:classappend="${n3.nodeType.name() == 'FOLDER' ? ' t-folder' : (n3.nodeType.name() == 'PRODUCT_BOP' ? ' t-pbop' : (n3.nodeType.name() == 'MANUFACTURING_BOM' ? ' t-mfgbom' : ' t-boe'))}">
+											<span th:if="${!#lists.isEmpty(n3.children)}" class="t-toggle" th:id="'tg-' + ${n3.id}" th:onclick="'toggleNode(' + ${n3.id} + ')'">▼</span>
+											<span th:unless="${!#lists.isEmpty(n3.children)}" class="t-toggle leaf">·</span>
+											<span th:text="${n3.nodeType.icon}">📁</span>
+											<span th:if="${n3.nodeType.name() == 'FOLDER'}" class="t-label" th:text="${n3.name}"></span>
+											<a th:if="${n3.nodeType.name() == 'PRODUCT_BOP' and n3.productBOP != null}" th:href="@{/product-bop/{id}(id=${n3.productBOP.id})}" class="t-link lnk-pbop" th:text="${n3.name}"></a>
+											<span th:if="${n3.nodeType.name() == 'PRODUCT_BOP' and n3.productBOP == null}" class="t-label" th:text="${n3.name}"></span>
+											<a th:if="${n3.nodeType.name() == 'MANUFACTURING_BOM' and n3.manufacturingBOM != null}" th:href="@{/manufacturing-bom/{id}(id=${n3.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="${n3.name}"></a>
+											<span th:if="${n3.nodeType.name() == 'MANUFACTURING_BOM' and n3.manufacturingBOM == null}" class="t-label" th:text="${n3.name}"></span>
+											<span th:if="${n3.nodeType.name() == 'BOE'}" class="t-label" th:text="${n3.name}"></span>
+											<span class="t-badge" th:text="${n3.nodeType.displayName}"></span>
+											<span th:if="${n3.nodeType.name() == 'BOE' and n3.boeId != null}" class="t-badge" th:text="'ID: ' + ${n3.boeId}"></span>
+											<div class="t-del" sec:authorize="hasAuthority('DELETE')">
+												<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n3.id})}" method="post">
+													<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+												</form>
+											</div>
+										</div>
+
+										<!-- ── Inhalte n3 ── -->
+										<th:block th:if="${n3.productBOP != null}">
+											<div class="t-children">
+												<div class="t-row t-pbop" style="font-size:.82rem;">
+													<span class="t-toggle leaf">·</span><span>⚙️</span>
+													<a th:href="@{/product-bop/{id}(id=${n3.productBOP.id})}" class="t-link lnk-pbop" style="font-size:.82rem;" th:text="'Product BOP: ' + ${n3.productBOP.name}"></a>
+													<span class="t-badge t-badge-blue" th:text="'v' + ${n3.productBOP.bopVersion}"></span>
+												</div>
+											</div>
+										</th:block>
+										<th:block th:if="${n3.manufacturingBOM != null}">
+											<div class="t-children">
+												<div class="t-row t-mfgbom" style="font-size:.82rem;">
+													<span class="t-toggle" th:id="'tg-mfg-' + ${n3.manufacturingBOM.id}" th:onclick="'toggleNode(\'mfg-' + ${n3.manufacturingBOM.id} + '\')'">▼</span>
+													<span>🔧</span>
+													<a th:href="@{/manufacturing-bom/{id}(id=${n3.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="'Mfg BOM: ' + ${n3.manufacturingBOM.name}"></a>
+													<span class="t-badge t-badge-green" th:text="'v' + ${n3.manufacturingBOM.bomVersion}"></span>
+													<span class="t-badge" th:text="${#lists.size(n3.manufacturingBOM.operations)} + ' Ops'"></span>
+												</div>
+												<div class="t-children" th:id="'ch-mfg-' + ${n3.manufacturingBOM.id}">
+													<div th:each="op : ${n3.manufacturingBOM.operations}" class="t-row t-operation">
+														<span class="t-toggle leaf">·</span>
+														<span th:text="${op.operationType.icon}">⚙️</span>
+														<span th:text="${op.name}"></span>
+														<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
+														<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+													</div>
+												</div>
+											</div>
+										</th:block>
+
+										<!-- ══ EBENE 4 ══ -->
+										<div class="t-children" th:id="'ch-' + ${n3.id}" th:if="${!#lists.isEmpty(n3.children)}">
+											<div th:each="n4 : ${n3.children}">
+
+												<!-- ── Zeile n4 ── -->
+												<div class="t-row"
+													 th:id="'node-' + ${n4.id}"
+													 th:classappend="${n4.nodeType.name() == 'FOLDER' ? ' t-folder' : (n4.nodeType.name() == 'PRODUCT_BOP' ? ' t-pbop' : (n4.nodeType.name() == 'MANUFACTURING_BOM' ? ' t-mfgbom' : ' t-boe'))}">
+													<span th:if="${!#lists.isEmpty(n4.children)}" class="t-toggle" th:id="'tg-' + ${n4.id}" th:onclick="'toggleNode(' + ${n4.id} + ')'">▼</span>
+													<span th:unless="${!#lists.isEmpty(n4.children)}" class="t-toggle leaf">·</span>
+													<span th:text="${n4.nodeType.icon}">📁</span>
+													<span th:if="${n4.nodeType.name() == 'FOLDER'}" class="t-label" th:text="${n4.name}"></span>
+													<a th:if="${n4.nodeType.name() == 'PRODUCT_BOP' and n4.productBOP != null}" th:href="@{/product-bop/{id}(id=${n4.productBOP.id})}" class="t-link lnk-pbop" th:text="${n4.name}"></a>
+													<span th:if="${n4.nodeType.name() == 'PRODUCT_BOP' and n4.productBOP == null}" class="t-label" th:text="${n4.name}"></span>
+													<a th:if="${n4.nodeType.name() == 'MANUFACTURING_BOM' and n4.manufacturingBOM != null}" th:href="@{/manufacturing-bom/{id}(id=${n4.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="${n4.name}"></a>
+													<span th:if="${n4.nodeType.name() == 'MANUFACTURING_BOM' and n4.manufacturingBOM == null}" class="t-label" th:text="${n4.name}"></span>
+													<span th:if="${n4.nodeType.name() == 'BOE'}" class="t-label" th:text="${n4.name}"></span>
+													<span class="t-badge" th:text="${n4.nodeType.displayName}"></span>
+													<span th:if="${n4.nodeType.name() == 'BOE' and n4.boeId != null}" class="t-badge" th:text="'ID: ' + ${n4.boeId}"></span>
+													<div class="t-del" sec:authorize="hasAuthority('DELETE')">
+														<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n4.id})}" method="post">
+															<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+														</form>
+													</div>
+												</div>
+
+												<!-- ── Inhalte n4 ── -->
+												<th:block th:if="${n4.productBOP != null}">
+													<div class="t-children">
+														<div class="t-row t-pbop" style="font-size:.82rem;">
+															<span class="t-toggle leaf">·</span><span>⚙️</span>
+															<a th:href="@{/product-bop/{id}(id=${n4.productBOP.id})}" class="t-link lnk-pbop" style="font-size:.82rem;" th:text="'Product BOP: ' + ${n4.productBOP.name}"></a>
+															<span class="t-badge t-badge-blue" th:text="'v' + ${n4.productBOP.bopVersion}"></span>
+														</div>
+													</div>
+												</th:block>
+												<th:block th:if="${n4.manufacturingBOM != null}">
+													<div class="t-children">
+														<div class="t-row t-mfgbom" style="font-size:.82rem;">
+															<span class="t-toggle" th:id="'tg-mfg-' + ${n4.manufacturingBOM.id}" th:onclick="'toggleNode(\'mfg-' + ${n4.manufacturingBOM.id} + '\')'">▼</span>
+															<span>🔧</span>
+															<a th:href="@{/manufacturing-bom/{id}(id=${n4.manufacturingBOM.id})}" class="t-link lnk-mfgbom" th:text="'Mfg BOM: ' + ${n4.manufacturingBOM.name}"></a>
+															<span class="t-badge t-badge-green" th:text="'v' + ${n4.manufacturingBOM.bomVersion}"></span>
+															<span class="t-badge" th:text="${#lists.size(n4.manufacturingBOM.operations)} + ' Ops'"></span>
+														</div>
+														<div class="t-children" th:id="'ch-mfg-' + ${n4.manufacturingBOM.id}">
+															<div th:each="op : ${n4.manufacturingBOM.operations}" class="t-row t-operation">
+																<span class="t-toggle leaf">·</span>
+																<span th:text="${op.operationType.icon}">⚙️</span>
+																<span th:text="${op.name}"></span>
+																<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
+																<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+															</div>
+														</div>
+													</div>
+												</th:block>
+
+											</div>
+										</div>
+										<!-- /Ebene 4 -->
+
+									</div>
+								</div>
+								<!-- /Ebene 3 -->
+
+							</div>
+						</div>
+						<!-- /Ebene 2 -->
+
+					</div>
+				</div>
+				<!-- /Ebene 1 -->
 
             </div><!-- /tree-wrap -->
         </div><!-- /card Baum -->
 
-        <!-- ════════════════════════════════════════════════════ -->
-        <!--  HINZUFÜGEN-PANEL                                    -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <div class="card"
-             sec:authorize="hasAuthority('WRITE')">
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  HINZUFÜGEN-PANEL                             -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="card" sec:authorize="hasAuthority('WRITE')">
             <h3 style="margin-top:0;">➕ Knoten hinzufügen</h3>
-
-            <form th:action="@{/plant-bop/{id}/nodes/add(
-                                id=${plantBOP.id})}"
+            <form th:action="@{/plant-bop/{id}/nodes/add(id=${plantBOP.id})}"
                   method="post">
                 <div class="add-panel">
 
                     <div class="fp">
                         <label>Knotentyp *</label>
-                        <select name="nodeType"
-                                id="nodeTypeSelect"
-                                onchange="onTypeChange(this.value)"
-                                required>
+                        <select name="nodeType" id="nodeTypeSelect"
+                                onchange="onTypeChange(this.value)" required>
                             <option value="">— Typ wählen —</option>
                             <option th:each="t : ${nodeTypes}"
                                     th:value="${t.name()}"
-                                    th:text="${t.label}">
-                            </option>
+                                    th:text="${t.label}"></option>
                         </select>
                     </div>
 
                     <div class="fp">
                         <label>Name *</label>
-                        <input type="text"
-                               name="nodeName"
-                               required
+                        <input type="text" name="nodeName" required
                                placeholder="z.B. Halle A, Linie 1 …">
                     </div>
 
                     <div class="fp">
-                        <label>
-                            Übergeordneter Knoten
-                            <span style="color:#6c757d;
-                                         font-weight:400;">
+                        <label>Übergeordneter Knoten
+                            <span style="color:#6c757d;font-weight:400;">
                                 (leer = Root)
                             </span>
                         </label>
@@ -330,63 +447,44 @@
                             <option value="">— Root-Ebene —</option>
                             <option th:each="n : ${allNodes}"
                                     th:value="${n.id}"
-                                    th:text="${'  '.repeat(
-                                               n.depth < 8
-                                               ? n.depth : 8)
-                                              + n.nodeType.icon
-                                              + ' ' + n.name}">
+                                    th:text="${n.nodeType.icon + ' ' + n.name}">
                             </option>
                         </select>
                     </div>
 
-                    <!-- Product BOP Auswahl -->
-                    <div class="fp" id="fieldProductBop"
-                         style="display:none;">
+                    <div class="fp" id="fieldProductBop" style="display:none;">
                         <label>Product BOP auswählen</label>
                         <select name="productBopId">
                             <option value="">— wählen —</option>
                             <option th:each="pb : ${availableProductBOPs}"
                                     th:value="${pb.id}"
-                                    th:text="${pb.name
-                                              + ' (v'
-                                              + pb.bopVersion
-                                              + ')'}">
+                                    th:text="${pb.name + ' (v' + pb.bopVersion + ')'}">
                             </option>
                         </select>
                     </div>
 
-                    <!-- Manufacturing BOM Auswahl -->
-                    <div class="fp" id="fieldMfgBom"
-                         style="display:none;">
+                    <div class="fp" id="fieldMfgBom" style="display:none;">
                         <label>Manufacturing BOM auswählen</label>
                         <select name="mfgBomId">
                             <option value="">— wählen —</option>
                             <option th:each="mb : ${availableMfgBOMs}"
                                     th:value="${mb.id}"
-                                    th:text="${mb.name
-                                              + ' (v'
-                                              + mb.bomVersion
-                                              + ')'}">
+                                    th:text="${mb.name + ' (v' + mb.bomVersion + ')'}">
                             </option>
                         </select>
                     </div>
 
-                    <!-- BOE Felder -->
-                    <div class="fp" id="fieldBoeId"
-                         style="display:none;">
+                    <div class="fp" id="fieldBoeId" style="display:none;">
                         <label>BOE-ID</label>
-                        <input type="number" name="boeId"
-                               placeholder="z.B. 12345">
+                        <input type="number" name="boeId" placeholder="z.B. 12345">
                     </div>
-                    <div class="fp" id="fieldBoeName"
-                         style="display:none;">
+                    <div class="fp" id="fieldBoeName" style="display:none;">
                         <label>BOE-Name</label>
                         <input type="text" name="boeName"
                                placeholder="z.B. Schraubenset M6">
                     </div>
 
-                    <button type="submit"
-                            class="btn btn-primary"
+                    <button type="submit" class="btn btn-primary"
                             style="width:100%;margin-top:.25rem;">
                         ➕ Knoten speichern
                     </button>
@@ -395,455 +493,320 @@
         </div>
 
     </div><!-- /layout -->
-</div><!-- /container -->
 
+	    <!-- ══════════════════════════════════════════════════════════
+         LIFECYCLE-AKTIONEN – inline (kein Fragment!)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="card" style="margin-top:1.5rem;">
+        <h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
 
-<!-- ══════════════════════════════════════════════════════════════ -->
-<!--  THYMELEAF FRAGMENT: renderNode                               -->
-<!--  Rendert einen PlantBOPNode + seine Kinder + Inhalte          -->
-<!-- ══════════════════════════════════════════════════════════════ -->
-<th:block th:fragment="renderNode(node, plantId, depth)">
+        <div style="display:flex; gap:.75rem;
+                    align-items:center; flex-wrap:wrap;">
 
-    <div th:id="'node-' + ${node.id}">
+            <!-- EDIT – nur bei WORKING -->
+            <div sec:authorize="hasAuthority('WRITE')">
+                <a th:if="${statusName == 'WORKING'}"
+                   th:href="@{/plant-bop/{id}/edit(id=${plantBOP.id})}"
+                   class="btn btn-primary"
+                   style="background:#0066cc;
+                          border-color:#0066cc;">
+                    ✏️ Bearbeiten
+                </a>
+            </div>
 
-        <!-- ── Knotenzeile ───────────────────────────────────── -->
-        <div class="t-row"
-             th:classappend="
-                ${node.nodeType.name() == 'FOLDER'}
-                    ? ' t-folder'
-                    : (${node.nodeType.name() == 'PRODUCT_BOP'}
-                       ? ' t-pbop'
-                       : (${node.nodeType.name() == 'MANUFACTURING_BOM'}
-                          ? ' t-mfgbom' : ' t-boe'))">
-
-            <!-- Toggle -->
-            <span th:if="${!#lists.isEmpty(node.children)
-                           or node.productBOP != null
-                           or node.manufacturingBOM != null}"
-                  class="t-toggle"
-                  th:id="'tg-' + ${node.id}"
-                  th:onclick="'toggleNode(' + ${node.id} + ')'">
-                ▼
-            </span>
-            <span th:unless="${!#lists.isEmpty(node.children)
-                               or node.productBOP != null
-                               or node.manufacturingBOM != null}"
-                  class="t-toggle leaf">·</span>
-
-            <!-- Icon -->
-            <span th:text="${node.nodeType.icon}">📁</span>
-
-            <!-- Name als Link (Ordner = kein Link) -->
-            <span th:if="${node.nodeType.name() == 'FOLDER'}"
-                  class="t-label"
-                  th:text="${node.name}">Ordner</span>
-
-            <a th:if="${node.nodeType.name() == 'PRODUCT_BOP'
-                        and node.productBOP != null}"
-               th:href="@{/product-bop/{id}(
-                            id=${node.productBOP.id})}"
-               class="t-link lnk-pbop"
-               th:text="${node.name}">ProductBOP</a>
-            <span th:if="${node.nodeType.name() == 'PRODUCT_BOP'
-                           and node.productBOP == null}"
-                  class="t-label"
-                  th:text="${node.name}">ProductBOP</span>
-
-            <a th:if="${node.nodeType.name() == 'MANUFACTURING_BOM'
-                        and node.manufacturingBOM != null}"
-               th:href="@{/manufacturing-bom/{id}(
-                            id=${node.manufacturingBOM.id})}"
-               class="t-link lnk-mfgbom"
-               th:text="${node.name}">MfgBOM</a>
-            <span th:if="${node.nodeType.name() == 'MANUFACTURING_BOM'
-                           and node.manufacturingBOM == null}"
-                  class="t-label"
-                  th:text="${node.name}">MfgBOM</span>
-
-            <span th:if="${node.nodeType.name() == 'BOE'}"
-                  class="t-label"
-                  th:text="${node.name}">BOE</span>
-
-            <!-- Typ-Badge -->
-            <span class="t-badge"
-                  th:text="${node.nodeType.displayName}">
-            </span>
-
-            <!-- BOE-ID -->
-            <span th:if="${node.nodeType.name() == 'BOE'
-                           and node.boeId != null}"
-                  class="t-badge"
-                  th:text="'ID: ' + ${node.boeId}">
-            </span>
-
-            <!-- Löschen-Button -->
-            <div class="t-del"
-                 sec:authorize="hasAuthority('DELETE')">
-                <form th:action="@{/plant-bop/{p}/nodes/{n}/delete(
-                                    p=${plantId},
-                                    n=${node.id})}"
-                      method="post"
-                      onsubmit="return confirm(
-                          'Knoten \'' + [[${node.name}]]
-                          + '\' löschen?');">
-                    <button type="submit">🗑️</button>
+            <!-- RELEASE – nur bei WORKING -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <form th:if="${statusName == 'WORKING'}"
+                      th:action="@{/api/manufacturing/plant-bop/{id}/release(id=${plantBOP.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            style="background:#28a745;
+                                   border-color:#28a745;"
+                            onclick="return confirm('Plant BOP freigeben?\nStatus wechselt zu RELEASED.');">
+                        ✅ Freigeben (Release)
+                    </button>
                 </form>
             </div>
-        </div>
-        <!-- /Knotenzeile -->
 
-        <!-- ── Inhalte + Kinder ──────────────────────────────── -->
-        <div class="t-children"
-             th:id="'ch-' + ${node.id}"
-             th:if="${!#lists.isEmpty(node.children)
-                      or node.productBOP != null
-                      or node.manufacturingBOM != null}">
-
-            <!-- ╔═══════════════════════════════════════════╗ -->
-            <!-- ║  PRODUCT BOP → Inhalte anzeigen           ║ -->
-            <!-- ╚═══════════════════════════════════════════╝ -->
-            <th:block th:if="${node.productBOP != null}">
-
-                <!-- Link zur ProductBOP -->
-                <div class="t-row t-pbop"
-                     style="font-size:.82rem;">
-                    <span class="t-toggle leaf">·</span>
-                    <span>⚙️</span>
-                    <a th:href="@{/product-bop/{id}(
-                                    id=${node.productBOP.id})}"
-                       class="t-link lnk-pbop"
-                       style="font-size:.82rem;"
-                       th:text="'Product BOP: '
-                                + ${node.productBOP.name}">
-                    </a>
-                    <span class="t-badge t-badge-blue"
-                          th:text="'v'
-                                   + ${node.productBOP.bopVersion}">
-                    </span>
-                    <span class="t-badge"
-                          th:text="${#lists.size(
-                                     node.productBOP
-                                         .manufacturingBOMs)}
-                                   + ' MfgBOMs'">
-                    </span>
-                </div>
-
-                <!-- ManufacturingBOMs der ProductBOP -->
-                <div class="t-children">
-                    <div th:each="mfg : ${node.productBOP
-                                             .manufacturingBOMs}">
-
-                        <!-- MfgBOM Link -->
-                        <div class="t-row t-mfgbom-child">
-                            <span class="t-toggle"
-                                  th:id="'tg-pbop-mfg-' + ${mfg.id}"
-                                  th:onclick="'toggleNode(\'pbop-mfg-'
-                                              + ${mfg.id} + '\')'">
-                                ▼
-                            </span>
-                            <span>🔧</span>
-                            <a th:href="@{/manufacturing-bom/{id}(
-                                            id=${mfg.id})}"
-                               class="t-link lnk-mfgbom"
-                               style="font-size:.82rem;"
-                               th:text="${mfg.name}">MfgBOM</a>
-                            <span class="t-badge t-badge-green"
-                                  th:text="'v' + ${mfg.bomVersion}">
-                            </span>
-                            <span class="t-badge"
-                                  th:text="${#lists.size(
-                                             mfg.operations)}
-                                           + ' Ops'">
-                            </span>
-                        </div>
-
-                        <!-- ProductBOMs der MfgBOM -->
-                        <div class="t-children"
-                             th:id="'ch-pbop-mfg-' + ${mfg.id}">
-                            <div th:each="pb : ${mfg.productBOMs}">
-
-                                <div class="t-row t-pbom">
-                                    <span class="t-toggle"
-                                          th:id="'tg-pb-' + ${pb.id}"
-                                          th:onclick="'toggleNode(\'pb-'
-                                                      + ${pb.id}
-                                                      + '\')'">
-                                        ▼
-                                    </span>
-                                    <span>📋</span>
-                                    <a th:href="@{/product-bom/{id}(
-                                                    id=${pb.id})}"
-                                       class="t-link lnk-pbom2"
-                                       style="font-size:.82rem;"
-                                       th:text="${pb.name}">
-                                        ProductBOM
-                                    </a>
-                                    <span class="t-badge t-badge-purple"
-                                          th:text="'v'
-                                                   + ${pb.bomVersion}">
-                                    </span>
-                                </div>
-
-                                <!-- ProductData der ProductBOM -->
-                                <div class="t-children"
-                                     th:id="'ch-pb-' + ${pb.id}">
-                                    <div th:if="${pb.productData != null}"
-                                         class="t-row t-productdata">
-                                        <span class="t-toggle leaf">
-                                            ·
-                                        </span>
-                                        <span>📦</span>
-                                        <a th:href="@{/product-data/{id}(
-                                                        id=${pb.productData.id})}"
-                                           class="t-link lnk-pd"
-                                           style="font-size:.82rem;"
-                                           th:text="${pb.productData.id}
-                                                    + ' – '
-                                                    + ${pb.productData.name}">
-                                        </a>
-                                        <span class="t-badge"
-                                              th:if="${pb.productData.productType != null}"
-                                              th:text="${pb.productData.productType}">
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Operationen der MfgBOM -->
-                            <div th:each="op : ${mfg.operations}"
-                                 class="t-row t-operation">
-                                <span class="t-toggle leaf">·</span>
-                                <span th:text="${op.operationType.icon}">
-                                    ⚙️
-                                </span>
-                                <span style="font-family:monospace;
-                                             font-size:.75rem;
-                                             color:#6c757d;"
-                                      th:if="${op.operationNumber != null}"
-                                      th:text="${op.operationNumber}">
-                                </span>
-                                <span th:text="${op.name}">
-                                    Operation
-                                </span>
-                                <span th:if="${op.workstation != null}"
-                                      class="t-badge"
-                                      th:text="'🏭 '
-                                               + ${op.workstation}">
-                                </span>
-                                <span th:if="${op.cycleTimeTarget != null}"
-                                      class="t-time"
-                                      th:text="'Soll: '
-                                               + ${op.cycleTimeTarget}
-                                               + 's'">
-                                </span>
-                                <span th:if="${op.cycleTimeActual != null}"
-                                      class="t-time"
-                                      style="background:#d4edda;"
-                                      th:text="'Ist: '
-                                               + ${op.cycleTimeActual}
-                                               + 's'">
-                                </span>
-                            </div>
-                        </div>
-                        <!-- /t-children MfgBOM -->
-                    </div>
-                    <!-- /th:each MfgBOMs -->
-                </div>
-                <!-- /t-children ProductBOP-Inhalte -->
-
-            </th:block>
-            <!-- /PRODUCT BOP Inhalte -->
-
-
-            <!-- ╔═══════════════════════════════════════════╗ -->
-            <!-- ║  MANUFACTURING BOM → Inhalte anzeigen     ║ -->
-            <!-- ╚═══════════════════════════════════════════╝ -->
-            <th:block th:if="${node.manufacturingBOM != null}">
-
-                <!-- Link zur MfgBOM -->
-                <div class="t-row t-mfgbom"
-                     style="font-size:.82rem;">
-                    <span class="t-toggle"
-                          th:id="'tg-mfg-'
-                                 + ${node.manufacturingBOM.id}"
-                          th:onclick="'toggleNode(\'mfg-'
-                                      + ${node.manufacturingBOM.id}
-                                      + '\')'">▼</span>
-                    <span>🔧</span>
-                    <a th:href="@{/manufacturing-bom/{id}(
-                                    id=${node.manufacturingBOM.id})}"
-                       class="t-link lnk-mfgbom"
-                       th:text="'Mfg BOM: '
-                                + ${node.manufacturingBOM.name}">
-                    </a>
-                    <span class="t-badge t-badge-green"
-                          th:text="'v'
-                                   + ${node.manufacturingBOM
-                                          .bomVersion}">
-                    </span>
-                    <span class="t-badge"
-                          th:text="${#lists.size(
-                                     node.manufacturingBOM
-                                         .productBOMs)}
-                                   + ' ProductBOMs'">
-                    </span>
-                    <span class="t-badge"
-                          th:text="${#lists.size(
-                                     node.manufacturingBOM
-                                         .operations)}
-                                   + ' Ops'">
-                    </span>
-                </div>
-
-                <div class="t-children"
-                     th:id="'ch-mfg-'
-                            + ${node.manufacturingBOM.id}">
-
-                    <!-- ProductBOMs der MfgBOM -->
-                    <div th:each="pb : ${node.manufacturingBOM
-                                             .productBOMs}">
-
-                        <div class="t-row t-pbom">
-                            <span class="t-toggle"
-                                  th:id="'tg-mpb-' + ${pb.id}"
-                                  th:onclick="'toggleNode(\'mpb-'
-                                              + ${pb.id} + '\')'">
-                                ▼
-                            </span>
-                            <span>📋</span>
-                            <a th:href="@{/product-bom/{id}(
-                                            id=${pb.id})}"
-                               class="t-link lnk-pbom2"
-                               style="font-size:.82rem;"
-                               th:text="${pb.name}">
-                                ProductBOM
-                            </a>
-                            <span class="t-badge t-badge-purple"
-                                  th:text="'v' + ${pb.bomVersion}">
-                            </span>
-                        </div>
-
-                        <!-- ProductData -->
-                        <div class="t-children"
-                             th:id="'ch-mpb-' + ${pb.id}">
-                            <div th:if="${pb.productData != null}"
-                                 class="t-row t-productdata">
-                                <span class="t-toggle leaf">·</span>
-                                <span>📦</span>
-                                <a th:href="@{/product-data/{id}(
-                                                id=${pb.productData.id})}"
-                                   class="t-link lnk-pd"
-                                   style="font-size:.82rem;"
-                                   th:text="${pb.productData.id}
-                                            + ' – '
-                                            + ${pb.productData.name}">
-                                </a>
-                                <span th:if="${pb.productData.productType != null}"
-                                      class="t-badge"
-                                      th:text="${pb.productData.productType}">
-                                </span>
-                                <a th:href="@{/product-data/{id}(
-                                                id=${pb.productData.id})}"
-                                   style="font-size:.72rem;
-                                          margin-left:auto;
-                                          color:#0066cc;
-                                          text-decoration:none;"
-                                   title="ProductData öffnen">
-                                    ↗
-                                </a>
-                            </div>
-                            <div th:if="${pb.productData == null}"
-                                 style="padding:2px 8px;
-                                        font-size:.78rem;
-                                        color:#6c757d;">
-                                ⚠️ Keine ProductData zugewiesen
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /ProductBOMs -->
-
-                    <!-- Operationen der MfgBOM -->
-                    <div th:if="${!#lists.isEmpty(
-                                   node.manufacturingBOM.operations)}"
-                         style="margin-top:4px;">
-
-                        <!-- Trennzeile Operationen -->
-                        <div style="padding:2px 8px;
-                                    font-size:.75rem;
-                                    color:#6c757d;
-                                    font-weight:600;
-                                    letter-spacing:.3px;
-                                    text-transform:uppercase;">
-                            ⚙️ Operationen
-                        </div>
-
-                        <div th:each="op : ${node.manufacturingBOM
-                                                 .operations}"
-                             class="t-row t-operation">
-                            <span class="t-toggle leaf">·</span>
-                            <span th:text="${op.operationType.icon}">
-                                ⚙️
-                            </span>
-                            <span style="font-family:monospace;
-                                         font-size:.75rem;
-                                         color:#6c757d;
-                                         min-width:36px;"
-                                  th:if="${op.operationNumber != null}"
-                                  th:text="${op.operationNumber}">
-                            </span>
-                            <span th:text="${op.name}">Op</span>
-                            <span th:if="${op.workstation != null}"
-                                  class="t-badge"
-                                  th:text="'🏭 ' + ${op.workstation}">
-                            </span>
-                            <span th:if="${op.cycleTimeTarget != null}"
-                                  class="t-time"
-                                  th:text="'Soll: '
-                                           + ${op.cycleTimeTarget}
-                                           + 's'">
-                            </span>
-                            <span th:if="${op.cycleTimeActual != null}"
-                                  class="t-time"
-                                  style="background:#d4edda;"
-                                  th:text="'Ist: '
-                                           + ${op.cycleTimeActual}
-                                           + 's'">
-                            </span>
-                        </div>
-                    </div>
-                    <!-- /Operationen -->
-
-                </div>
-                <!-- /ch-mfg -->
-
-            </th:block>
-            <!-- /MANUFACTURING BOM Inhalte -->
-
-
-            <!-- ╔═══════════════════════════════════════════╗ -->
-            <!-- ║  UNTERKNOTEN (rekursiv bis Tiefe 4)       ║ -->
-            <!-- ╚═══════════════════════════════════════════╝ -->
-            <div th:each="child : ${node.children}">
-                <div th:replace="~{this :: renderNode(
-                    ${child}, ${plantId}, ${depth + 1})}">
-                </div>
+            <!-- REVISE – nur bei RELEASED -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <form th:if="${statusName == 'RELEASED'}"
+                      th:action="@{/api/manufacturing/plant-bop/{id}/revise(id=${plantBOP.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            style="background:#fd7e14;
+                                   border-color:#fd7e14;"
+                            onclick="return confirm('Neue Revision erstellen?\nEine neue WORKING-Revision wird angelegt.');">
+                        📝 Revidieren (Revise)
+                    </button>
+                </form>
             </div>
 
+            <!-- SAVE AS -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <button type="button"
+                        class="btn btn-primary"
+                        style="background:#6f42c1;
+                               border-color:#6f42c1;"
+                        onclick="openSaveAsDialog()">
+                    💾 Save As…
+                </button>
+            </div>
+
+            <!-- DELETE – nur bei WORKING + keine Knoten -->
+            <div sec:authorize="hasAuthority('DELETE')"
+                 style="margin-left:auto;">
+
+                <form th:if="${statusName == 'WORKING'
+                               and #lists.isEmpty(plantBOP.nodes)}"
+                      th:action="@{/plant-bop/{id}/delete(id=${plantBOP.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-danger"
+                            onclick="return confirm('Plant BOP wirklich löschen?');">
+                        🗑️ Löschen
+                    </button>
+                </form>
+
+                <!-- Gesperrt – Knoten vorhanden -->
+                <button th:if="${statusName == 'WORKING'
+                                and !#lists.isEmpty(plantBOP.nodes)}"
+                        type="button" disabled
+                        class="btn btn-sm"
+                        style="background:#e9ecef; color:#6c757d;
+                               cursor:not-allowed;
+                               border:1px solid #dee2e6;"
+                        th:title="${'Löschen nicht möglich: '
+                            + #lists.size(plantBOP.nodes)
+                            + ' Knoten vorhanden'}">
+                    🔒 Löschen gesperrt
+                </button>
+
+                <!-- Gesperrt – Status -->
+                <button th:if="${statusName == 'RELEASED'
+                                or statusName == 'OBSOLETE'}"
+                        type="button" disabled
+                        class="btn btn-sm"
+                        style="background:#e9ecef; color:#6c757d;
+                               cursor:not-allowed;
+                               border:1px solid #dee2e6;"
+                        title="Löschen nicht möglich: Status ist nicht WORKING">
+                    🔒 Löschen gesperrt
+                </button>
+            </div>
+
+            <!-- Hinweise -->
+            <span th:if="${statusName == 'OBSOLETE'}"
+                  style="color:#6c757d; font-size:.9rem;
+                         font-style:italic;">
+                🔒 Obsolete Revision –
+                keine Lifecycle-Aktionen verfügbar.
+            </span>
+            <span th:if="${statusName == 'KEINE_REVISION'}"
+                  style="color:#dc3545; font-size:.9rem;">
+                ⚠️ Keine Revision vorhanden.
+            </span>
         </div>
-        <!-- /t-children -->
-
     </div>
-    <!-- /node-{id} -->
 
-</th:block>
-<!-- /fragment renderNode -->
+    <!-- ── Revisionsverlauf ───────────────────────────────────── -->
+    <div class="card" style="margin-top:1.5rem;">
+        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
 
+        <div th:if="${#lists.isEmpty(revisionChain)}"
+             style="color:#6c757d; padding:1rem 0;">
+            Keine Revisionen vorhanden.
+        </div>
 
-<script>
-    /**
-     * Klappt einen Baumknoten auf oder zu.
-     * id kann String oder Number sein.
-     */
+        <table th:if="${!#lists.isEmpty(revisionChain)}"
+               style="width:100%; border-collapse:collapse;
+                      font-size:.9rem;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #ddd;">
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Revision</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Status</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Erstellt von</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Erstellt am</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rev : ${revisionChain}"
+                    th:style="${rev.status.name() == 'WORKING'}
+                        ? 'background:#fffdf0;'
+                        : (${rev.status.name() == 'RELEASED'}
+                            ? 'background:#f0fff4;'
+                            : 'background:#fdf0f0;')">
+
+                    <td style="padding:.5rem .75rem;
+                               font-family:monospace;
+                               font-weight:600;"
+                        th:text="${rev.revision}">01</td>
+
+                    <td style="padding:.5rem .75rem;">
+                        <span th:if="${rev.status.name() == 'WORKING'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem; font-weight:600;
+                                     background:#fff3cd; color:#856404;
+                                     border:1px solid #ffc107;">
+                            ⚙️ WORKING
+                        </span>
+                        <span th:if="${rev.status.name() == 'RELEASED'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem; font-weight:600;
+                                     background:#d4edda; color:#155724;
+                                     border:1px solid #28a745;">
+                            ✅ RELEASED
+                        </span>
+                        <span th:if="${rev.status.name() == 'OBSOLETE'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem; font-weight:600;
+                                     background:#f8d7da; color:#721c24;
+                                     border:1px solid #f5c6cb;">
+                            🔒 OBSOLETE
+                        </span>
+                    </td>
+
+                    <td style="padding:.5rem .75rem;"
+                        th:text="${rev.createdBy ?: '—'}">—</td>
+
+                    <td style="padding:.5rem .75rem;
+                               font-size:.85rem; color:#6c757d;"
+                        th:text="${rev.createdAt != null
+                            ? #temporals.format(rev.createdAt,
+                                'dd.MM.yyyy HH:mm')
+                            : '—'}">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ── Save-As Dialog ────────────────────────────────────────── -->
+<div id="saveAsOverlay"
+     style="display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,.5); z-index:9999;
+            align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:8px;
+                padding:2rem; min-width:380px;
+                box-shadow:0 4px 20px rgba(0,0,0,.3);">
+        <h3 style="margin-top:0;">
+            💾 Save As – Kopie erstellen
+        </h3>
+        <p style="color:#6c757d; font-size:.9rem;">
+            Neuer Name für die Kopie von
+            <strong th:text="${plantBOP.name}">—</strong>:
+        </p>
+        <input id="saveAsName" type="text"
+               placeholder="Neuer Name…"
+               style="width:100%; padding:.5rem;
+                      border:1px solid #ced4da;
+                      border-radius:4px; font-size:1rem;
+                      box-sizing:border-box;
+                      margin-bottom:1rem;">
+        <div style="display:flex; gap:.5rem;
+                    justify-content:flex-end;">
+            <button type="button"
+                    class="btn btn-primary"
+                    style="background:#6c757d;
+                           border-color:#6c757d;"
+                    onclick="closeSaveAsDialog()">
+                ✖ Abbrechen
+            </button>
+            <button type="button"
+                    class="btn btn-primary"
+                    style="background:#6f42c1;
+                           border-color:#6f42c1;"
+                    onclick="executeSaveAs()">
+                💾 Kopie erstellen
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── JavaScript ────────────────────────────────────────────── -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const csrfToken  = document.querySelector(
+                           'meta[name="_csrf"]')
+                               .getAttribute('content');
+    const csrfHeader = document.querySelector(
+                           'meta[name="_csrf_header"]')
+                               .getAttribute('content');
+    const plantBopId = /*[[${plantBOP.id}]]*/ '';
+
+    function openSaveAsDialog() {
+        const overlay = document.getElementById('saveAsOverlay');
+        overlay.style.display = 'flex';
+        setTimeout(() =>
+            document.getElementById('saveAsName').focus(), 50);
+    }
+
+    function closeSaveAsDialog() {
+        document.getElementById('saveAsOverlay')
+                .style.display = 'none';
+        document.getElementById('saveAsName').value = '';
+    }
+
+    function executeSaveAs() {
+        const newName = document.getElementById('saveAsName')
+                                .value.trim();
+        if (!newName) {
+            alert('⚠️ Bitte einen Namen eingeben.');
+            return;
+        }
+        fetch('/api/manufacturing/plant-bop/'
+              + plantBopId + '/saveas?newName='
+              + encodeURIComponent(newName), {
+            method:  'POST',
+            headers: { [csrfHeader]: csrfToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert('❌ Fehler: ' + data.error);
+            } else {
+                closeSaveAsDialog();
+                alert('✅ Kopie erstellt: '
+                      + data.name
+                      + ' (ID: ' + data.id + ')');
+                window.location.href =
+                    '/plant-bop/' + data.id;
+            }
+        })
+        .catch(err => {
+            alert('❌ Netzwerkfehler: ' + err.message);
+        });
+    }
+
+    document.getElementById('saveAsOverlay')
+            .addEventListener('click', function(e) {
+        if (e.target === this) closeSaveAsDialog();
+    });
+
+    // ── Tree Toggle (bereits vorhanden – beibehalten) ─────────
     function toggleNode(id) {
         const ch = document.getElementById('ch-' + id);
         const tg = document.getElementById('tg-' + id);
@@ -852,26 +815,24 @@
         if (tg) tg.textContent = isCollapsed ? '▶' : '▼';
     }
 
-    /** Typ-abhängige Felder ein-/ausblenden */
     function onTypeChange(type) {
         const fields = {
-            'PRODUCT_BOP':      ['fieldProductBop'],
-            'MANUFACTURING_BOM':['fieldMfgBom'],
-            'BOE':              ['fieldBoeId', 'fieldBoeName'],
-            'FOLDER':           []
+            'PRODUCT_BOP':       ['fieldProductBop'],
+            'MANUFACTURING_BOM': ['fieldMfgBom'],
+            'BOE':               ['fieldBoeId', 'fieldBoeName'],
+            'FOLDER':            []
         };
-        // Alle ausblenden
-        ['fieldProductBop', 'fieldMfgBom',
-         'fieldBoeId', 'fieldBoeName'].forEach(id => {
+        ['fieldProductBop','fieldMfgBom',
+         'fieldBoeId','fieldBoeName'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
-        // Relevante einblenden
         (fields[type] || []).forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'block';
         });
     }
+    /*]]>*/
 </script>
 
 </body>

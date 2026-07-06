@@ -1,7 +1,10 @@
 package com.peb.controller;
 
 import com.peb.dto.DrawingDTO;
+import com.peb.model.base.Dataset;
 import com.peb.model.cad.Drawing;
+import com.peb.model.ebom.DatasetCategory;
+import com.peb.service.DatasetService;
 import com.peb.service.DrawingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -20,6 +24,9 @@ import java.util.List;
 public class DrawingController {
 
     private final DrawingService drawingService;
+    private final DatasetService datasetService;
+
+    // ── List ──────────────────────────────────────────────────────────────────
 
     @GetMapping
     public String listDrawings(Model model) {
@@ -28,6 +35,8 @@ public class DrawingController {
         return "drawing-list";
     }
 
+    // ── New Form ──────────────────────────────────────────────────────────────
+
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('WRITE')")
     public String newDrawingForm(Model model) {
@@ -35,13 +44,15 @@ public class DrawingController {
         return "drawing-form";
     }
 
+    // ── Create ────────────────────────────────────────────────────────────────
+
     @PostMapping
     @PreAuthorize("hasAuthority('WRITE')")
     public String createDrawing(@ModelAttribute DrawingDTO drawingDTO, Model model) {
         try {
             Drawing drawing = drawingService.createDrawing(
-                drawingDTO.getName(),
-                drawingDTO.getDepartment()
+                    drawingDTO.getName(),
+                    drawingDTO.getDepartment()
             );
             return "redirect:/drawings/" + drawing.getId();
         } catch (Exception e) {
@@ -51,12 +62,47 @@ public class DrawingController {
         }
     }
 
+    // ── View ──────────────────────────────────────────────────────────────────
+
     @GetMapping("/{id}")
     public String viewDrawing(@PathVariable String id, Model model) {
+
         Drawing drawing = drawingService.getDrawing(id);
         model.addAttribute("drawing", drawing);
+
+        if (drawing.getLatestRevision() != null) {
+
+            Long   revisionId   = drawing.getLatestRevision().getRevisionId();
+            String revisionType = "DRAWING";
+
+            List<Dataset> allDatasets =
+                    datasetService.getDatasets(revisionId, revisionType);
+
+            // PDF Dataset – PDF_DOCUMENT hat Vorrang vor PDF_DRAWING
+            Dataset pdfDataset = allDatasets.stream()
+                    .filter(ds -> ds.getCategory() == DatasetCategory.PDF_DOCUMENT
+                               || ds.getCategory() == DatasetCategory.PDF_DRAWING)
+                    .min(Comparator.comparingInt(ds -> ds.getCategory().ordinal()))
+                    .orElse(null);
+
+            // Excel Dataset
+            Dataset excelDataset = allDatasets.stream()
+                    .filter(ds -> ds.getCategory() == DatasetCategory.EXCEL_TABLE)
+                    .findFirst()
+                    .orElse(null);
+
+            model.addAttribute("pdfDataset",   pdfDataset);
+            model.addAttribute("excelDataset", excelDataset);
+
+        } else {
+            model.addAttribute("pdfDataset",   null);
+            model.addAttribute("excelDataset", null);
+        }
+
         return "drawing-view";
     }
+
+    // ── Edit Form ─────────────────────────────────────────────────────────────
 
     @GetMapping("/{id}/edit")
     @PreAuthorize("hasAuthority('WRITE')")
@@ -70,12 +116,20 @@ public class DrawingController {
         return "drawing-edit";
     }
 
+    // ── Update ────────────────────────────────────────────────────────────────
+
     @PostMapping("/{id}")
     @PreAuthorize("hasAuthority('WRITE')")
-    public String updateDrawing(@PathVariable String id, @ModelAttribute DrawingDTO drawingDTO) {
-        drawingService.updateDrawing(id, drawingDTO.getName(), drawingDTO.getDepartment());
+    public String updateDrawing(@PathVariable String id,
+                                @ModelAttribute DrawingDTO drawingDTO) {
+        drawingService.updateDrawing(
+                id,
+                drawingDTO.getName(),
+                drawingDTO.getDepartment());
         return "redirect:/drawings/" + id;
     }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
 
     @PostMapping("/{id}/delete")
     @PreAuthorize("hasAuthority('DELETE')")

@@ -1,0 +1,362 @@
+<!-- src/main/resources/templates/fragments/lifecycle-actions.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<div th:fragment="lifecycle(objectType, objectId, object, redirectUrl, revisionChain)"
+     class="card"
+     sec:authorize="hasAuthority('EXECUTE')">
+
+    <h3 style="margin-top:0;">🔄 Lifecycle-Aktionen</h3>
+
+    <!-- ── Status + Revision Anzeige ──────────────────────────── -->
+    <div style="display:flex; align-items:center; gap:1.5rem;
+                margin-bottom:1.25rem; padding:.75rem;
+                background:#f8f9fa; border-radius:6px;
+                border:1px solid #dee2e6;">
+        <div>
+            <div style="font-size:.78rem; color:#6c757d;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                        margin-bottom:.25rem;">
+                Status
+            </div>
+            <span th:if="${object.status.name() == 'WORKING'}"
+                  class="status-badge status-working"
+                  th:text="${object.status.icon + ' '
+                             + object.status.displayName}">
+            </span>
+            <span th:if="${object.status.name() == 'RELEASED'}"
+                  class="status-badge status-released"
+                  th:text="${object.status.icon + ' '
+                             + object.status.displayName}">
+            </span>
+            <span th:if="${object.status.name() == 'OBSOLETE'}"
+                  class="status-badge status-obsolete"
+                  th:text="${object.status.icon + ' '
+                             + object.status.displayName}">
+            </span>
+        </div>
+
+        <div>
+            <div style="font-size:.78rem; color:#6c757d;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                        margin-bottom:.25rem;">
+                Revision
+            </div>
+            <span style="font-weight:700; font-size:1.1rem;"
+                  th:text="${object.revision ?: '01'}">01</span>
+        </div>
+
+        <div th:if="${object.predecessorId != null}">
+            <div style="font-size:.78rem; color:#6c757d;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                        margin-bottom:.25rem;">
+                Vorgänger-ID
+            </div>
+            <code style="font-size:.85rem;"
+                  th:text="${object.predecessorId}"></code>
+        </div>
+    </div>
+
+    <!-- ══ WORKING → Release ═══════════════════════════════════ -->
+    <div th:if="${object.status.name() == 'WORKING'}">
+        <div style="background:#d4edda; border:1px solid #c3e6cb;
+                    border-radius:6px; padding:1rem;">
+            <div style="font-weight:600; color:#155724;
+                        margin-bottom:.5rem;">
+                🏁 Freigabe (Release)
+            </div>
+            <p style="margin:0 0 .75rem; font-size:.9rem;
+                      color:#155724;">
+                Revision
+                <strong th:text="${object.revision ?: '01'}">
+                    01
+                </strong>
+                ist im Status <strong>Working</strong>.
+                Nach der Freigabe werden alle anderen
+                Revisionen auf Obsolete gesetzt.
+            </p>
+            <form th:action="@{'/api/manufacturing/'
+                              + ${objectType}
+                              + '/' + ${objectId}
+                              + '/release'}"
+                  method="post"
+                  onsubmit="return confirm(
+                      'Revision freigeben?\n'
+                      + 'Alle anderen Revisionen werden '
+                      + 'auf Obsolete gesetzt.');">
+                <button type="submit" class="btn btn-success">
+                    🏁 Jetzt freigeben
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ RELEASED → Revise + SaveAs ══════════════════════════ -->
+    <div th:if="${object.status.name() == 'RELEASED'}"
+         style="display:flex; flex-direction:column; gap:.75rem;">
+
+        <div style="background:#d4edda; border:1px solid #c3e6cb;
+                    border-radius:6px; padding:.75rem 1rem;
+                    display:flex; align-items:center; gap:.5rem;">
+            <span>✅</span>
+            <span style="font-size:.9rem; color:#155724;">
+                Revision
+                <strong th:text="${object.revision ?: '01'}">
+                    01
+                </strong>
+                ist freigegeben. Bearbeitung nur über
+                neue Revision möglich.
+            </span>
+        </div>
+
+        <!-- Revise -->
+        <div style="background:#cce5ff; border:1px solid #b8daff;
+                    border-radius:6px; padding:1rem;">
+            <div style="font-weight:600; color:#004085;
+                        margin-bottom:.5rem;">
+                📝 Neue Revision (Revise)
+            </div>
+            <p style="margin:0 0 .75rem; font-size:.9rem;
+                      color:#004085;">
+                Erstellt eine neue Working-Revision.
+                Die aktuelle Revision bleibt
+                <strong>Released</strong>.
+                Du wirst automatisch zur neuen Revision
+                weitergeleitet.
+            </p>
+            <form th:action="@{'/api/manufacturing/'
+                              + ${objectType}
+                              + '/' + ${objectId}
+                              + '/revise'}"
+                  method="post"
+                  onsubmit="return confirm(
+                      'Neue Working-Revision erstellen?\n'
+                      + 'Du wirst zur neuen Revision '
+                      + 'weitergeleitet.');">
+                <button type="submit" class="btn btn-primary">
+                    📝 Revise
+                </button>
+            </form>
+        </div>
+
+        <!-- Save As -->
+        <div style="background:#fff3cd; border:1px solid #ffeaa7;
+                    border-radius:6px; padding:1rem;">
+            <div style="font-weight:600; color:#856404;
+                        margin-bottom:.5rem;">
+                💾 Kopie erstellen (Save As)
+            </div>
+            <p style="margin:0 0 .75rem; font-size:.9rem;
+                      color:#856404;">
+                Erstellt eine unabhängige Kopie als
+                neues Objekt (Revision 01, Working).
+                Das Original bleibt unverändert.
+            </p>
+            <button type="button"
+                    class="btn btn-warning mfg-saveas-btn"
+                    th:data-object-type="${objectType}"
+                    th:data-object-id="${objectId}"
+                    th:data-redirect-url="${redirectUrl}">
+                💾 Save As
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ OBSOLETE → Info ══════════════════════════════════════ -->
+    <div th:if="${object.status.name() == 'OBSOLETE'}"
+         style="background:#f8d7da; border:1px solid #f5c6cb;
+                border-radius:6px; padding:1rem;">
+        <div style="font-weight:600; color:#721c24;
+                    margin-bottom:.5rem;">
+            🔴 Obsolete – Keine Aktionen verfügbar
+        </div>
+        <p style="margin:0 0 .75rem; font-size:.9rem;
+                  color:#721c24;">
+            Dieses Objekt ist veraltet.
+            Bitte wechsle zur aktuellen Revision.
+        </p>
+
+        <!--
+            Link zur neuesten Revision.
+            LÖSUNG: th:each mit varStatus um letztes
+            Element zu ermitteln – kein komplexes th:with.
+        -->
+        <div th:if="${revisionChain != null
+                      and !#lists.isEmpty(revisionChain)}">
+            <th:block th:each="rev, iterStat : ${revisionChain}">
+                <a th:if="${iterStat.last
+                            and rev.id.toString()
+                                != objectId.toString()}"
+                   th:href="@{'/' + ${objectType}
+                              + '/' + ${rev.id}}"
+                   class="btn btn-primary"
+                   style="font-size:.85rem;">
+                    → Zur aktuellen Revision wechseln
+                </a>
+            </th:block>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         REVISIONSHISTORIE
+         ══════════════════════════════════════════════════════════ -->
+    <div style="margin-top:1.5rem; padding-top:1.25rem;
+                border-top:1px solid #dee2e6;">
+
+        <h4 style="margin:0 0 1rem; font-size:1rem;
+                   color:#212529;">
+            📋 Revisionen
+        </h4>
+
+        <div th:if="${revisionChain == null
+                      or #lists.isEmpty(revisionChain)}"
+             style="color:#6c757d; font-size:.9rem;
+                    padding:.75rem; background:#f8f9fa;
+                    border-radius:4px; text-align:center;">
+            Noch keine Revisionshistorie vorhanden.
+        </div>
+
+        <table th:unless="${revisionChain == null
+                            or #lists.isEmpty(revisionChain)}"
+               style="width:100%; border-collapse:collapse;
+                      font-size:.9rem;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #dee2e6;">
+                    <th style="padding:.6rem .75rem;
+                               text-align:left;
+                               color:#495057;">Revision</th>
+                    <th style="padding:.6rem .75rem;
+                               text-align:left;
+                               color:#495057;">Status</th>
+                    <th style="padding:.6rem .75rem;
+                               text-align:left;
+                               color:#495057;">Erstellt am</th>
+                    <th style="padding:.6rem .75rem;
+                               text-align:left;
+                               color:#495057;">Erstellt von</th>
+                    <th style="padding:.6rem .75rem;
+                               text-align:left;
+                               color:#495057;">ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--
+                    LÖSUNG für "aktuell"-Marker:
+                    iterStat.last = letztes Element der Liste
+                    = neueste Revision der Kette.
+
+                    Kein th:with mit komplexem Ausdruck nötig!
+                    Thymeleaf's iterStat.last ist zuverlässig
+                    und syntax-sicher.
+                -->
+                <tr th:each="rev, iterStat : ${revisionChain}"
+                    th:style="${rev.id.toString() == objectId.toString()}
+                               ? 'border-bottom:1px solid #dee2e6; background:#f0f7ff;'
+                               : 'border-bottom:1px solid #dee2e6;'">
+
+                    <!-- Revision + Marker -->
+                    <td style="padding:.6rem .75rem;
+                               font-family:monospace;
+                               font-weight:600;">
+
+                        <span th:text="${rev.revision ?: '01'}">
+                            01
+                        </span>
+
+                        <!--
+                            "aktuell" = letztes Element
+                            der sortierten Kette (iterStat.last)
+                        -->
+                        <span th:if="${iterStat.last}"
+                              style="margin-left:.4rem;
+                                     font-size:.72rem;
+                                     background:#0056b3;
+                                     color:white;
+                                     padding:1px 6px;
+                                     border-radius:8px;
+                                     font-family:inherit;">
+                            aktuell
+                        </span>
+
+                        <!--
+                            "diese Seite" = angezeigte Revision,
+                            aber NUR wenn sie nicht "aktuell" ist
+                        -->
+                        <span th:if="${!iterStat.last
+                                       and rev.id.toString()
+                                           == objectId.toString()}"
+                              style="margin-left:.4rem;
+                                     font-size:.72rem;
+                                     background:#6c757d;
+                                     color:white;
+                                     padding:1px 6px;
+                                     border-radius:8px;
+                                     font-family:inherit;">
+                            diese Seite
+                        </span>
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td style="padding:.6rem .75rem;">
+                        <span th:if="${rev.status.name() == 'WORKING'}"
+                              class="status-badge status-working"
+                              th:text="${rev.status.icon + ' '
+                                         + rev.status.displayName}">
+                        </span>
+                        <span th:if="${rev.status.name() == 'RELEASED'}"
+                              class="status-badge status-released"
+                              th:text="${rev.status.icon + ' '
+                                         + rev.status.displayName}">
+                        </span>
+                        <span th:if="${rev.status.name() == 'OBSOLETE'}"
+                              class="status-badge status-obsolete"
+                              th:text="${rev.status.icon + ' '
+                                         + rev.status.displayName}">
+                        </span>
+                    </td>
+
+                    <!-- Erstellt am -->
+                    <td style="padding:.6rem .75rem; color:#495057;">
+                        <span th:if="${rev.createdDate != null}"
+                              th:text="${#temporals.format(
+                                  rev.createdDate,
+                                  'dd.MM.yyyy HH:mm:ss')}">
+                        </span>
+                        <span th:if="${rev.createdDate == null}"
+                              style="color:#6c757d;">—</span>
+                    </td>
+
+                    <!-- Erstellt von -->
+                    <td style="padding:.6rem .75rem; color:#495057;"
+                        th:text="${rev.createdBy ?: '—'}">
+                    </td>
+
+                    <!-- ID als Link zur Detailseite -->
+                    <td style="padding:.6rem .75rem;">
+                        <a th:href="@{'/' + ${objectType}
+                                     + '/' + ${rev.id}}"
+                           th:text="${rev.id}"
+                           style="font-family:monospace;
+                                  font-size:.85rem;
+                                  color:#0056b3;
+                                  text-decoration:none;"
+                           th:title="'Revision '
+                                     + ${rev.revision}
+                                     + ' öffnen'">
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

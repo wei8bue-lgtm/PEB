@@ -16,12 +16,23 @@ public interface ProductBOPRepository
 
     List<ProductBOP> findByNameContainingIgnoreCase(String name);
 
-    /**
-     * Lädt ProductBOP mit ManufacturingBOMs per JOIN FETCH.
-     * Nur EINE Collection per Query → kein MultipleBagFetch!
-     */
-    @Query("SELECT pb FROM ProductBOP pb " +
-           "LEFT JOIN FETCH pb.manufacturingBOMs " +
-           "WHERE pb.id = :id")
-    Optional<ProductBOP> findByIdWithMfgBOMs(@Param("id") Long id);
+    @Query("""
+            SELECT DISTINCT pb FROM ProductBOP pb
+              LEFT JOIN FETCH pb.manufacturingBOMs
+             WHERE pb.id = :id
+            """)
+    Optional<ProductBOP> findByIdWithMfgBOMs(
+            @Param("id") Long id);
+
+    // ── Native Query für Revisionskette ───────────────────────────
+
+    @Query(value = """
+            SELECT * FROM product_bop
+             WHERE master_id = :masterId
+                OR id        = :masterId
+             ORDER BY revision ASC
+            """,
+           nativeQuery = true)
+    List<ProductBOP> findRevisionChain(
+            @Param("masterId") Long masterId);
 }

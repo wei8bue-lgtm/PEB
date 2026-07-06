@@ -9,11 +9,10 @@
     <link rel="icon" href="data:,">
     <title th:text="${design.name} + ' - PEB'">Design - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         .btn-sm { font-size:0.875rem; padding:0.25rem 0.5rem; }
 
-        /* ── Thumbnail Card ─────────────────────────────── */
         .thumbnail-wrapper {
             position: relative;
             border-radius: 6px;
@@ -46,7 +45,6 @@
         }
         .thumbnail-placeholder .icon { font-size: 4rem; opacity: 0.4; }
 
-        /* ── Lightbox ───────────────────────────────────── */
         .lightbox-overlay {
             display: none;
             position: fixed;
@@ -80,7 +78,6 @@
         }
         .lightbox-close:hover { opacity: 1; }
 
-        /* ── Sonstige ───────────────────────────────────── */
         .btn-viewer { background-color: #6f42c1; color: white; }
         .btn-viewer:hover { background-color: #5a32a3; }
         .alert-info {
@@ -89,7 +86,6 @@
             padding:1rem; border-radius:4px;
         }
 
-        /* ── Embedded Viewer ────────────────────────────── */
         .embedded-viewer-wrapper {
             position: relative;
             border-radius: 6px;
@@ -116,7 +112,6 @@
         }
         .embedded-viewer-placeholder .icon { font-size: 4rem; opacity: 0.4; }
     </style>
-	
 </head>
 <body>
 
@@ -131,23 +126,43 @@
 
 <div class="container">
 
-    <!-- ══ Details-Karte ═══════════════════════════════════════ -->
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}"
+         style="background:#d4edda; color:#155724; padding:1rem;
+                border:1px solid #c3e6cb; border-radius:4px;
+                margin-bottom:1rem;">
+        <strong th:text="${successMessage}"></strong>
+    </div>
+    <div th:if="${errorMessage}"
+         style="background:#f8d7da; color:#721c24; padding:1rem;
+                border:1px solid #f5c6cb; border-radius:4px;
+                margin-bottom:1rem;">
+        <strong th:text="${errorMessage}"></strong>
+    </div>
+
+    <!-- ══ Details-Karte ══════════════════════════════════════ -->
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h2>Design Details</h2>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
 
-                <a th:href="@{/designs/{id}/edit(id=${design.id})}"
-                   class="btn btn-primary"
-                   sec:authorize="hasAuthority('WRITE')">✏️ Edit</a>
+				<a th:href="@{/designs/{id}/edit(id=${design.id})}"
+				   class="btn btn-primary"
+				   sec:authorize="hasAuthority('WRITE')">✏️ Edit</a>
 
-                <a th:if="${design.latestRevision != null}"
-                   th:href="@{/viewer/{id}/revision/{revId}(
-                                id=${design.id},
-                                revId=${design.latestRevision.revisionId})}"
-                   class="btn btn-viewer"
-                   title="3D Viewer – neueste Revision">🔷 3D Viewer</a>
+				<!-- ✅ NEU – Design Structure Button -->
+				<a th:href="@{/designs/structure/{id}(id=${design.id})}"
+				   class="btn btn-primary"
+				   title="Design Structure verwalten">🗂️ Structure</a>
+
+				<!-- Existing: 3D Viewer button -->
+				<a th:if="${design.latestRevision != null}"
+				   th:href="@{'/viewer/' + ${design.id}
+							 + '/revision/'
+							 + ${design.latestRevision.revisionId}}"
+				   class="btn btn-viewer"
+				   title="3D Viewer – neueste Revision">🔷 3D Viewer</a>
 
                 <form th:action="@{/designs/{id}/delete(id=${design.id})}"
                       method="post" style="display:inline;"
@@ -212,7 +227,7 @@
         </table>
     </div>
 
-    <!-- ══ Thumbnail-Karte ═════════════════════════════════════ -->
+    <!-- ══ Thumbnail-Karte ════════════════════════════════════ -->
     <div class="card" th:if="${design.latestRevision != null}">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
@@ -228,8 +243,11 @@
                    target="_blank"
                    class="btn btn-primary btn-sm"
                    id="thumbnailOpenBtn">Vollbild ↗</a>
-                <a th:href="@{/datasets/manage/DESIGN/{id}(
-                                id=${design.latestRevision.revisionId})}"
+
+                <!-- ✅ String-Konkatenation -->
+                <a th:href="@{'/datasets/manage/DESIGN/'
+                             + ${design.latestRevision.revisionId}
+                             + '?objectId=' + ${design.id}}"
                    class="btn btn-primary btn-sm"
                    title="Thumbnail Dataset verwalten">📎 Dataset</a>
             </div>
@@ -251,8 +269,10 @@
                     Dataset der Kategorie <strong>Thumbnail</strong>
                     hinzufügen (jpeg / jpg / bmp / png)
                 </p>
-                <a th:href="@{/datasets/manage/DESIGN/{id}(
-                                id=${design.latestRevision.revisionId})}"
+                <!-- ✅ String-Konkatenation -->
+                <a th:href="@{'/datasets/manage/DESIGN/'
+                             + ${design.latestRevision.revisionId}
+                             + '?objectId=' + ${design.id}}"
                    class="btn btn-primary btn-sm"
                    style="margin-top:0.5rem;">📎 Dataset hinzufügen</a>
             </div>
@@ -269,7 +289,7 @@
         </div>
     </div>
 
-    <!-- ══ Lightbox ════════════════════════════════════════════ -->
+    <!-- ══ Lightbox ══════════════════════════════════════════ -->
     <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
         <button class="lightbox-close" onclick="closeLightbox()"
                 title="Schließen">✕</button>
@@ -277,177 +297,139 @@
              onclick="event.stopPropagation()"/>
     </div>
 
-    <!-- ══ PDF Viewer Karte ════════════════════════════════════ -->
+    <!-- ══ PDF Viewer Karte ═══════════════════════════════════ -->
     <div class="card" th:if="${pdfDataset != null}">
-
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
                 📄
-                <span th:text="${pdfDataset.category.displayName}">
-                    PDF Document
-                </span>
-                <span style="font-size:0.8rem; color:#6c757d;
-                             font-weight:normal;">
+                <span th:text="${pdfDataset.category.displayName}">PDF Document</span>
+                <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
                     — Revision
-                    <span th:text="${design.latestRevision.revision}">
-                        01
-                    </span>
+                    <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
-
             <div style="display:flex; gap:0.5rem; align-items:center;">
-
-                <!-- Download -->
-                <a th:href="@{/datasets/{id}/stream(
-                                id=${pdfDataset.datasetId})}"
+                <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                    download
                    class="btn btn-primary btn-sm"
-                   title="PDF herunterladen">
-                    ⬇️ Download
-                </a>
+                   title="PDF herunterladen">⬇️ Download</a>
 
-				<a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-				   target="_blank"
-				   rel="noopener noreferrer"
-				   class="btn btn-primary btn-sm"
-				   title="In neuem Tab öffnen">
-					Vollbild ↗
-				</a>
-				
-                <a th:href="@{/datasets/manage/DESIGN/{id}(
-                                id=${design.latestRevision.revisionId})}"
+                <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
+                   target="_blank"
+                   rel="noopener noreferrer"
                    class="btn btn-primary btn-sm"
-                   title="Dataset verwalten">
-                    📎 Dataset
-                </a>
+                   title="In neuem Tab öffnen">Vollbild ↗</a>
+
+                <!-- ✅ String-Konkatenation -->
+                <a th:href="@{'/datasets/manage/DESIGN/'
+                             + ${design.latestRevision.revisionId}
+                             + '?objectId=' + ${design.id}}"
+                   class="btn btn-primary btn-sm"
+                   title="Dataset verwalten">📎 Dataset</a>
             </div>
         </div>
 
-        <!-- PDF iframe -->
         <div class="embedded-viewer-wrapper">
-            <iframe
-                th:src="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                class="embedded-viewer-frame"
-                title="PDF Viewer">
+            <iframe th:src="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
+                    class="embedded-viewer-frame"
+                    title="PDF Viewer">
                 <p>
                     Ihr Browser unterstützt keine eingebetteten PDFs.
-                    <a th:href="@{/datasets/{id}/stream(
-                                    id=${pdfDataset.datasetId})}"
+                    <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                        download>PDF herunterladen</a>
                 </p>
             </iframe>
         </div>
 
-        <!-- Metainfo -->
         <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
                     display:flex; justify-content:space-between;">
-            <span>
-                Kategorie:
-                <code th:text="'DatasetCategory.'
-                               + ${pdfDataset.category.name()}">
+            <span>Kategorie:
+                <code th:text="'DatasetCategory.' + ${pdfDataset.category.name()}">
                     DatasetCategory.PDF_DOCUMENT
                 </code>
             </span>
-            <span>
-                Datei:
-                <strong th:text="${pdfDataset.fileName}">
-                    dokument.pdf
-                </strong>
-            </span>
+            <span>Datei: <strong th:text="${pdfDataset.fileName}">dokument.pdf</strong></span>
         </div>
     </div>
 
-<!-- ══ Excel Viewer Karte ══════════════════════════════════ -->
-<div class="card" th:if="${excelDataset != null}">
+    <!-- ══ Excel Viewer Karte ════════════════════════════════ -->
+    <div class="card" th:if="${excelDataset != null}">
+        <div style="display:flex; justify-content:space-between;
+                    align-items:center; margin-bottom:1rem;">
+            <h3 style="margin:0;">
+                📊 Excel Table
+                <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
+                    — Revision
+                    <span th:text="${design.latestRevision.revision}">01</span>
+                </span>
+            </h3>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <a th:href="@{/datasets/{id}/stream(id=${excelDataset.datasetId})}"
+                   download
+                   class="btn btn-primary btn-sm">⬇️ Download</a>
 
-    <div style="display:flex; justify-content:space-between;
-                align-items:center; margin-bottom:1rem;">
-        <h3 style="margin:0;">
-            📊 Excel Table
-            <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
-                — Revision
-                <span th:text="${design.latestRevision.revision}">01</span>
-            </span>
-        </h3>
-        <div style="display:flex; gap:0.5rem; align-items:center;">
-            <a th:href="@{/datasets/{id}/stream(id=${excelDataset.datasetId})}"
-               download
-               class="btn btn-primary btn-sm">⬇️ Download</a>
+                <select id="sheetSelector"
+                        class="btn btn-primary btn-sm"
+                        onchange="renderSheet(this.value)"
+                        style="display:none;"></select>
 
-            <!-- Sheet-Auswahl (wird dynamisch befüllt) -->
-            <select id="sheetSelector"
-                    class="btn btn-primary btn-sm"
-                    onchange="renderSheet(this.value)"
-                    style="display:none;">
-            </select>
-
-            <a th:href="@{/datasets/manage/DESIGN/{id}(
-                            id=${design.latestRevision.revisionId})}"
-               class="btn btn-primary btn-sm">📎 Dataset</a>
-        </div>
-    </div>
-
-    <!-- SheetJS Viewer Container -->
-    <div class="embedded-viewer-wrapper" id="excelViewerWrapper">
-        <div class="embedded-viewer-placeholder" id="excelPlaceholder">
-            <div class="icon">📊</div>
-            <p style="font-weight:500; margin:0;">
-                Excel-Datei:
-                <strong th:text="${excelDataset.fileName}">Datei.xlsx</strong>
-            </p>
-            <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
-
-                <button class="btn btn-primary btn-sm"
-                        th:data-dataset-id="${excelDataset.datasetId}"
-                        th:data-file-name="${excelDataset.fileName}"
-                        onclick="loadExcelWithSheetJS(
-                            this.dataset.datasetId,
-                            this.dataset.fileName)">
-                    👁️ Direkt anzeigen (SheetJS)
-                </button>
-
-                <button class="btn btn-primary btn-sm"
-                        th:data-dataset-id="${excelDataset.datasetId}"
-                        th:data-file-name="${excelDataset.fileName}"
-                        onclick="requestExcelAsPdf(
-                            this.dataset.datasetId,
-                            this.dataset.fileName)">
-                    📄 Als PDF anzeigen
-                </button>
+                <!-- ✅ String-Konkatenation -->
+                <a th:href="@{'/datasets/manage/DESIGN/'
+                             + ${design.latestRevision.revisionId}
+                             + '?objectId=' + ${design.id}}"
+                   class="btn btn-primary btn-sm">📎 Dataset</a>
             </div>
         </div>
 
-        <!-- Tabelle wird hier gerendert -->
-        <div id="excelTableContainer"
-             style="display:none;
-                    overflow:auto;
-                    max-height:600px;
-                    padding:1rem;">
+        <div class="embedded-viewer-wrapper" id="excelViewerWrapper">
+            <div class="embedded-viewer-placeholder" id="excelPlaceholder">
+                <div class="icon">📊</div>
+                <p style="font-weight:500; margin:0;">
+                    Excel-Datei:
+                    <strong th:text="${excelDataset.fileName}">Datei.xlsx</strong>
+                </p>
+                <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm"
+                            th:data-dataset-id="${excelDataset.datasetId}"
+                            th:data-file-name="${excelDataset.fileName}"
+                            onclick="loadExcelWithSheetJS(
+                                this.dataset.datasetId,
+                                this.dataset.fileName)">
+                        👁️ Direkt anzeigen (SheetJS)
+                    </button>
+                    <button class="btn btn-primary btn-sm"
+                            th:data-dataset-id="${excelDataset.datasetId}"
+                            th:data-file-name="${excelDataset.fileName}"
+                            onclick="requestExcelAsPdf(
+                                this.dataset.datasetId,
+                                this.dataset.fileName)">
+                        📄 Als PDF anzeigen
+                    </button>
+                </div>
+            </div>
+            <div id="excelTableContainer"
+                 style="display:none; overflow:auto;
+                        max-height:600px; padding:1rem;"></div>
+        </div>
+
+        <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
+                    display:flex; justify-content:space-between;">
+            <span>Kategorie: <code>DatasetCategory.EXCEL_TABLE</code></span>
+            <span>Datei: <strong th:text="${excelDataset.fileName}">tabelle.xlsx</strong></span>
         </div>
     </div>
 
-    <!-- Metainfo -->
-    <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
-                display:flex; justify-content:space-between;">
-        <span>Kategorie: <code>DatasetCategory.EXCEL_TABLE</code></span>
-        <span>Datei: <strong th:text="${excelDataset.fileName}">tabelle.xlsx</strong></span>
-    </div>
-</div>
-
-    <!-- ══ Kein Dokument vorhanden ═════════════════════════════ -->
+    <!-- ══ Kein Dokument vorhanden ════════════════════════════ -->
     <div class="card"
          th:if="${pdfDataset == null
               and excelDataset == null
               and design.latestRevision != null}"
          style="border:2px dashed #dee2e6; background:#fafafa;">
-        <div style="display:flex; align-items:center;
-                    gap:1rem; color:#6c757d;">
+        <div style="display:flex; align-items:center; gap:1rem; color:#6c757d;">
             <span style="font-size:2rem; opacity:0.5;">📄</span>
             <div>
-                <p style="margin:0; font-weight:500;">
-                    Kein Dokument-Dataset vorhanden
-                </p>
+                <p style="margin:0; font-weight:500;">Kein Dokument-Dataset vorhanden</p>
                 <p style="margin:0.25rem 0 0; font-size:0.85rem;">
                     Füge ein Dataset der Kategorie
                     <strong>PDF Document</strong>,
@@ -455,25 +437,30 @@
                     <strong>Excel Table</strong> hinzu.
                 </p>
             </div>
-            <a th:href="@{/datasets/manage/DESIGN/{id}(
-                            id=${design.latestRevision.revisionId})}"
+            <!-- ✅ String-Konkatenation -->
+            <a th:href="@{'/datasets/manage/DESIGN/'
+                         + ${design.latestRevision.revisionId}
+                         + '?objectId=' + ${design.id}}"
                class="btn btn-primary btn-sm"
-               style="margin-left:auto;">
-                📎 Dataset hinzufügen
-            </a>
+               style="margin-left:auto;">📎 Dataset hinzufügen</a>
         </div>
     </div>
 
-    <!-- ══ Revision Actions ════════════════════════════════════ -->
+    <!-- ══ Revision Actions ═══════════════════════════════════ -->
     <div class="card" sec:authorize="hasAuthority('EXECUTE')">
         <h3>Revision Actions</h3>
 
         <div th:if="${design.latestRevision != null}">
+
             <div th:if="${design.latestRevision.releaseStatus.name() == 'WORKING'}">
-                <form th:action="@{/api/workflows/designs/{id}/revisions/{revId}/release(
-                                  id=${design.id},
-                                  revId=${design.latestRevision.revisionId})}"
-                      method="post" style="display:inline;"
+                <!-- ✅ String-Konkatenation – kein {revId} Problem mehr -->
+                <form th:action="@{'/api/workflows/designs/'
+                                  + ${design.id}
+                                  + '/revisions/'
+                                  + ${design.latestRevision.revisionId}
+                                  + '/release'}"
+                      method="post"
+                      style="display:inline;"
                       onsubmit="return confirm(
                           'Release this revision? All older revisions become obsolete.');">
                     <button type="submit" class="btn btn-success">🏁 Release Revision</button>
@@ -504,7 +491,7 @@
         </div>
     </div>
 
-    <!-- ══ Revisions-Tabelle ════════════════════════════════════ -->
+    <!-- ══ Revisions-Tabelle ══════════════════════════════════ -->
     <div class="card">
         <h3>Revisions</h3>
 
@@ -526,7 +513,8 @@
             <tbody>
                 <tr th:each="revision : ${design.revisions}"
                     style="border-bottom:1px solid #ddd;">
-                    <td style="padding:0.75rem;" th:text="${revision.revision}">01</td>
+                    <td style="padding:0.75rem;"
+                        th:text="${revision.revision}">01</td>
                     <td style="padding:0.75rem;">
                         <span class="status-badge"
                               th:classappend="${revision.releaseStatus.name() == 'WORKING'}
@@ -543,18 +531,24 @@
                             revision.createdDate,'dd.MM.yyyy HH:mm:ss')}">
                         2024-01-01
                     </td>
-                    <td style="padding:0.75rem;" th:text="${revision.createdBy}">admin</td>
+                    <td style="padding:0.75rem;"
+                        th:text="${revision.createdBy}">admin</td>
                     <td style="padding:0.75rem;">
                         <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-                            <a th:href="@{/datasets/manage/DESIGN/{id}(
-                                            id=${revision.revisionId})}"
+
+                            <!-- ✅ String-Konkatenation -->
+                            <a th:href="@{'/datasets/manage/DESIGN/'
+                                         + ${revision.revisionId}
+                                         + '?objectId=' + ${design.id}}"
                                class="btn btn-primary btn-sm"
                                title="Datasets verwalten">📎 Datasets</a>
-                            <a th:href="@{/viewer/{id}/revision/{revId}(
-                                            id=${design.id},
-                                            revId=${revision.revisionId})}"
+
+                            <!-- ✅ String-Konkatenation -->
+                            <a th:href="@{'/viewer/' + ${design.id}
+                                         + '/revision/' + ${revision.revisionId}}"
                                class="btn btn-viewer btn-sm"
-                               title="3D Viewer für Revision [[${revision.revision}]]">
+                               th:title="'3D Viewer für Revision '
+                                         + ${revision.revision}">
                                 🔷 3D
                             </a>
                         </div>
@@ -566,7 +560,7 @@
 
 </div><!-- /container -->
 
-<!-- ══ Scripts ═══════════════════════════════════════════════ -->
+<!-- ══ Scripts ══════════════════════════════════════════════ -->
 <script>
     function showThumbnailPlaceholder() {
         const img         = document.getElementById('thumbnailImg');
@@ -602,8 +596,10 @@
         if (!newName || !newName.trim()) return;
 
         const designId   = '[[${design.id}]]';
-        const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        const csrfToken  = document.querySelector('meta[name="_csrf"]')
+                                   .getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')
+                                   .getAttribute('content');
 
         fetch('/api/revisions/designs/' + designId
               + '/saveas?newName=' + encodeURIComponent(newName), {
@@ -618,83 +614,75 @@
         .catch(err => alert('Failed: ' + err.message));
     }
 
-function requestExcelAsPdf(datasetId, fileName) {
-    const wrapper = document.getElementById('excelViewerWrapper');
-    if (!wrapper) return;
+    function requestExcelAsPdf(datasetId, fileName) {
+        const wrapper = document.getElementById('excelViewerWrapper');
+        if (!wrapper) return;
 
-    // ── Lade-Anzeige ──────────────────────────────────────────────
-    wrapper.innerHTML = `
-        <div class="embedded-viewer-placeholder">
-            <div class="icon">⏳</div>
-            <p style="margin:0; font-weight:500;">
-                Konvertiere <em>${fileName}</em> zu PDF…
-            </p>
-            <p style="margin:0.25rem 0 0; font-size:0.85rem; color:#6c757d;">
-                LibreOffice konvertiert die Datei,
-                bitte ca. 15–20 Sekunden warten…
-            </p>
-        </div>`;
-
-    // ── Direkt GET statt HEAD → kein doppelter Request ────────────
-    // HEAD prüft nur Verfügbarkeit, GET liefert sofort das PDF
-    // Timeout: 90 Sekunden (LibreOffice braucht ~13s laut Debug)
-    const controller = new AbortController();
-    const timeoutId  = setTimeout(
-            () => controller.abort(), 90000); // 90s Timeout
-
-    fetch(`/datasets/${datasetId}/as-pdf`, {
-        method: 'GET',
-        signal: controller.signal
-    })
-    .then(response => {
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            throw new Error(
-                `Konvertierung fehlgeschlagen (HTTP ${response.status})`);
-        }
-
-        // ── PDF als Blob laden und in iframe anzeigen ──────────
-        return response.blob();
-    })
-    .then(blob => {
-        const pdfUrl = URL.createObjectURL(blob);
-        wrapper.innerHTML = `
-            <iframe src="${pdfUrl}"
-                    class="embedded-viewer-frame"
-                    title="Excel als PDF – ${fileName}">
-            </iframe>`;
-    })
-    .catch(err => {
-        clearTimeout(timeoutId);
-
-        const isTimeout = err.name === 'AbortError';
         wrapper.innerHTML = `
             <div class="embedded-viewer-placeholder">
-                <div class="icon">⚠️</div>
-                <p style="margin:0; font-weight:500; color:#dc3545;">
-                    ${isTimeout
-                        ? 'Timeout – Konvertierung dauert zu lange'
-                        : 'Konvertierung fehlgeschlagen'}
+                <div class="icon">⏳</div>
+                <p style="margin:0; font-weight:500;">
+                    Konvertiere <em>${fileName}</em> zu PDF…
                 </p>
-                <p style="margin:0.25rem 0 0; font-size:0.85rem;">
-                    ${err.message}
+                <p style="margin:0.25rem 0 0; font-size:0.85rem; color:#6c757d;">
+                    LibreOffice konvertiert die Datei,
+                    bitte ca. 15–20 Sekunden warten…
                 </p>
-                <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                    <button class="btn btn-primary btn-sm"
-                            onclick="requestExcelAsPdf(
-                                '${datasetId}', '${fileName}')">
-                        🔄 Erneut versuchen
-                    </button>
-                    <a href="/datasets/${datasetId}/stream"
-                       download
-                       class="btn btn-primary btn-sm">
-                        ⬇️ Herunterladen
-                    </a>
-                </div>
             </div>`;
-    });
-}
+
+        const controller = new AbortController();
+        const timeoutId  = setTimeout(() => controller.abort(), 90000);
+
+        fetch(`/datasets/${datasetId}/as-pdf`, {
+            method: 'GET',
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(
+                    `Konvertierung fehlgeschlagen (HTTP ${response.status})`);
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            const pdfUrl = URL.createObjectURL(blob);
+            wrapper.innerHTML = `
+                <iframe src="${pdfUrl}"
+                        class="embedded-viewer-frame"
+                        title="Excel als PDF – ${fileName}">
+                </iframe>`;
+        })
+        .catch(err => {
+            clearTimeout(timeoutId);
+            const isTimeout = err.name === 'AbortError';
+            wrapper.innerHTML = `
+                <div class="embedded-viewer-placeholder">
+                    <div class="icon">⚠️</div>
+                    <p style="margin:0; font-weight:500; color:#dc3545;">
+                        ${isTimeout
+                            ? 'Timeout – Konvertierung dauert zu lange'
+                            : 'Konvertierung fehlgeschlagen'}
+                    </p>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem;">
+                        ${err.message}
+                    </p>
+                    <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+                        <button class="btn btn-primary btn-sm"
+                                onclick="requestExcelAsPdf(
+                                    '${datasetId}', '${fileName}')">
+                            🔄 Erneut versuchen
+                        </button>
+                        <a href="/datasets/${datasetId}/stream"
+                           download
+                           class="btn btn-primary btn-sm">
+                            ⬇️ Herunterladen
+                        </a>
+                    </div>
+                </div>`;
+        });
+    }
+
     let workbookGlobal = null;
 
     async function loadExcelWithSheetJS(datasetId, fileName) {
@@ -702,7 +690,6 @@ function requestExcelAsPdf(datasetId, fileName) {
         const tableContainer = document.getElementById('excelTableContainer');
         const sheetSelector  = document.getElementById('sheetSelector');
 
-        // Lade-Anzeige
         placeholder.innerHTML = `
             <div class="icon">⏳</div>
             <p style="margin:0; font-weight:500;">
@@ -713,19 +700,16 @@ function requestExcelAsPdf(datasetId, fileName) {
             </p>`;
 
         try {
-            // Excel-Datei laden
             const response = await fetch(`/datasets/${datasetId}/stream`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const arrayBuffer = await response.arrayBuffer();
 
-            // SheetJS parsen
             workbookGlobal = XLSX.read(arrayBuffer, {
                 type:      'array',
                 cellDates: true,
             });
 
-            // Sheet-Auswahl befüllen
             sheetSelector.innerHTML = '';
             workbookGlobal.SheetNames.forEach(name => {
                 const opt = document.createElement('option');
@@ -735,11 +719,9 @@ function requestExcelAsPdf(datasetId, fileName) {
             });
             sheetSelector.style.display = 'block';
 
-            // Placeholder ausblenden, Tabelle anzeigen
             placeholder.style.display    = 'none';
             tableContainer.style.display = 'block';
 
-            // Erstes Sheet rendern
             renderSheet(workbookGlobal.SheetNames[0]);
 
         } catch (err) {
@@ -751,7 +733,8 @@ function requestExcelAsPdf(datasetId, fileName) {
                 <p style="font-size:0.85rem;">${err.message}</p>
                 <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
                     <button class="btn btn-primary btn-sm"
-                            onclick="loadExcelWithSheetJS('${datasetId}','${fileName}')">
+                            onclick="loadExcelWithSheetJS(
+                                '${datasetId}','${fileName}')">
                         🔄 Erneut versuchen
                     </button>
                     <a href="/datasets/${datasetId}/stream"
@@ -767,8 +750,6 @@ function requestExcelAsPdf(datasetId, fileName) {
         if (!workbookGlobal) return;
 
         const worksheet = workbookGlobal.Sheets[sheetName];
-
-        // SheetJS → HTML
         const html = XLSX.utils.sheet_to_html(worksheet, {
             id:       'excelRenderedTable',
             editable: false,

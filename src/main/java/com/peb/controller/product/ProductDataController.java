@@ -2,7 +2,9 @@
 package com.peb.controller.product;
 
 import com.peb.model.product.ProductData;
+import com.peb.model.product.ProductDataRevision;
 import com.peb.service.product.ProductDataService;
+import com.peb.service.product.RevisionChainService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductDataController {
 
-    private final ProductDataService service;
+    private final ProductDataService   service;
+    private final RevisionChainService revisionChainService;
 
     // ── Liste ────────────────────────────────────────────────────
     @GetMapping
@@ -33,24 +36,42 @@ public class ProductDataController {
     }
 
     // ── Detail ───────────────────────────────────────────────────
-    @GetMapping("/{id}")
-    public String detail(@PathVariable String id, Model model) {
-        ProductData pd = service.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "ProductData nicht gefunden: " + id));
-        model.addAttribute("productData", pd);
-        return "product-data/detail";
-    }
+// ProductDataController.java
+
+		@GetMapping("/{id}")
+		public String detail(@PathVariable String id, Model model) {
+			String trimmedId = id.trim();
+
+			ProductData pd = service.findById(trimmedId)
+					.orElseThrow(() -> new IllegalArgumentException(
+							"ProductData nicht gefunden: " + trimmedId));
+
+			model.addAttribute("productData", pd);
+
+			List<ProductDataRevision> revisionChain =
+					revisionChainService
+							.getRevisionsForProductData(trimmedId);
+			model.addAttribute("revisionChain", revisionChain);
+
+			ProductDataRevision latestRevision = pd.getLatestRevision();
+			model.addAttribute("latestRevision", latestRevision);
+
+			// ── statusName IMMER als String ins Model ─────────────────
+			// Verhindert jeden null / .name()-Fehler im Template
+			String statusName = (latestRevision != null
+								 && latestRevision.getStatus() != null)
+					? latestRevision.getStatus().name()
+					: "KEINE_REVISION";
+			model.addAttribute("statusName", statusName);
+
+			return "product-data/detail";
+		}
 
     // ── Neu: GET ─────────────────────────────────────────────────
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('WRITE')")
     public String createForm(Model model) {
-        // WICHTIG: Attributname "productData" muss exakt mit
-        // th:object="${productData}" im Template übereinstimmen
         model.addAttribute("productData", new ProductData());
-        model.addAttribute("statuses",
-                ProductData.ProductDataStatus.values());
         model.addAttribute("isNew", true);
         return "product-data/form";
     }
@@ -59,20 +80,14 @@ public class ProductDataController {
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('WRITE')")
     public String create(
-            // @ModelAttribute Name MUSS = th:object Name sein
             @Valid @ModelAttribute("productData")
                     ProductData productData,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes ra) {
 
-        // Validation-Fehler → Form erneut anzeigen
         if (bindingResult.hasErrors()) {
-            // Model-Attribute erneut setzen!
-            model.addAttribute("statuses",
-                    ProductData.ProductDataStatus.values());
             model.addAttribute("isNew", true);
-            // productData ist bereits im Model durch @ModelAttribute
             return "product-data/form";
         }
 
@@ -86,13 +101,16 @@ public class ProductDataController {
     // ── Bearbeiten: GET ──────────────────────────────────────────
     @GetMapping("/{id}/edit")
     @PreAuthorize("hasAuthority('WRITE')")
-    public String editForm(@PathVariable String id, Model model) {
-        ProductData pd = service.findById(id)
+    public String editForm(@PathVariable String id,
+                           Model model) {
+        String trimmedId = id.trim();
+
+        ProductData pd = service.findById(trimmedId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "ProductData nicht gefunden: " + id));
+                        "ProductData nicht gefunden: "
+                        + trimmedId));
+
         model.addAttribute("productData", pd);
-        model.addAttribute("statuses",
-                ProductData.ProductDataStatus.values());
         model.addAttribute("isNew", false);
         return "product-data/form";
     }
@@ -108,17 +126,17 @@ public class ProductDataController {
             Model model,
             RedirectAttributes ra) {
 
+        String trimmedId = id.trim();
+
         if (bindingResult.hasErrors()) {
-            model.addAttribute("statuses",
-                    ProductData.ProductDataStatus.values());
             model.addAttribute("isNew", false);
             return "product-data/form";
         }
 
-        service.update(id, productData);
+        service.update(trimmedId, productData);
         ra.addFlashAttribute("successMessage",
                 "✅ ProductData erfolgreich aktualisiert.");
-        return "redirect:/product-data/" + id;
+        return "redirect:/product-data/" + trimmedId;
     }
 
     // ── Löschen ──────────────────────────────────────────────────
@@ -126,9 +144,26 @@ public class ProductDataController {
     @PreAuthorize("hasAuthority('DELETE')")
     public String delete(@PathVariable String id,
                          RedirectAttributes ra) {
-        service.delete(id);
+        String trimmedId = id.trim();
+
+        ProductData pd = service.findById(trimmedId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "ProductData nicht gefunden: "
+                        + trimmedId));
+
+        if (pd.getProductBOM() != null) {
+            ra.addFlashAttribute("errorMessage",
+                    "❌ Löschen nicht möglich: ProductData '"
+                    + pd.getName()
+                    + "' ist mit Product BOM '"
+                    + pd.getProductBOM().getName()
+                    + "' verknüpft.");
+            return "redirect:/product-data";
+        }
+
+        service.delete(trimmedId);
         ra.addFlashAttribute("successMessage",
-                "🗑️ ProductData " + id + " gelöscht.");
+                "🗑️ ProductData " + trimmedId + " gelöscht.");
         return "redirect:/product-data";
     }
 }

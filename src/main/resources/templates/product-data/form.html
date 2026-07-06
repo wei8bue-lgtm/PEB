@@ -1,213 +1,511 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="_csrf"        th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf"
+          th:content="${_csrf.token}"/>
+    <meta name="_csrf_header"
+          th:content="${_csrf.headerName}"/>
     <title th:text="${isNew} ? 'Neue ProductData – PEB'
                              : 'ProductData bearbeiten – PEB'">
-        ProductData
+        ProductData – PEB
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
-        .form-card  { max-width: 700px; }
-        .field-err  {
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: .4rem;
+            color: #495057;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: .5rem .75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0,102,204,.15);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .field-error {
             color: #dc3545;
-            font-size: .82rem;
-            margin-top: 3px;
+            font-size: .85rem;
+            margin-top: .25rem;
         }
-        .form-group input.err,
-        .form-group select.err,
-        .form-group textarea.err {
-            border-color: #dc3545;
+        .required-mark {
+            color: #dc3545;
+            margin-left: .2rem;
         }
-        .hint {
-            font-size: .8rem;
-            color: #6c757d;
-            margin-top: 3px;
+        .form-actions {
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+            margin-top: 1.5rem;
         }
-        .required-star { color: #dc3545; margin-left: 2px; }
+        .status-badge {
+            display: inline-block;
+            padding: .3rem .8rem;
+            border-radius: 4px;
+            font-size: .85rem;
+            font-weight: 600;
+        }
+        .status-working {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+        .status-released {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+        .status-obsolete {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #6c757d;
+        }
+        .readonly-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: .5rem .75rem;
+            color: #495057;
+            font-size: .95rem;
+        }
     </style>
 </head>
 <body>
 
+<!-- ── Header ────────────────────────────────────────────────── -->
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1 th:text="${isNew} ? '➕ Neue ProductData'
-                          : '✏️ ProductData bearbeiten'">
+    <h1 th:text="${isNew}
+        ? '➕ Neue ProductData erstellen'
+        : '✏️ ProductData bearbeiten'">
         ProductData
     </h1>
-    <div style="margin-left:auto;">
-        <a th:href="@{/product-data}"
-           class="btn btn-primary">← Zurück zur Liste</a>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <!-- Zurück zur Liste oder zum Detail -->
+        <a th:href="${isNew}
+                ? @{/product-data}
+                : @{/product-data/{id}(id=${productData.id})}"
+           class="btn btn-primary">
+            ← Zurück
+        </a>
     </div>
 </div>
 
 <div class="container">
-<div class="card form-card">
 
-    <!--
-      KRITISCH: th:object="${productData}"
-      Der Name "productData" MUSS exakt mit:
-        1. model.addAttribute("productData", ...) im Controller
-        2. @ModelAttribute("productData") im POST-Handler
-      übereinstimmen.
-    -->
-    <form th:action="${isNew}
-                     ? @{/product-data/new}
-                     : @{/product-data/{id}/edit(
-                           id=${productData.id})}"
-          th:object="${productData}"
-          method="post"
-          novalidate>
+    <!-- ── Flash-Nachrichten ─────────────────────────────────── -->
+    <div th:if="${successMessage}" class="card"
+         style="background:#d4edda; border-color:#c3e6cb;
+                padding:1rem; margin-bottom:1rem;">
+        <p style="margin:0; color:#155724;"
+           th:text="${successMessage}"></p>
+    </div>
+    <div th:if="${errorMessage}" class="card"
+         style="background:#f8d7da; border-color:#f5c6cb;
+                padding:1rem; margin-bottom:1rem;">
+        <p style="margin:0; color:#721c24;"
+           th:text="${errorMessage}"></p>
+    </div>
 
-        <!-- Globale Fehlermeldung -->
-        <div th:if="${#fields.hasErrors('*')}"
-             style="background:#f8d7da;border:1px solid #f5c6cb;
-                    border-radius:6px;padding:1rem;
-                    margin-bottom:1rem;color:#721c24;">
-            <strong>⚠️ Bitte Eingaben korrigieren:</strong>
-            <ul style="margin:.5rem 0 0 1rem;padding:0;">
-                <li th:each="err : ${#fields.errors('*')}"
-                    th:text="${err}">Fehler</li>
-            </ul>
+    <!-- ── Formular-Card ─────────────────────────────────────── -->
+    <div class="card">
+        <h2 style="margin-top:0;"
+            th:text="${isNew}
+                ? '📦 Neue ProductData'
+                : '📦 ProductData bearbeiten'">
+            ProductData
+        </h2>
+
+        <!-- ══════════════════════════════════════════════════════
+             EDIT-MODUS: Status-Hinweis anzeigen
+             ══════════════════════════════════════════════════════ -->
+        <div th:if="${!isNew}" style="margin-bottom:1.5rem;">
+
+            <!-- Status-Anzeige über latestStatusName -->
+            <th:block th:with="sn=${productData.latestStatusName}">
+
+                <!-- WORKING: Bearbeiten erlaubt -->
+                <div th:if="${sn == 'WORKING'}"
+                     style="background:#fff3cd;
+                            border:1px solid #ffc107;
+                            border-radius:6px;
+                            padding:.75rem 1rem;
+                            margin-bottom:1rem;
+                            display:flex;
+                            align-items:center;
+                            gap:.75rem;">
+                    <span class="status-badge status-working">
+                        ⚙️ WORKING
+                    </span>
+                    <span style="color:#856404; font-size:.9rem;">
+                        Diese ProductData befindet sich im
+                        Bearbeitungsstatus. Änderungen sind erlaubt.
+                    </span>
+                </div>
+
+                <!-- RELEASED: Warnung -->
+                <div th:if="${sn == 'RELEASED'}"
+                     style="background:#d4edda;
+                            border:1px solid #28a745;
+                            border-radius:6px;
+                            padding:.75rem 1rem;
+                            margin-bottom:1rem;
+                            display:flex;
+                            align-items:center;
+                            gap:.75rem;">
+                    <span class="status-badge status-released">
+                        ✅ RELEASED
+                    </span>
+                    <span style="color:#155724; font-size:.9rem;">
+                        ⚠️ Achtung: Diese ProductData ist
+                        freigegeben. Bitte erst revidieren
+                        bevor Sie Änderungen vornehmen.
+                    </span>
+                </div>
+
+                <!-- OBSOLETE: Hinweis -->
+                <div th:if="${sn == 'OBSOLETE'}"
+                     style="background:#e2e3e5;
+                            border:1px solid #6c757d;
+                            border-radius:6px;
+                            padding:.75rem 1rem;
+                            margin-bottom:1rem;
+                            display:flex;
+                            align-items:center;
+                            gap:.75rem;">
+                    <span class="status-badge status-obsolete">
+                        🔒 OBSOLETE
+                    </span>
+                    <span style="color:#383d41; font-size:.9rem;">
+                        Diese Revision ist obsolet und
+                        sollte nicht mehr bearbeitet werden.
+                    </span>
+                </div>
+
+                <!-- KEINE_REVISION -->
+                <div th:if="${sn == 'KEINE_REVISION'}"
+                     style="background:#f8f9fa;
+                            border:1px solid #dee2e6;
+                            border-radius:6px;
+                            padding:.75rem 1rem;
+                            margin-bottom:1rem;">
+                    <span style="color:#6c757d; font-size:.9rem;">
+                        ⚠️ Noch keine Revision vorhanden.
+                    </span>
+                </div>
+
+            </th:block>
         </div>
 
-        <!-- ID (readonly – wird automatisch generiert) -->
-        <div class="form-group">
-            <label>ID</label>
-            <input type="text"
-                   th:value="${productData.id}"
-                   readonly
-                   placeholder="Wird automatisch generiert
-                                (PD00000001)"
-                   style="background:#f8f9fa;
-                          color:#6c757d;
-                          cursor:not-allowed;">
-            <div class="hint">
-                Format: PD + 8 Ziffern (z.B. PD00000001)
+        <!-- ══════════════════════════════════════════════════════
+             FORMULAR
+             ══════════════════════════════════════════════════════ -->
+        <form th:action="${isNew}
+                  ? @{/product-data/new}
+                  : @{/product-data/{id}/edit(id=${productData.id})}"
+              th:object="${productData}"
+              method="post"
+              novalidate>
+
+            <!-- CSRF -->
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}"/>
+
+            <!-- ── ID (nur im Edit-Modus, readonly) ──────────── -->
+            <div class="form-group" th:if="${!isNew}">
+                <label>ID</label>
+                <div class="readonly-info"
+                     style="font-family:monospace;
+                            font-weight:600;
+                            color:#0066cc;"
+                     th:text="${productData.id}">
+                    PD00000001
+                </div>
             </div>
-        </div>
 
-        <!-- Name (Pflichtfeld) -->
-        <div class="form-group">
-            <label>
-                Name
-                <span class="required-star">*</span>
-            </label>
-            <input type="text"
-                   th:field="*{name}"
-                   th:classappend="${#fields.hasErrors('name')}
-                                   ? 'err' : ''"
-                   required
-                   placeholder="z.B. Akku-Bohrmaschine XR-20"
-                   maxlength="256">
-            <div class="field-err"
-                 th:if="${#fields.hasErrors('name')}"
-                 th:errors="*{name}">
+            <!-- ── Name ──────────────────────────────────────── -->
+            <div class="form-group">
+                <label for="name">
+                    Name
+                    <span class="required-mark">*</span>
+                </label>
+                <input type="text"
+                       id="name"
+                       th:field="*{name}"
+                       th:classappend="${#fields.hasErrors('name')}
+                           ? 'border-danger' : ''"
+                       placeholder="z.B. Motorgehäuse Typ A"
+                       maxlength="255"
+                       required>
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('name')}"
+                     th:errors="*{name}">
+                    Fehler
+                </div>
             </div>
-        </div>
 
-        <!-- Produkttyp -->
-        <div class="form-group">
-            <label>Produkttyp</label>
-            <input type="text"
-                   th:field="*{productType}"
-                   placeholder="z.B. Akku Bohrmaschine,
-                                Elektromotor, Gehäuse"
-                   maxlength="100">
-            <div class="hint">
-                Produktkategorie oder Baugruppen-Typ
+            <!-- ── Produkttyp ─────────────────────────────────── -->
+            <div class="form-group">
+                <label for="productType">Produkttyp</label>
+                <input type="text"
+                       id="productType"
+                       th:field="*{productType}"
+                       placeholder="z.B. Gehäuse, Welle, Baugruppe…"
+                       maxlength="100">
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('productType')}"
+                     th:errors="*{productType}">
+                    Fehler
+                </div>
             </div>
-        </div>
 
-        <!-- Abteilung -->
-        <div class="form-group">
-            <label>Abteilung</label>
-            <input type="text"
-                   th:field="*{department}"
-                   placeholder="z.B. Engineering, Assembly,
-                                R&amp;D"
-                   maxlength="128">
-        </div>
-
-        <!-- Beschreibung -->
-        <div class="form-group">
-            <label>Beschreibung</label>
-            <textarea th:field="*{description}"
-                      rows="4"
-                      placeholder="Kurze Beschreibung der
-                                   Produktdaten / Baugruppe…"
-                      maxlength="1000"
-                      style="width:100%;
-                             padding:.5rem;
-                             border:1px solid #ddd;
-                             border-radius:4px;
-                             font-family:inherit;
-                             font-size:1rem;
-                             resize:vertical;">
-            </textarea>
-            <div class="hint">
-                Max. 1000 Zeichen
+            <!-- ── Abteilung ──────────────────────────────────── -->
+            <div class="form-group">
+                <label for="department">Abteilung</label>
+                <input type="text"
+                       id="department"
+                       th:field="*{department}"
+                       placeholder="z.B. Entwicklung, Konstruktion…"
+                       maxlength="100">
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('department')}"
+                     th:errors="*{department}">
+                    Fehler
+                </div>
             </div>
-        </div>
 
-        <!-- Status -->
-        <div class="form-group">
-            <label>Status</label>
-            <select th:field="*{status}"
-                    style="width:100%;
-                           padding:.5rem;
-                           border:1px solid #ddd;
-                           border-radius:4px;
-                           font-size:1rem;">
-                <option th:each="s : ${statuses}"
-                        th:value="${s.name()}"
-                        th:text="${s.icon
-                                   + ' '
-                                   + s.displayName}">
-                </option>
-            </select>
-        </div>
+            <!-- ── Beschreibung ───────────────────────────────── -->
+            <div class="form-group">
+                <label for="description">Beschreibung</label>
+                <textarea id="description"
+                          th:field="*{description}"
+                          placeholder="Optionale Beschreibung…"
+                          rows="4">
+                </textarea>
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('description')}"
+                     th:errors="*{description}">
+                    Fehler
+                </div>
+            </div>
 
-        <!-- Buttons -->
-        <div style="display:flex;
-                    gap:.75rem;
-                    margin-top:1.5rem;
-                    padding-top:1rem;
-                    border-top:1px solid #dee2e6;">
-            <button type="submit"
-                    class="btn btn-primary">
-                💾 Speichern
-            </button>
-            <a th:href="${isNew}
-                        ? @{/product-data}
-                        : @{/product-data/{id}(
-                              id=${productData.id})}"
-               class="btn btn-primary"
-               style="background:#6c757d;">
-                ✖ Abbrechen
-            </a>
+            <!-- ── Readonly-Felder im Edit-Modus ─────────────── -->
+            <div th:if="${!isNew}">
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;
+                            gap:1rem;
+                            margin-bottom:1rem;">
 
-            <!-- Löschen (nur im Edit-Modus) -->
-            <form th:if="${!isNew}"
-                  th:action="@{/product-data/{id}/delete(
-                                  id=${productData.id})}"
-                  method="post"
-                  style="margin-left:auto;"
-                  onsubmit="return confirm(
-                      'ProductData '
-                      + [[${productData.id}]]
-                      + ' wirklich löschen?');">
+                    <div class="form-group" style="margin:0;">
+                        <label>Erstellt am</label>
+                        <div class="readonly-info"
+                             th:text="${productData.createdDate != null
+                                 ? #temporals.format(
+                                     productData.createdDate,
+                                     'dd.MM.yyyy HH:mm')
+                                 : '—'}">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label>Erstellt von</label>
+                        <div class="readonly-info"
+                             th:text="${productData.createdBy ?: '—'}">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label>Geändert am</label>
+                        <div class="readonly-info"
+                             th:text="${productData.lastModifiedDate != null
+                                 ? #temporals.format(
+                                     productData.lastModifiedDate,
+                                     'dd.MM.yyyy HH:mm')
+                                 : '—'}">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label>Geändert von</label>
+                        <div class="readonly-info"
+                             th:text="${productData.lastModifiedBy ?: '—'}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Aktionen ───────────────────────────────────── -->
+            <div class="form-actions">
+
+                <!-- Speichern -->
                 <button type="submit"
-                        class="btn btn-danger">
-                    🗑️ Löschen
+                        class="btn btn-primary"
+                        style="background:#28a745;
+                               border-color:#28a745;
+                               padding:.5rem 1.5rem;">
+                    <span th:text="${isNew}
+                        ? '✅ Erstellen'
+                        : '💾 Speichern'">
+                        Speichern
+                    </span>
                 </button>
-            </form>
-        </div>
-    </form>
 
-</div>
+                <!-- Abbrechen -->
+                <a th:href="${isNew}
+                        ? @{/product-data}
+                        : @{/product-data/{id}(id=${productData.id})}"
+                   class="btn btn-primary"
+                   style="background:#6c757d;
+                          border-color:#6c757d;">
+                    ✖ Abbrechen
+                </a>
+
+                <!-- Löschen – nur im Edit-Modus, nur bei WORKING -->
+                <div th:if="${!isNew}"
+                     sec:authorize="hasAuthority('DELETE')"
+                     style="margin-left:auto;">
+                    <form th:if="${productData.latestStatusName
+                                  == 'WORKING'
+                                  and productData.productBOM == null}"
+                          th:action="@{/product-data/{id}/delete(
+                                        id=${productData.id})}"
+                          method="post"
+                          style="display:inline;">
+                        <input type="hidden"
+                               th:name="${_csrf.parameterName}"
+                               th:value="${_csrf.token}"/>
+                        <button type="submit"
+                                class="btn btn-danger"
+                                onclick="return confirm(
+                                    'ProductData wirklich löschen?');">
+                            🗑️ Löschen
+                        </button>
+                    </form>
+
+                    <!-- Löschen gesperrt – BOM verknüpft -->
+                    <button th:if="${productData.productBOM != null}"
+                            type="button"
+                            disabled
+                            class="btn btn-sm"
+                            style="background:#e9ecef;
+                                   color:#6c757d;
+                                   cursor:not-allowed;
+                                   border:1px solid #dee2e6;"
+                            th:title="${'Löschen nicht möglich: '
+                                + 'BOM verknüpft'}">
+                        🔒 Löschen gesperrt
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- ── Revisionsverlauf (nur Edit-Modus) ─────────────────── -->
+    <div class="card" th:if="${!isNew}">
+        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+
+        <div th:if="${productData.revisions == null
+                     or #lists.isEmpty(productData.revisions)}"
+             style="color:#6c757d; padding:.5rem 0;">
+            Noch keine Revisionen vorhanden.
+        </div>
+
+        <table th:if="${productData.revisions != null
+                        and !#lists.isEmpty(productData.revisions)}"
+               style="width:100%; border-collapse:collapse;
+                      font-size:.9rem;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #ddd;">
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">
+                        Revision
+                    </th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">
+                        Status
+                    </th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">
+                        Erstellt von
+                    </th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">
+                        Erstellt am
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rev : ${productData.revisions}"
+                    th:style="${rev.status.name() == 'WORKING'}
+                        ? 'background:#fffdf0;'
+                        : (${rev.status.name() == 'RELEASED'}
+                            ? 'background:#f0fff4;'
+                            : 'background:#f8f9fa;
+                               color:#6c757d;')">
+
+                    <td style="padding:.5rem .75rem;
+                               font-family:monospace;
+                               font-weight:600;"
+                        th:text="${rev.revision}">01</td>
+
+                    <td style="padding:.5rem .75rem;">
+                        <span th:if="${rev.status.name()
+                                      == 'WORKING'}"
+                              class="status-badge status-working">
+                            ⚙️ WORKING
+                        </span>
+                        <span th:if="${rev.status.name()
+                                      == 'RELEASED'}"
+                              class="status-badge status-released">
+                            ✅ RELEASED
+                        </span>
+                        <span th:if="${rev.status.name()
+                                      == 'OBSOLETE'}"
+                              class="status-badge status-obsolete">
+                            🔒 OBSOLETE
+                        </span>
+                    </td>
+
+                    <td style="padding:.5rem .75rem;"
+                        th:text="${rev.createdBy ?: '—'}">—</td>
+
+                    <td style="padding:.5rem .75rem;
+                               font-size:.85rem; color:#6c757d;"
+                        th:text="${rev.createdAt != null
+                            ? #temporals.format(rev.createdAt,
+                                'dd.MM.yyyy HH:mm')
+                            : '—'}">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
 </body>
 </html>

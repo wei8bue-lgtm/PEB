@@ -1,9 +1,8 @@
-// DATEI: src/main/java/com/peb/service/product/OperationPdfService.java
+// src/main/java/com/peb/service/product/OperationPdfService.java
 package com.peb.service.product;
 
 import com.peb.model.product.ManufacturingBOM;
 import com.peb.model.product.ManufacturingOperation;
-import com.peb.repository.product.ManufacturingBOMRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,21 +17,26 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class OperationPdfService {
 
-    private final ManufacturingBOMRepository mfgBOMRepo;
+    // ── GEÄNDERT: nutzt ManufacturingBOMService statt Repo ───────
+    private final ManufacturingBOMService mfgBOMService;
 
     private static final DateTimeFormatter FMT =
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-	@Transactional(readOnly = true)
-	public String generateWorkInstructionHtml(Long mfgBomId) {
-		ManufacturingBOM bom = mfgBOMRepo
-				// findByIdWithDetails() → findByIdWithOperations()
-				.findByIdWithOperations(mfgBomId)
-				.orElseThrow(() -> new IllegalArgumentException(
-						"ManufacturingBOM nicht gefunden: "
-						+ mfgBomId));
-		return buildHtml(bom);
-	}
+    @Transactional(readOnly = true)
+    public String generateWorkInstructionHtml(Long mfgBomId) {
+
+        // VORHER (fehlerhaft):
+        // mfgBOMRepo.findByIdWithOperations(mfgBomId)
+        //
+        // JETZT: über Service – lädt Operationen korrekt
+        ManufacturingBOM bom =
+                mfgBOMService.findByIdWithOperationsOnly(mfgBomId);
+
+        return buildHtml(bom);
+    }
+
+    // ── Rest der Klasse bleibt unverändert ───────────────────────
 
     private String buildHtml(ManufacturingBOM bom) {
         StringBuilder sb = new StringBuilder();
@@ -50,9 +54,11 @@ public class OperationPdfService {
                 </div>
                 """);
         }
+
         for (ManufacturingOperation op : bom.getOperations()) {
             sb.append(htmlOperationCard(op));
         }
+
         sb.append(htmlFooter(bom));
         sb.append("</body></html>");
         return sb.toString();
@@ -123,8 +129,8 @@ public class OperationPdfService {
                       font-size:8pt;color:#6c757d;
                       text-align:center}
               @media print{
-                .page{padding:0;max-width:100%%;}.
-                op-card{page-break-inside:avoid}}
+                .page{padding:0;max-width:100%%;}
+                .op-card{page-break-inside:avoid}}
             </style>
             </head>
             <body><div class="page">
@@ -187,9 +193,12 @@ public class OperationPdfService {
             <table style="width:100%%;border-collapse:collapse;
                           margin-bottom:16px;">
               <tr style="background:#003d7a;color:white;">
-                <th style="padding:6px 10px;">Gesamt-Sollzeit (s)</th>
-                <th style="padding:6px 10px;">Gesamt-Istzeit (s)</th>
-                <th style="padding:6px 10px;">Operationen</th>
+                <th style="padding:6px 10px;">
+                    Gesamt-Sollzeit (s)</th>
+                <th style="padding:6px 10px;">
+                    Gesamt-Istzeit (s)</th>
+                <th style="padding:6px 10px;">
+                    Operationen</th>
               </tr>
               <tr style="border:1px solid #dee2e6;">
                 <td style="padding:6px 10px;text-align:center;

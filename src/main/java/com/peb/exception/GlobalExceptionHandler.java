@@ -1,107 +1,105 @@
+// src/main/java/com/peb/exception/GlobalExceptionHandler.java
 package com.peb.exception;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Globaler Exception Handler
- * Ersetzt die Whitelabel Error Page durch strukturierte JSON/HTML Antworten
+ * Globaler Exception Handler für REST-Controller
+ * Gibt strukturierte Fehlermeldungen zurück statt Stack Traces
  */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
+    // ══════════════════════════════════════════════════════════
+    // Fehlender Request-Parameter (z.B. revisionId fehlt)
+    // HTTP 400 Bad Request
+    // ══════════════════════════════════════════════════════════
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingParam(
+            MissingServletRequestParameterException ex) {
+
+        log.warn("Fehlender Parameter: {} ({})",
+                ex.getParameterName(), ex.getParameterType());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                    "status",    400,
+                    "error",     "Bad Request",
+                    "message",   "Pflichtparameter fehlt: '"
+                                 + ex.getParameterName()
+                                 + "' (Typ: " + ex.getParameterType() + ")",
+                    "parameter", ex.getParameterName(),
+                    "timestamp", LocalDateTime.now().toString()
+                ));
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // Objekt nicht gefunden
+    // HTTP 404 Not Found
+    // ══════════════════════════════════════════════════════════
     @ExceptionHandler(ObjectNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleObjectNotFound(
-            ObjectNotFoundException ex,
-            HttpServletRequest request) {
-        log.warn("ObjectNotFound: {} - URL: {}", ex.getMessage(), request.getRequestURI());
-        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<Map<String, Object>> handleNotFound(
+            ObjectNotFoundException ex) {
+
+        log.warn("Objekt nicht gefunden: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                    "status",    404,
+                    "error",     "Not Found",
+                    "message",   ex.getMessage(),
+                    "timestamp", LocalDateTime.now().toString()
+                ));
     }
 
-    @ExceptionHandler(WorkflowException.class)
-    public ResponseEntity<Map<String, Object>> handleWorkflowException(
-            WorkflowException ex,
-            HttpServletRequest request) {
-        log.warn("WorkflowException: {} - URL: {}", ex.getMessage(), request.getRequestURI());
-        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    // ══════════════════════════════════════════════════════════
+    // Validierungsfehler (IllegalArgumentException)
+    // HTTP 400 Bad Request
+    // ══════════════════════════════════════════════════════════
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(
+            IllegalArgumentException ex) {
+
+        log.warn("Validierungsfehler: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                    "status",    400,
+                    "error",     "Bad Request",
+                    "message",   ex.getMessage(),
+                    "timestamp", LocalDateTime.now().toString()
+                ));
     }
 
-    @ExceptionHandler(StructureException.class)
-    public ResponseEntity<Map<String, Object>> handleStructureException(
-            StructureException ex,
-            HttpServletRequest request) {
-        log.warn("StructureException: {} - URL: {}", ex.getMessage(), request.getRequestURI());
-        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNoResourceFound(
-            NoResourceFoundException ex,
-            HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        // favicon stillschweigend ignorieren
-        if (uri.contains("favicon")) {
-            return ResponseEntity.notFound().build();
-        }
-        log.warn("NoResourceFound: {}", uri);
-        return createErrorResponse("Ressource nicht gefunden: " + uri, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNoHandlerFound(
-            NoHandlerFoundException ex,
-            HttpServletRequest request) {
-        log.warn("NoHandlerFound: {}", request.getRequestURI());
-        return createErrorResponse(
-                "Endpunkt nicht gefunden: " + request.getRequestURI(),
-                HttpStatus.NOT_FOUND);
-    }
-
-    /**
-     * Alle anderen Exceptions - mit vollem Stack-Trace im Log!
-     */
+    // ══════════════════════════════════════════════════════════
+    // Allgemeiner Fallback
+    // HTTP 500 Internal Server Error
+    // ══════════════════════════════════════════════════════════
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(
-            Exception ex,
-            HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> handleGeneral(
+            Exception ex) {
 
-        // Vollständiger Stack-Trace im Log → zeigt die echte Ursache!
-        log.error("Unbehandelte Exception bei URL: {}", request.getRequestURI(), ex);
-        log.error("Exception Typ:    {}", ex.getClass().getName());
-        log.error("Exception Meldung: {}", ex.getMessage());
+        log.error("Unerwarteter Fehler: {}", ex.getMessage(), ex);
 
-        // Cause chain ausgeben
-        Throwable cause = ex.getCause();
-        int depth = 0;
-        while (cause != null && depth < 5) {
-            log.error("  Caused by [{}]: {} - {}", depth, cause.getClass().getName(), cause.getMessage());
-            cause = cause.getCause();
-            depth++;
-        }
-
-        return createErrorResponse(
-                "Interner Serverfehler: " + ex.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    private ResponseEntity<Map<String, Object>> createErrorResponse(
-            String message, HttpStatus status) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", LocalDateTime.now());
-        error.put("status",    status.value());
-        error.put("error",     status.getReasonPhrase());
-        error.put("message",   message);
-        return new ResponseEntity<>(error, status);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "status",    500,
+                    "error",     "Internal Server Error",
+                    "message",   "Unerwarteter Fehler: " + ex.getMessage(),
+                    "timestamp", LocalDateTime.now().toString()
+                ));
     }
 }

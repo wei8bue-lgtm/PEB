@@ -2,88 +2,114 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Neue Plant BOP – PEB</title>
+    <title th:text="${isEdit} ? 'Plant BOP bearbeiten – PEB' : 'Neue Plant BOP – PEB'">
+        Plant BOP – PEB
+    </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>➕ Neue Plant BOP</h1>
+    <h1 th:text="${isEdit} ? '✏️ Plant BOP bearbeiten' : '➕ Neue Plant BOP'">
+        Plant BOP
+    </h1>
     <div style="margin-left:auto;">
-        <a th:href="@{/plant-bop}"
+        <a th:href="${isEdit} ? @{/plant-bop/{id}(id=${plantBOP.id})} : @{/plant-bop}"
            class="btn btn-primary">← Zurück</a>
     </div>
 </div>
 
 <div class="container">
-    <div class="card" style="max-width:700px;">
+<div class="card" style="max-width:700px;">
 
-        <form th:action="@{/plant-bop/new}"
-              th:object="${plantBOP}"
-              method="post">
-
-            <div class="form-group">
-                <label>Name *</label>
-                <input type="text"
-                       th:field="*{name}"
-                       required
-                       placeholder="z.B. Plant BOP – Werk Stuttgart">
-            </div>
-
-            <div class="form-group">
-                <label>Werkscode / Standortkennung</label>
-                <input type="text"
-                       th:field="*{plantCode}"
-                       placeholder="z.B. STG-01, BLN-02">
-                <small style="color:#6c757d;font-size:.82rem;">
-                    Optionaler Bezeichner für das Werk oder den Standort.
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label>Version</label>
-                <input type="text"
-                       th:field="*{bopVersion}"
-                       placeholder="01">
-            </div>
-
-            <div class="form-group">
-                <label>Beschreibung</label>
-                <textarea th:field="*{description}"
-                          rows="4"
-                          placeholder="Beschreibung der Plant BOP,
-z.B. Fertigungslinie für Akkubohrmaschinen im Werk Stuttgart, Halle 3"
-                          style="width:100%;padding:.5rem;
-                                 border:1px solid #ddd;
-                                 border-radius:4px;
-                                 font-family:inherit;
-                                 resize:vertical;">
-                </textarea>
-            </div>
-
-            <div style="background:#f0f4ff;border:1px solid #c8d8ff;
-                        border-radius:6px;padding:1rem;
-                        margin-bottom:1rem;font-size:.85rem;">
-                <strong>💡 Hinweis:</strong> Nach dem Erstellen
-                kannst du die Baumstruktur mit Ordnern (Hallen,
-                Linien, Werke), Product BOPs, Manufacturing BOMs
-                und BOEs befüllen.
-            </div>
-
-            <div style="display:flex;gap:.5rem;">
-                <button type="submit"
-                        class="btn btn-primary">
-                    💾 Speichern
-                </button>
-                <a th:href="@{/plant-bop}"
-                   class="btn btn-primary"
-                   style="background:#6c757d;">
-                    ✖ Abbrechen
-                </a>
-            </div>
-        </form>
+    <!-- Info-Banner im Edit-Modus -->
+    <div th:if="${isEdit}"
+         style="background:#e7f3ff;border-left:4px solid #0056b3;
+                padding:.75rem 1rem;border-radius:4px;
+                margin-bottom:1.5rem;font-size:.9rem;">
+        <strong>✏️ Bearbeitungsmodus</strong> –
+        Plant BOP ID: <code th:text="${plantBOP.id}"></code>
+        &nbsp;|&nbsp; Erstellt von:
+        <span th:text="${plantBOP.createdBy ?: '—'}"></span>
     </div>
+
+    <!-- ── Speichern-Formular ──────────────────────────────── -->
+    <form th:action="${isEdit} ? @{/plant-bop/{id}/edit(id=${plantBOP.id})} : @{/plant-bop/new}"
+          method="post">
+
+        <!-- Name -->
+        <div class="form-group">
+            <label>Name *</label>
+            <input type="text"
+                   name="name"
+                   th:value="${plantBOP.name}"
+                   required
+                   placeholder="z.B. Plant BOP – Werk Stuttgart">
+        </div>
+
+        <!-- Werkscode -->
+        <div class="form-group">
+            <label>Werkscode / Standortkennung</label>
+            <input type="text"
+                   name="plantCode"
+                   th:value="${plantBOP.plantCode}"
+                   placeholder="z.B. STG-01, BLN-02">
+            <small style="color:#6c757d;font-size:.82rem;">
+                Optionaler Bezeichner für das Werk oder den Standort.
+            </small>
+        </div>
+
+        <!-- Version -->
+        <div class="form-group">
+            <label>Version</label>
+            <input type="text"
+                   name="bopVersion"
+                   th:value="${plantBOP.bopVersion ?: '01'}"
+                   placeholder="01">
+        </div>
+
+        <!-- Beschreibung -->
+        <div class="form-group">
+            <label>Beschreibung</label>
+            <textarea name="description"
+                      rows="4"
+                      placeholder="Beschreibung der Plant BOP…"
+                      style="width:100%;padding:.5rem;
+                             border:1px solid #ddd;
+                             border-radius:4px;
+                             font-family:inherit;
+                             resize:vertical;"
+                      th:text="${plantBOP.description}">
+            </textarea>
+        </div>
+
+        <!-- Hinweis nur bei Neu -->
+        <div th:unless="${isEdit}"
+             style="background:#f0f4ff;border:1px solid #c8d8ff;
+                    border-radius:6px;padding:1rem;
+                    margin-bottom:1rem;font-size:.85rem;">
+            <strong>💡 Hinweis:</strong> Nach dem Erstellen
+            kannst du die Baumstruktur mit Ordnern, Product BOPs,
+            Manufacturing BOMs und BOEs befüllen.
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${isEdit} ? '💾 Änderungen speichern' : '💾 Speichern'"></span>
+            </button>
+            <a th:href="${isEdit} ? @{/plant-bop/{id}(id=${plantBOP.id})} : @{/plant-bop}"
+               class="btn btn-primary"
+               style="background:#6c757d;">
+                ✖ Abbrechen
+            </a>
+        </div>
+
+    </form>
+    <!-- ── Ende Speichern-Formular ─────────────────────────── -->
+
+</div>
 </div>
 </body>
 </html>

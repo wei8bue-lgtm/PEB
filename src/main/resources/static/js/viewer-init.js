@@ -124,6 +124,7 @@ function resolveLoadStrategy(fileName, category) {
     if (['DESIGN_NX', 'DESIGN_INVENTOR',
          'DESIGN_SOLIDEDGE'].includes(category)) return 'jt';
     if (category === 'DESIGN_RENDERING')          return 'glb';
+	if (category === 'DESIGN_JT')    return 'jt';
 
     return 'unknown';
 }

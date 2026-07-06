@@ -1,14 +1,12 @@
-// DATEI: src/main/java/com/peb/service/product/ProductBOMService.java
+// src/main/java/com/peb/service/product/ProductBOMService.java
 package com.peb.service.product;
 
-import com.peb.model.product.ManufacturingBOM;
-import com.peb.model.product.ProductBOM;
-import com.peb.model.product.ProductData;
-import com.peb.repository.product.ManufacturingBOMRepository;
-import com.peb.repository.product.ProductBOMRepository;
-import com.peb.repository.product.ProductDataRepository;
+import com.peb.model.product.*;
+import com.peb.repository.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +18,14 @@ import java.util.Optional;
 @Slf4j
 public class ProductBOMService {
 
-    private final ProductBOMRepository       bomRepo;
-    private final ProductDataRepository      pdRepo;
-    private final ManufacturingBOMRepository mfgRepo;
+    private final ProductBOMRepository         bomRepo;
+    private final ProductBOMRevisionRepository bomRevRepo;
+    private final ProductDataRepository        pdRepo;
+    private final ManufacturingBOMRepository   mfgRepo;
 
     @Transactional
     public ProductBOM create(ProductBOM bom, String productDataId) {
+
         if (productDataId != null && !productDataId.isBlank()) {
             ProductData pd = pdRepo.findById(productDataId)
                     .orElseThrow(() -> new IllegalArgumentException(
@@ -40,8 +40,21 @@ public class ProductBOMService {
             }
             bom.setProductData(pd);
         }
-        log.info("Erstelle ProductBOM: {}", bom.getName());
-        return bomRepo.save(bom);
+
+        ProductBOM saved = bomRepo.save(bom);
+
+        // ── Initiale Revision 01 automatisch erstellen ────────
+        ProductBOMRevision initRev = new ProductBOMRevision();
+        initRev.setProductBOM(saved);
+        initRev.setRevision("01");
+        initRev.setStatus(ManufacturingStatus.WORKING);
+        initRev.setCreatedBy(currentUser());
+        bomRevRepo.save(initRev);
+
+        log.info("Erstelle ProductBOM: '{}' (ID: {}) "
+                + "mit initialer Revision 01 (WORKING)",
+                saved.getName(), saved.getId());
+        return saved;
     }
 
     @Transactional
@@ -103,5 +116,12 @@ public class ProductBOMService {
         mfg.getProductBOMs().removeIf(
                 pb -> pb.getId().equals(bomId));
         mfgRepo.save(mfg);
+    }
+
+    // ── Hilfsmethode ─────────────────────────────────────────────
+    private String currentUser() {
+        Authentication auth = SecurityContextHolder
+                .getContext().getAuthentication();
+        return auth != null ? auth.getName() : "system";
     }
 }

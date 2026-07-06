@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="icon" href="data:,">
+    <title th:text="${design.name} + ' – Structure – PEB'">
+        Design Structure – PEB
+    </title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+
+        /* ══ Tree rows ═══════════════════════════════════════════ */
+        .tree-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin: 0.25rem 0;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 4px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+        .tree-row:hover { background: #e9ecef; }
+
+        /* Depth colours applied via inline padding-left on the row,
+           border colour via these classes */
+        .depth-0 { border-left-color: #0066cc; }
+        .depth-1 { border-left-color: #17a2b8; }
+        .depth-2 { border-left-color: #28a745; }
+        .depth-3 { border-left-color: #fd7e14; }
+        .depth-4 { border-left-color: #dc3545; }
+
+        .node-icon  { flex-shrink: 0; }
+        .node-label { font-weight: 600; flex: 1; min-width: 100px; }
+        .node-id    {
+            font-size: 0.78rem;
+            color: #6c757d;
+            font-family: monospace;
+        }
+        .node-badge {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            background: #dee2e6;
+            color: #495057;
+            white-space: nowrap;
+        }
+        .node-badge.working  { background: #fff3cd; color: #856404; }
+        .node-badge.released { background: #d4edda; color: #155724; }
+        .node-badge.obsolete { background: #e2e3e5; color: #6c757d; }
+
+        .node-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.3rem;
+            flex-shrink: 0;
+        }
+
+        /* ══ Add-child panel ═════════════════════════════════════ */
+        .add-child-panel {
+            background: #fff;
+            border: 2px dashed #0066cc;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 0.75rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .form-row .form-group { flex: 1; min-width: 180px; }
+
+        /* ══ Misc ════════════════════════════════════════════════ */
+        .btn-sm { font-size: 0.8rem; padding: 0.2rem 0.45rem; }
+
+        .btn-remove {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2rem 0.45rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+        .btn-remove:hover    { background: #b02a37; }
+        .btn-remove:disabled { opacity: 0.6; cursor: default; }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══ Header ════════════════════════════════════════════════ -->
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>Design Structure</h1>
+    <div style="margin-left:auto; display:flex; gap:0.5rem;">
+        <a th:href="@{/designs/{id}(id=${design.id})}"
+           class="btn btn-primary">← Back to Design</a>
+        <a th:href="@{/designs}"
+           class="btn btn-primary">All Designs</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ══ Root Info Card ════════════════════════════════════ -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between;
+                    align-items:flex-start; gap:1rem; flex-wrap:wrap;">
+            <div>
+                <h2 style="margin:0 0 0.25rem;">
+                    🗂️ <span th:text="${design.name}">Design Name</span>
+                </h2>
+                <span style="font-size:0.85rem; color:#6c757d;">
+                    <code th:text="${design.id}">DS00000001</code>
+                    &nbsp;·&nbsp;
+                    <span th:text="${design.department}">Engineering</span>
+                    <th:block th:if="${design.latestRevision != null}">
+                        &nbsp;·&nbsp; Revision
+                        <strong th:text="${design.latestRevision.revision}">
+                            01
+                        </strong>
+                        &nbsp;·&nbsp;
+                        <span th:text="${design.latestRevision
+                                            .releaseStatus.displayName}
+                                        + ' '
+                                        + ${design.latestRevision
+                                            .releaseStatus.icon}">
+                            Working 🚩
+                        </span>
+                    </th:block>
+                </span>
+            </div>
+        </div>
+
+        <div th:if="${revisionId == null}" class="alert-warning">
+            <strong>⚠ No revision found.</strong>
+            Please create a revision for this Design before
+            building a structure.
+        </div>
+    </div>
+
+    <!-- ══ Tree Card ═════════════════════════════════════════ -->
+    <div class="card" th:if="${revisionId != null}">
+        <h3 style="margin-top:0;">Current Structure</h3>
+
+        <!--
+            Flat list – each row carries its own padding-left (from
+            node.paddingLeft) so indentation looks like a real tree.
+            No recursive fragment needed.
+        -->
+        <div th:if="${flatList != null and !flatList.isEmpty()}">
+            <div th:each="node : ${flatList}"
+                 class="tree-row"
+                 th:classappend="${node.depthClass}"
+                 th:style="'padding-left: calc(0.75rem + '
+                           + ${node.paddingLeft} + ')'">
+
+                <!-- Icon -->
+                <span class="node-icon"
+                      th:text="${node.leaf} ? '🔹' : '📦'">📦</span>
+
+                <!-- Name -->
+                <span class="node-label"
+                      th:text="${node.name}">Design Name</span>
+
+                <!-- ID -->
+                <span class="node-id"
+                      th:text="'[' + ${node.id} + ']'">
+                    [DS00000001]
+                </span>
+
+                <!-- Qty badge -->
+                <span class="node-badge"
+                      th:if="${node.quantity != null
+                              and node.quantity > 1}"
+                      th:text="'×' + ${node.quantity}">×2</span>
+
+                <!-- Position badge -->
+                <span class="node-badge"
+                      th:if="${node.positionNumber != null
+                              and !node.positionNumber.isEmpty()}"
+                      th:text="'Pos ' + ${node.positionNumber}">
+                    Pos 10
+                </span>
+
+                <!-- Status badge -->
+                <span class="node-badge"
+                      th:classappend="${node.releaseStatus == 'WORKING'}
+                          ? 'working'
+                          : (${node.releaseStatus == 'RELEASED'}
+                             ? 'released' : 'obsolete')"
+                      th:text="${node.releaseStatusDisplay}">
+                    Working 🚩
+                </span>
+
+                <!-- Actions -->
+                <div class="node-actions">
+
+                    <!-- Open Design -->
+                    <a th:href="@{/designs/{id}(id=${node.id})}"
+                       class="btn btn-primary btn-sm"
+                       title="Open Design">🔗</a>
+
+                    <!-- Sub-structure (only for non-root nodes) -->
+                    <a th:if="${node.depth > 0}"
+                       th:href="@{/designs/structure/{id}(id=${node.id})}"
+                       class="btn btn-primary btn-sm"
+                       title="View Sub-Structure">🗂️</a>
+
+                    <!-- Remove link (only non-root, WRITE authority) -->
+                    <button th:if="${node.depth > 0}"
+                            sec:authorize="hasAuthority('WRITE')"
+                            class="btn-remove"
+                            th:data-structure-id="${node.structureId}"
+                            th:data-child-name="${node.name}"
+                            onclick="removeStructureLink(
+                                this.dataset.structureId,
+                                this.dataset.childName,
+                                this)"
+                            title="Remove from structure">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <p th:if="${flatList == null or flatList.isEmpty()}"
+           style="color:#6c757d; font-style:italic; margin:0;">
+            No structure defined yet. Add child designs below.
+        </p>
+    </div>
+
+    <!-- ══ Add Child Card ════════════════════════════════════ -->
+    <div class="card" th:if="${revisionId != null}"
+         sec:authorize="hasAuthority('WRITE')">
+        <h3 style="margin-top:0;">➕ Add Child Design</h3>
+        <div class="add-child-panel">
+            <form id="addChildForm" novalidate>
+                <input type="hidden" id="parentId"
+                       th:value="${design.id}"/>
+                <input type="hidden" id="parentRevisionId"
+                       th:value="${revisionId}"/>
+
+                <div class="form-row">
+
+                    <!-- Design picker -->
+                    <div class="form-group" style="flex:3;">
+                        <label for="childSelect">Child Design</label>
+                        <select id="childSelect"
+                                class="form-control" required>
+                            <option value="">⏳ Loading…</option>
+                        </select>
+                        <small id="revisionWarning"
+                               style="display:none; color:#dc3545;
+                                      margin-top:0.25rem;">
+                            ⚠ This design has no revision and cannot
+                            be added to the structure.
+                        </small>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="form-group" style="flex:0 0 90px;">
+                        <label for="quantity">Qty</label>
+                        <input type="number" id="quantity"
+                               class="form-control"
+                               value="1" min="1" max="9999" required/>
+                    </div>
+
+                    <!-- Position -->
+                    <div class="form-group" style="flex:0 0 120px;">
+                        <label for="positionNumber">Position</label>
+                        <input type="text" id="positionNumber"
+                               class="form-control"
+                               placeholder="10, 20 …"
+                               maxlength="50"/>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="form-group"
+                         style="flex:0; display:flex;
+                                align-items:flex-end;">
+                        <button type="submit" id="submitBtn"
+                                class="btn btn-success">
+                            ➕ Add
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ Rules Info Card ═══════════════════════════════════ -->
+    <div class="card" th:if="${revisionId != null}">
+        <h3 style="margin-top:0;">ℹ️ Design Structure Rules</h3>
+        <ul style="margin:0; padding-left:1.5rem;
+                   color:#6c757d; font-size:0.9rem; line-height:1.8;">
+            <li>A Design can contain <strong>any number</strong>
+                of child Designs.</li>
+            <li>Child Designs can themselves have children
+                (unlimited depth).</li>
+            <li>Circular references are
+                <strong>automatically prevented</strong>.</li>
+            <li>Only Designs <strong>with at least one revision</strong>
+                can be used as children.</li>
+            <li>Removing a child link does <strong>not</strong>
+                delete the child Design itself.</li>
+        </ul>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ══ Scripts ═══════════════════════════════════════════════ -->
+<script>
+(function () {
+    'use strict';
+
+    const csrfToken  = document.querySelector('meta[name="_csrf"]')
+                               .getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')
+                               .getAttribute('content');
+
+    const parentIdEl   = document.getElementById('parentId');
+    const parentRevEl  = document.getElementById('parentRevisionId');
+    const childSelect  = document.getElementById('childSelect');
+    const submitBtn    = document.getElementById('submitBtn');
+    const revWarn      = document.getElementById('revisionWarning');
+    const addChildForm = document.getElementById('addChildForm');
+
+    if (!addChildForm) return;
+
+    const designId   = parentIdEl.value;
+    const revisionId = parentRevEl.value;
+
+    let availableDesigns = [];
+
+    /* ── Load available children on page load ─────────────── */
+    loadAvailableDesigns();
+
+    function loadAvailableDesigns() {
+        childSelect.innerHTML =
+            '<option value="">⏳ Loading available designs…</option>';
+        childSelect.disabled = true;
+
+        fetch(`/designs/structure/${designId}/available-children`)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                availableDesigns     = data;
+                childSelect.disabled = false;
+                childSelect.innerHTML =
+                    '<option value="">— Select a Design —</option>';
+
+                if (data.length === 0) {
+                    childSelect.innerHTML +=
+                        '<option disabled>'
+                        + 'No eligible designs available</option>';
+                    return;
+                }
+
+                data.forEach((d, idx) => {
+                    const opt       = document.createElement('option');
+                    opt.value       = String(idx);
+                    opt.textContent = d.revisionId
+                        ? `${d.id} – ${d.name} (Rev ${d.revision})`
+                        : `${d.id} – ${d.name}  ⚠ no revision`;
+                    if (!d.revisionId) opt.disabled = true;
+                    childSelect.appendChild(opt);
+                });
+            })
+            .catch(err => {
+                childSelect.innerHTML =
+                    '<option disabled>⚠ Failed to load</option>';
+                console.error('loadAvailableDesigns:', err);
+            });
+    }
+
+    /* ── Validate selection ───────────────────────────────── */
+    childSelect.addEventListener('change', function () {
+        const idx = this.value;
+        if (!idx) {
+            revWarn.style.display = 'none';
+            submitBtn.disabled    = false;
+            return;
+        }
+        const d = availableDesigns[parseInt(idx, 10)];
+        if (!d.revisionId) {
+            revWarn.style.display = 'block';
+            submitBtn.disabled    = true;
+        } else {
+            revWarn.style.display = 'none';
+            submitBtn.disabled    = false;
+        }
+    });
+
+    /* ── Submit ───────────────────────────────────────────── */
+    addChildForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const idx = childSelect.value;
+        if (!idx) { alert('Please select a Design.'); return; }
+
+        const d = availableDesigns[parseInt(idx, 10)];
+        if (!d || !d.revisionId) {
+            alert('Selected design has no revision.');
+            return;
+        }
+
+        const payload = {
+            parentId:         designId,
+            parentRevisionId: parseInt(revisionId, 10),
+            childId:          d.id,
+            childRevisionId:  d.revisionId,
+            quantity:  parseInt(
+                document.getElementById('quantity').value, 10) || 1,
+            positionNumber:
+                document.getElementById('positionNumber')
+                        .value.trim() || null
+        };
+
+        submitBtn.disabled    = true;
+        submitBtn.textContent = '⏳ Adding…';
+
+        fetch('/designs/structure/add', {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]:   csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => {
+            if (!r.ok) return r.text()
+                               .then(t => { throw new Error(t); });
+            return r.json();
+        })
+        .then(() => window.location.reload())
+        .catch(err => {
+            alert('Failed to add:\n' + err.message);
+            submitBtn.disabled    = false;
+            submitBtn.textContent = '➕ Add';
+        });
+    });
+
+    /* ── Remove structure link ────────────────────────────── */
+    window.removeStructureLink = function (structureId,
+                                           childName, btn) {
+        if (!confirm(
+            `Remove "${childName}" from this structure?\n\n`
+            + `The Design itself will NOT be deleted.`)) return;
+
+        btn.disabled    = true;
+        btn.textContent = '⏳';
+
+        fetch(`/designs/structure/${structureId}`, {
+            method:  'DELETE',
+            headers: { [csrfHeader]: csrfToken }
+        })
+        .then(r => {
+            if (!r.ok) return r.text()
+                               .then(t => { throw new Error(t); });
+            window.location.reload();
+        })
+        .catch(err => {
+            alert('Failed to remove:\n' + err.message);
+            btn.disabled    = false;
+            btn.textContent = '✕';
+        });
+    };
+
+})();
+</script>
+
+</body>
+</html>

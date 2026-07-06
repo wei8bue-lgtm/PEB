@@ -1,4 +1,4 @@
-// DATEI: src/main/java/com/peb/repository/product/ProductDataRepository.java
+// src/main/java/com/peb/repository/product/ProductDataRepository.java
 package com.peb.repository.product;
 
 import com.peb.model.product.ProductData;
@@ -13,32 +13,49 @@ import java.util.List;
 public interface ProductDataRepository
         extends JpaRepository<ProductData, String> {
 
-    // ── ID-Generator (wird von IDGeneratorService genutzt) ───────
-    /**
-     * Gibt die höchste Sequenznummer zurück.
-     * "PD00000042" → 42L
-     * Wird von IDGeneratorService.getNextSequence() aufgerufen.
-     */
-    @Query(value =
-        "SELECT MAX(TO_NUMBER(SUBSTR(id, 3))) " +
-        "FROM product_data " +
-        "WHERE REGEXP_LIKE(id, '^PD[0-9]{8}$')",
-        nativeQuery = true)
-    Long findMaxSequence();
+    @Query("""
+            SELECT pd FROM ProductData pd
+             WHERE LOWER(pd.name) LIKE LOWER(
+                       CONCAT('%', :q, '%'))
+                OR LOWER(pd.id) LIKE LOWER(
+                       CONCAT('%', :q, '%'))
+             ORDER BY pd.id ASC
+            """)
+    List<ProductData> searchByQuery(@Param("q") String q);
 
-    // ── Suche ─────────────────────────────────────────────────────
-    @Query("SELECT p FROM ProductData p WHERE " +
-           "UPPER(p.name)        LIKE UPPER(CONCAT('%',:q,'%')) OR " +
-           "UPPER(p.id)          LIKE UPPER(CONCAT('%',:q,'%')) OR " +
-           "UPPER(p.department)  LIKE UPPER(CONCAT('%',:q,'%')) OR " +
-           "UPPER(p.productType) LIKE UPPER(CONCAT('%',:q,'%'))")
-    List<ProductData> searchByQuery(@Param("q") String query);
-
-    // ── Hilfsmethoden ─────────────────────────────────────────────
-    @Query("SELECT p FROM ProductData p " +
-           "WHERE p.productBOM IS NULL " +
-           "ORDER BY p.id ASC")
+    // ── Nur PDs ohne zugewiesene BOM ─────────────────────────
+    // LEFT JOIN statt direkter NULL-Check – robuster bei
+    // bidirektionalen Beziehungen
+    @Query("""
+            SELECT pd FROM ProductData pd
+             LEFT JOIN pd.productBOM bom
+             WHERE bom IS NULL
+             ORDER BY pd.id ASC
+            """)
     List<ProductData> findUnassigned();
 
-    List<ProductData> findByDepartmentOrderById(String department);
+    // ── Alle PDs für Dropdown (inkl. bereits zugewiesener) ───
+    @Query("""
+            SELECT pd FROM ProductData pd
+             ORDER BY pd.id ASC
+            """)
+    List<ProductData> findAllOrderById();
+
+    @Query(value = """
+            SELECT MAX(TO_NUMBER(SUBSTR(id, 3)))
+              FROM product_data
+            """,
+           nativeQuery = true)
+    Long findMaxSequence();
+
+    @Query(value = """
+            SELECT * FROM product_data
+             WHERE master_id = :masterId
+                OR (master_id IS NULL
+                    AND TO_NUMBER(SUBSTR(id, 3)) = :masterId)
+             ORDER BY revision ASC
+            """,
+           nativeQuery = true)
+    List<ProductData> findRevisionChain(
+            @Param("masterId") Long masterId);
 }

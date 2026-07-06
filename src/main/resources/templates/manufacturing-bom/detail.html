@@ -9,6 +9,7 @@
         Manufacturing BOM
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+	<script th:src="@{/js/lifecycle.js}"></script>
     <style>
         /* ── Baum ────────────────────────────────────────────── */
         .tree-wrap  { font-size:.9rem; }
@@ -381,9 +382,9 @@
                                 Wartezeit (s)
                             </span>
                         </th>
-                        <th sec:authorize="hasAuthority('DELETE')">
-                            Aktion
-                        </th>
+						<th sec:authorize="hasAnyAuthority('WRITE','DELETE')">
+							Aktionen
+						</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -442,7 +443,26 @@
                             <span th:if="${op.waitTime == null}"
                                   class="tbadge tbadge-empty">—</span>
                         </td>
-                        <td sec:authorize="hasAuthority('DELETE')">
+						
+
+						
+							<!-- Tabellenzeile: Edit-Button + Delete-Button -->
+							<td sec:authorize="hasAnyAuthority('WRITE','DELETE')">
+								<div style="display:flex;gap:.35rem;">
+
+									<!-- Edit-Button -->
+									<a th:href="@{/manufacturing-bom/{id}/operations/
+												  {opId}/edit(id=${mfgBOM.id},
+												  opId=${op.id})}"
+									   class="btn btn-primary btn-sm"
+									   sec:authorize="hasAuthority('WRITE')"
+									   title="Bearbeiten"
+									   style="padding:2px 8px;font-size:.75rem;">
+										✏️
+									</a>
+
+									<!-- Delete-Button (unverändert) -->
+						
                             <form th:action="@{/manufacturing-bom/{id}/operations/{opId}/delete(
                                                 id=${mfgBOM.id},
                                                 opId=${op.id})}"
@@ -608,9 +628,323 @@
                     ➕ Operation speichern
                 </button>
             </form>
+
+   
+	
+			</div>
+		</div>
+    </div>
+    <!-- ══════════════════════════════════════════════════════════
+         LIFECYCLE-AKTIONEN  (Fragment entfernt – inline!)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="card">
+        <h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
+
+        <!-- Debug – nach Test entfernen -->
+        <p style="font-size:.8rem; color:#6c757d;
+                  margin-bottom:1rem;">
+            Aktueller Status:
+            <strong th:text="${statusName}">—</strong>
+        </p>
+
+        <div style="display:flex; gap:.75rem;
+                    align-items:center; flex-wrap:wrap;">
+
+            <!-- EDIT – nur bei WORKING -->
+            <div sec:authorize="hasAuthority('WRITE')">
+                <a th:if="${statusName == 'WORKING'}"
+                   th:href="@{/manufacturing-bom/{id}/edit(id=${mfgBOM.id})}"
+                   class="btn btn-primary"
+                   style="background:#0066cc;
+                          border-color:#0066cc;">
+                    ✏️ Bearbeiten
+                </a>
+            </div>
+
+            <!-- RELEASE – nur bei WORKING -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <form th:if="${statusName == 'WORKING'}"
+                      th:action="@{/api/manufacturing/manufacturing-bom/{id}/release(id=${mfgBOM.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            style="background:#28a745;
+                                   border-color:#28a745;"
+                            onclick="return confirm('Manufacturing BOM freigeben?\nStatus wechselt zu RELEASED.');">
+                        ✅ Freigeben (Release)
+                    </button>
+                </form>
+            </div>
+
+            <!-- REVISE – nur bei RELEASED -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <form th:if="${statusName == 'RELEASED'}"
+                      th:action="@{/api/manufacturing/manufacturing-bom/{id}/revise(id=${mfgBOM.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            style="background:#fd7e14;
+                                   border-color:#fd7e14;"
+                            onclick="return confirm('Neue Revision erstellen?\nEine neue WORKING-Revision wird angelegt.');">
+                        📝 Revidieren (Revise)
+                    </button>
+                </form>
+            </div>
+
+            <!-- SAVE AS -->
+            <div sec:authorize="hasAuthority('EXECUTE')">
+                <button type="button"
+                        class="btn btn-primary"
+                        style="background:#6f42c1;
+                               border-color:#6f42c1;"
+                        onclick="openSaveAsDialog()">
+                    💾 Save As…
+                </button>
+            </div>
+
+            <!-- DELETE – nur bei WORKING + keine ProductBOMs -->
+            <div sec:authorize="hasAuthority('DELETE')"
+                 style="margin-left:auto;">
+                <form th:if="${statusName == 'WORKING'
+                               and #lists.isEmpty(mfgBOM.productBOMs)}"
+                      th:action="@{/manufacturing-bom/{id}/delete(id=${mfgBOM.id})}"
+                      method="post">
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="btn btn-danger"
+                            onclick="return confirm('Manufacturing BOM wirklich löschen?');">
+                        🗑️ Löschen
+                    </button>
+                </form>
+
+                <button th:if="${!#lists.isEmpty(mfgBOM.productBOMs)}"
+                        type="button" disabled
+                        class="btn btn-sm"
+                        style="background:#e9ecef; color:#6c757d;
+                               cursor:not-allowed;
+                               border:1px solid #dee2e6;"
+                        th:title="${'Löschen nicht möglich: '
+                            + #lists.size(mfgBOM.productBOMs)
+                            + ' Product BOM(s) verknüpft'}">
+                    🔒 Löschen gesperrt
+                </button>
+            </div>
+
+            <!-- Hinweise -->
+            <span th:if="${statusName == 'OBSOLETE'}"
+                  style="color:#6c757d; font-size:.9rem;
+                         font-style:italic;">
+                🔒 Obsolete Revision –
+                keine Lifecycle-Aktionen verfügbar.
+            </span>
+            <span th:if="${statusName == 'KEINE_REVISION'}"
+                  style="color:#dc3545; font-size:.9rem;">
+                ⚠️ Keine Revision vorhanden.
+            </span>
         </div>
     </div>
 
+    <!-- ── Revisionsverlauf ───────────────────────────────────── -->
+    <div class="card">
+        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+
+        <div th:if="${#lists.isEmpty(revisionChain)}"
+             style="color:#6c757d; padding:1rem 0;">
+            Keine Revisionen vorhanden.
+        </div>
+
+        <table th:if="${!#lists.isEmpty(revisionChain)}"
+               style="width:100%; border-collapse:collapse;
+                      font-size:.9rem;">
+            <thead>
+                <tr style="background:#f8f9fa;
+                           border-bottom:2px solid #ddd;">
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Revision</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Status</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Erstellt von</th>
+                    <th style="padding:.5rem .75rem;
+                               text-align:left;">Erstellt am</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rev : ${revisionChain}"
+                    th:style="${rev.status.name() == 'WORKING'}
+                        ? 'background:#fffdf0;'
+                        : (${rev.status.name() == 'RELEASED'}
+                            ? 'background:#f0fff4;'
+                            : 'background:#fdf0f0;')">
+
+                    <td style="padding:.5rem .75rem;
+                               font-family:monospace;
+                               font-weight:600;"
+                        th:text="${rev.revision}">01</td>
+
+                    <td style="padding:.5rem .75rem;">
+                        <span th:if="${rev.status.name() == 'WORKING'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem;
+                                     font-weight:600;
+                                     background:#fff3cd;
+                                     color:#856404;
+                                     border:1px solid #ffc107;">
+                            ⚙️ WORKING
+                        </span>
+                        <span th:if="${rev.status.name() == 'RELEASED'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem;
+                                     font-weight:600;
+                                     background:#d4edda;
+                                     color:#155724;
+                                     border:1px solid #28a745;">
+                            ✅ RELEASED
+                        </span>
+                        <span th:if="${rev.status.name() == 'OBSOLETE'}"
+                              style="display:inline-block;
+                                     padding:.2rem .6rem;
+                                     border-radius:4px;
+                                     font-size:.8rem;
+                                     font-weight:600;
+                                     background:#f8d7da;
+                                     color:#721c24;
+                                     border:1px solid #f5c6cb;">
+                            🔒 OBSOLETE
+                        </span>
+                    </td>
+
+                    <td style="padding:.5rem .75rem;"
+                        th:text="${rev.createdBy ?: '—'}">—</td>
+
+                    <td style="padding:.5rem .75rem;
+                               font-size:.85rem; color:#6c757d;"
+                        th:text="${rev.createdAt != null
+                            ? #temporals.format(rev.createdAt,
+                                'dd.MM.yyyy HH:mm')
+                            : '—'}">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ── Save-As Dialog ────────────────────────────────────────── -->
+<div id="saveAsOverlay"
+     style="display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,.5); z-index:9999;
+            align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:8px;
+                padding:2rem; min-width:380px;
+                box-shadow:0 4px 20px rgba(0,0,0,.3);">
+        <h3 style="margin-top:0;">
+            💾 Save As – Kopie erstellen
+        </h3>
+        <p style="color:#6c757d; font-size:.9rem;">
+            Neuer Name für die Kopie von
+            <strong th:text="${mfgBOM.name}">—</strong>:
+        </p>
+        <input id="saveAsName" type="text"
+               placeholder="Neuer Name…"
+               style="width:100%; padding:.5rem;
+                      border:1px solid #ced4da;
+                      border-radius:4px; font-size:1rem;
+                      box-sizing:border-box;
+                      margin-bottom:1rem;">
+        <div style="display:flex; gap:.5rem;
+                    justify-content:flex-end;">
+            <button type="button"
+                    class="btn btn-primary"
+                    style="background:#6c757d;
+                           border-color:#6c757d;"
+                    onclick="closeSaveAsDialog()">
+                ✖ Abbrechen
+            </button>
+            <button type="button"
+                    class="btn btn-primary"
+                    style="background:#6f42c1;
+                           border-color:#6f42c1;"
+                    onclick="executeSaveAs()">
+                💾 Kopie erstellen
+            </button>
+        </div>
+    </div>
 </div>
+
+<!-- ── JavaScript ────────────────────────────────────────────── -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const csrfToken  = document.querySelector(
+                           'meta[name="_csrf"]')
+                               .getAttribute('content');
+    const csrfHeader = document.querySelector(
+                           'meta[name="_csrf_header"]')
+                               .getAttribute('content');
+    const mfgBomId = /*[[${mfgBOM.id}]]*/ '';
+
+    function openSaveAsDialog() {
+        const overlay = document.getElementById('saveAsOverlay');
+        overlay.style.display = 'flex';
+        setTimeout(() =>
+            document.getElementById('saveAsName').focus(), 50);
+    }
+
+    function closeSaveAsDialog() {
+        document.getElementById('saveAsOverlay')
+                .style.display = 'none';
+        document.getElementById('saveAsName').value = '';
+    }
+
+    function executeSaveAs() {
+        const newName = document.getElementById('saveAsName')
+                                .value.trim();
+        if (!newName) {
+            alert('⚠️ Bitte einen Namen eingeben.');
+            return;
+        }
+        fetch('/api/manufacturing/manufacturing-bom/'
+              + mfgBomId + '/saveas?newName='
+              + encodeURIComponent(newName), {
+            method:  'POST',
+            headers: { [csrfHeader]: csrfToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert('❌ Fehler: ' + data.error);
+            } else {
+                closeSaveAsDialog();
+                alert('✅ Kopie erstellt: '
+                      + data.name
+                      + ' (ID: ' + data.id + ')');
+                window.location.href =
+                    '/manufacturing-bom/' + data.id;
+            }
+        })
+        .catch(err => {
+            alert('❌ Netzwerkfehler: ' + err.message);
+        });
+    }
+
+    document.getElementById('saveAsOverlay')
+            .addEventListener('click', function(e) {
+        if (e.target === this) closeSaveAsDialog();
+    });
+    /*]]>*/
+</script>
+
 </body>
 </html>

@@ -31,75 +31,65 @@ public class DatasetViewController {
     // ══════════════════════════════════════════════════
 
     @GetMapping("/manage/{revisionType}/{revisionId}")
-    public String manageDatasets(
-            @PathVariable String revisionType,
-            @PathVariable Long   revisionId,
-            Model model) {
+public String manageDatasets(
+        @PathVariable String revisionType,
+        @PathVariable Long   revisionId,
+        @RequestParam(required = false) String objectId,  // ← NEU
+        Model model) {
 
-        try {
-            List<Dataset> datasets = datasetService
-                    .getDatasets(revisionId, revisionType);
+    try {
+        List<Dataset> datasets = datasetService
+                .getDatasets(revisionId, revisionType);
 
-            // Statistiken im Controller berechnen
-            long totalBytes = 0L;
-            long countWithCategory = 0L;
+        long totalBytes        = 0L;
+        long countWithCategory = 0L;
 
-            for (Dataset d : datasets) {
-                if (d.getFileSize() != null) {
-                    totalBytes += d.getFileSize();
-                }
-                if (d.getCategory() != null) {
-                    countWithCategory++;
-                }
-            }
-
-            // Größe formatieren
-            String totalSizeFormatted;
-            if (totalBytes >= 1048576) {
-                totalSizeFormatted = String.format("%.1f MB",
-                        totalBytes / 1048576.0);
-            } else if (totalBytes >= 1024) {
-                totalSizeFormatted = String.format("%.1f KB",
-                        totalBytes / 1024.0);
-            } else {
-                totalSizeFormatted = totalBytes + " Bytes";
-            }
-
-            // Seitentitel
-            String pageTitle = switch (revisionType.toUpperCase()) {
-                case "DESIGN"  -> "Datasets - Design Revision";
-                case "EBOM"    -> "Datasets - eBOM Revision";
-                case "DRAWING" -> "Datasets - Drawing Revision";
-                default        -> "Datasets - Revision " + revisionId;
-            };
-
-            model.addAttribute("datasets",          datasets);
-            model.addAttribute("revisionId",        revisionId);
-            model.addAttribute("revisionType",      revisionType);
-            model.addAttribute("categories",        DatasetCategory.values());
-            model.addAttribute("pageTitle",         pageTitle);
-            model.addAttribute("totalSize",         totalSizeFormatted);
-            model.addAttribute("countWithCategory", countWithCategory);
-            model.addAttribute("datasetCount",      datasets.size());
-
-            log.info("Dataset-Seite: type={}, revisionId={}, count={}",
-                     revisionType, revisionId, datasets.size());
-
-        } catch (Exception e) {
-            log.error("Fehler beim Laden der Datasets: {}", e.getMessage());
-            model.addAttribute("error",             "Fehler: " + e.getMessage());
-            model.addAttribute("datasets",          List.of());
-            model.addAttribute("revisionId",        revisionId);
-            model.addAttribute("revisionType",      revisionType);
-            model.addAttribute("categories",        DatasetCategory.values());
-            model.addAttribute("pageTitle",         "Datasets");
-            model.addAttribute("totalSize",         "0 Bytes");
-            model.addAttribute("countWithCategory", 0L);
-            model.addAttribute("datasetCount",      0);
+        for (Dataset d : datasets) {
+            if (d.getFileSize() != null)  totalBytes += d.getFileSize();
+            if (d.getCategory() != null)  countWithCategory++;
         }
 
-        return "dataset-manage";
+        String totalSizeFormatted;
+        if      (totalBytes >= 1048576) totalSizeFormatted = String.format("%.1f MB",  totalBytes / 1048576.0);
+        else if (totalBytes >= 1024)    totalSizeFormatted = String.format("%.1f KB",  totalBytes / 1024.0);
+        else                            totalSizeFormatted = totalBytes + " Bytes";
+
+        String pageTitle = switch (revisionType.toUpperCase()) {
+            case "DESIGN"  -> "Datasets - Design Revision";
+            case "EBOM"    -> "Datasets - eBOM Revision";
+            case "DRAWING" -> "Datasets - Drawing Revision";
+            default        -> "Datasets - Revision " + revisionId;
+        };
+
+        model.addAttribute("datasets",          datasets);
+        model.addAttribute("revisionId",        revisionId);
+        model.addAttribute("revisionType",      revisionType);
+        model.addAttribute("categories",        DatasetCategory.values());
+        model.addAttribute("pageTitle",         pageTitle);
+        model.addAttribute("totalSize",         totalSizeFormatted);
+        model.addAttribute("countWithCategory", countWithCategory);
+        model.addAttribute("datasetCount",      datasets.size());
+        model.addAttribute("objectId",          objectId);  // ← NEU
+
+        log.info("Dataset-Seite: type={}, revisionId={}, objectId={}, count={}",
+                 revisionType, revisionId, objectId, datasets.size());
+
+    } catch (Exception e) {
+        log.error("Fehler beim Laden der Datasets: {}", e.getMessage());
+        model.addAttribute("error",             "Fehler: " + e.getMessage());
+        model.addAttribute("datasets",          List.of());
+        model.addAttribute("revisionId",        revisionId);
+        model.addAttribute("revisionType",      revisionType);
+        model.addAttribute("categories",        DatasetCategory.values());
+        model.addAttribute("pageTitle",         "Datasets");
+        model.addAttribute("totalSize",         "0 Bytes");
+        model.addAttribute("countWithCategory", 0L);
+        model.addAttribute("datasetCount",      0);
+        model.addAttribute("objectId",          objectId);  // ← NEU
     }
+
+    return "dataset-manage";
+}
 
     // ══════════════════════════════════════════════════
     // UPLOAD

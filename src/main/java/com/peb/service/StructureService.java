@@ -66,70 +66,85 @@ public class StructureService {
         return buildStructureNode(objectId, revisionId, 0);
     }
 
-    private StructureNode buildStructureNode(String objectId, Long revisionId, int depth) {
-        if (depth > 20) { // Prevent infinite recursion
-            throw new StructureException("Structure depth exceeds maximum (20 levels)");
-        }
+	private StructureNode buildStructureNode(String objectId, Long revisionId, int depth) {
+		if (depth > 20) {
+			throw new StructureException("Structure depth exceeds maximum (20 levels)");
+		}
 
-        StructureNode node = new StructureNode();
-        node.setObjectId(objectId);
-        node.setRevisionId(revisionId);
+		StructureNode node = new StructureNode();
+		node.setObjectId(objectId);
+		node.setRevisionId(revisionId);
 
-        // Determine object type and get details
-        String prefix = objectId.substring(0, 2);
-        
-        try {
-            switch (prefix) {
-                case "DS" -> {
-                    Design design = designService.getDesign(objectId);
-                    node.setName(design.getName());
-                    node.setObjectType("Design");
-                    if (design.getLatestRevision() != null) {
-                        node.setRevision(design.getLatestRevision().getRevision());
-                        node.setReleaseStatus(design.getLatestRevision().getReleaseStatus().name());
-                        node.setReleased(design.getLatestRevision().getReleaseStatus() == ReleaseStatus.RELEASED);
-                    }
-                }
-                case "DR" -> {
-                    Drawing drawing = drawingService.getDrawing(objectId);
-                    node.setName(drawing.getName());
-                    node.setObjectType("Drawing");
-                    if (drawing.getLatestRevision() != null) {
-                        node.setRevision(drawing.getLatestRevision().getRevision());
-                        node.setReleaseStatus(drawing.getLatestRevision().getReleaseStatus().name());
-                        node.setReleased(drawing.getLatestRevision().getReleaseStatus() == ReleaseStatus.RELEASED);
-                    }
-                }
-                default -> {
-                    EBOMObject ebomObject = ebomService.getEBOMObject(objectId);
-                    node.setName(ebomObject.getName());
-                    node.setObjectType(ebomObject.getObjectType().getDisplayName());
-                    if (ebomObject.getLatestRevision() != null) {
-                        node.setRevision(ebomObject.getLatestRevision().getRevision());
-                        node.setReleaseStatus(ebomObject.getLatestRevision().getReleaseStatus().name());
-                        node.setReleased(ebomObject.getLatestRevision().getReleaseStatus() == ReleaseStatus.RELEASED);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error getting object details for {}: {}", objectId, e.getMessage());
-            node.setName("Unknown");
-            node.setObjectType("Unknown");
-        }
+		// Determine object type and get details
+		String prefix = objectId.substring(0, 2);
 
-        // Get children
-        List<StructureRelation> children = structureRelationRepository
-            .findByParentIdAndParentRevisionId(objectId, revisionId);
+		try {
+			switch (prefix) {
+				case "DS" -> {
+					Design design = designService.getDesign(objectId);
+					node.setName(design.getName());
+					node.setObjectType("Design");
+					if (design.getLatestRevision() != null) {
+						node.setRevision(design.getLatestRevision().getRevision());
+						node.setReleaseStatus(design.getLatestRevision()
+								.getReleaseStatus().name());
+						node.setReleased(design.getLatestRevision()
+								.getReleaseStatus() == ReleaseStatus.RELEASED);
+					}
+				}
+				case "DR" -> {
+					Drawing drawing = drawingService.getDrawing(objectId);
+					node.setName(drawing.getName());
+					node.setObjectType("Drawing");
+					if (drawing.getLatestRevision() != null) {
+						node.setRevision(drawing.getLatestRevision().getRevision());
+						node.setReleaseStatus(drawing.getLatestRevision()
+								.getReleaseStatus().name());
+						node.setReleased(drawing.getLatestRevision()
+								.getReleaseStatus() == ReleaseStatus.RELEASED);
+					}
+				}
+				default -> {
+					EBOMObject ebomObject = ebomService.getEBOMObject(objectId);
+					node.setName(ebomObject.getName());
+					node.setObjectType(ebomObject.getObjectType().getDisplayName());
+					if (ebomObject.getLatestRevision() != null) {
+						node.setRevision(ebomObject.getLatestRevision().getRevision());
+						node.setReleaseStatus(ebomObject.getLatestRevision()
+								.getReleaseStatus().name());
+						node.setReleased(ebomObject.getLatestRevision()
+								.getReleaseStatus() == ReleaseStatus.RELEASED);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error getting object details for {}: {}", objectId, e.getMessage());
+			node.setName("Unknown");
+			node.setObjectType("Unknown");
+		}
 
-        for (StructureRelation child : children) {
-            StructureNode childNode = buildStructureNode(child.getChildId(), child.getChildRevisionId(), depth + 1);
-            childNode.setQuantity(child.getQuantity());
-            childNode.setPositionNumber(child.getPositionNumber());
-            node.getChildren().add(childNode);
-        }
+		// Get children
+		List<StructureRelation> children = structureRelationRepository
+				.findByParentIdAndParentRevisionId(objectId, revisionId);
 
-        return node;
-    }
+		for (StructureRelation child : children) {
+			StructureNode childNode = buildStructureNode(
+					child.getChildId(), child.getChildRevisionId(), depth + 1);
+
+			// ── Relation-Metadaten auf den Node übertragen ──────────────────
+			// FIX: Diese drei Zeilen fehlten – sie sind die Ursache des Fehlers
+			childNode.setRelationId(child.getRelationId());                  // ← NEU
+			childNode.setReferenceDesignator(child.getReferenceDesignator()); // ← NEU
+			childNode.setBmk(child.getBmk());                                // ← NEU
+			// ────────────────────────────────────────────────────────────────
+
+			childNode.setQuantity(child.getQuantity());
+			childNode.setPositionNumber(child.getPositionNumber());
+			node.getChildren().add(childNode);
+		}
+
+		return node;
+	}
 
     private void validateStructureRelation(String parentId, String childId) {
         String parentPrefix = parentId.substring(0, 2);
@@ -249,4 +264,40 @@ public class StructureService {
             default -> List.of();
         };
     }
+	
+	// In StructureService – Signatur erweitern:
+	@Transactional
+	public StructureRelation addToStructure(
+			String parentId,    Long parentRevisionId,
+			String childId,     Long childRevisionId,
+			Integer quantity,   String positionNumber,
+			String referenceDesignator) {          // ← NEU
+
+		validateStructureRelation(parentId, childId);
+
+		List<StructureRelation> existing =
+			structureRelationRepository
+				.findByParentIdAndParentRevisionId(parentId, parentRevisionId);
+
+		boolean alreadyExists = existing.stream().anyMatch(rel ->
+			rel.getChildId().equals(childId) &&
+			rel.getChildRevisionId().equals(childRevisionId));
+
+		if (alreadyExists) {
+			throw new StructureException("This child is already in the structure");
+		}
+
+		StructureRelation relation = new StructureRelation();
+		relation.setParentId(parentId);
+		relation.setParentRevisionId(parentRevisionId);
+		relation.setChildId(childId);
+		relation.setChildRevisionId(childRevisionId);
+		relation.setQuantity(quantity != null ? quantity : 1);
+		relation.setPositionNumber(positionNumber);
+		relation.setReferenceDesignator(referenceDesignator);   // ← NEU
+
+		log.info("Added structure relation: {} → {} (refDes: {})",
+				 parentId, childId, referenceDesignator);
+		return structureRelationRepository.save(relation);
+	}
 }

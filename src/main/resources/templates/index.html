@@ -1,61 +1,137 @@
+<!-- src/main/resources/templates/layout.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{app.title}">PEB - Production Engineering Backbone</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
+
+    <!-- ── Header ─────────────────────────────────────────────── -->
     <div class="header">
         <div class="logo-placeholder">PEB</div>
         <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
-        <div style="margin-left: auto;">
+
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+
+            <!-- Angemeldeter Benutzer -->
+            <div class="user-info">
+                <span class="user-icon">👤</span>
+                <span sec:authentication="name">Benutzer</span>
+                <!-- Rolle anzeigen -->
+                <span sec:authorize="hasRole('ADMIN')"
+                      class="role-badge role-admin">Admin</span>
+                <span sec:authorize="hasRole('USER') and !hasRole('ADMIN')"
+                      class="role-badge role-user">User</span>
+                <span sec:authorize="hasRole('VIEWER') and !hasRole('USER')"
+                      class="role-badge role-viewer">Viewer</span>
+            </div>
+
+
+
+            <!-- Logout -->
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn btn-danger">Logout</button>
             </form>
         </div>
     </div>
 
+    <!-- ── Hauptinhalt ─────────────────────────────────────────── -->
     <div class="container">
+
+        <!-- Pending-Hinweis für Admins - nur wenn ausstehende User -->
+        <div sec:authorize="hasRole('ADMIN')"
+             id="pendingAlert"
+             class="alert alert-warning"
+             style="display:none">
+            ⚠️ Benutzer warten auf Freischaltung –
+            <a th:href="@{/admin/users(status='PENDING')}">
+                Jetzt freischalten
+            </a>
+        </div>
+
         <div class="card">
             <h2>Welcome to PEB</h2>
             <p>Production Engineering Backbone - PLM System</p>
         </div>
 
         <div class="card">
-            <h3 th:text="#{menu.search}">Search</h3>
-            <input type="text" id="searchBox" class="search-box" 
-                   placeholder="Search by ID, Name, Department... (use * for wildcards)">
-            <div id="searchResults"></div>
-        </div>
-
-        <div class="card">
             <h3>Quick Actions</h3>
-            <a th:href="@{/designs}" class="btn btn-primary" th:text="#{menu.designs}">Designs</a>
-            <a th:href="@{/drawings}" class="btn btn-primary" th:text="#{menu.drawings}">Drawings</a>
-            <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{menu.ebom}">MAE BOM</a>
-			<hr style="margin:.75rem 0;border-color:#dee2e6;">
-			<a th:href="@{/product-data}"      class="btn btn-primary">
-				📦 Product Data
-			</a>
-			<a th:href="@{/product-bom}"       class="btn btn-primary">
-				📋 Product BOM
-			</a>
-			<a th:href="@{/manufacturing-bom}" class="btn btn-primary">
-				🔧 Manufacturing BOM
-			</a>
-			<a th:href="@{/product-bop}"       class="btn btn-primary">
-				⚙️ Product BOP
-			</a>
-			<a th:href="@{/plant-bop}"         class="btn btn-primary">
-				🏭 Plant BOP
-			</a>
+
+            <!-- Standard-Aktionen (für alle authentifizierten User) -->
+            <a th:href="@{/designs}"
+               class="btn btn-primary"
+               th:text="#{menu.designs}">Designs</a>
+            <a th:href="@{/drawings}"
+               class="btn btn-primary"
+               th:text="#{menu.drawings}">Drawings</a>
+            <a th:href="@{/ebom}"
+               class="btn btn-primary"
+               th:text="#{menu.ebom}">MAE BOM</a>
+
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+
+            <a th:href="@{/product-data}"      class="btn btn-primary">
+                📦 Product Data
+            </a>
+            <a th:href="@{/product-bom}"       class="btn btn-primary">
+                📋 Product BOM
+            </a>
+            <a th:href="@{/manufacturing-bom}" class="btn btn-primary">
+                🔧 Manufacturing BOM
+            </a>
+            <a th:href="@{/product-bop}"       class="btn btn-primary">
+                ⚙️ Product BOP
+            </a>
+            <a th:href="@{/plant-bop}"         class="btn btn-primary">
+                🏭 Plant BOP
+            </a>
+
+            <!-- Admin-Aktionen - nur für ROLE_ADMIN -->
+            <sec:authorize access="hasRole('ADMIN')">
+                <hr style="margin:.75rem 0; border-color:#dee2e6;">
+                <a th:href="@{/admin/users}"
+                   class="btn btn-admin-action">
+                    👥 Benutzerverwaltung
+                </a>
+            </sec:authorize>
+
         </div>
     </div>
 
     <script th:src="@{/js/main.js}"></script>
+
+    <!-- Pending-Badge für Admins via API laden -->
+    <script sec:authorize="hasRole('ADMIN')">
+        fetch('/api/admin/users/pending-count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.count > 0) {
+                    // Badge im Header zeigen
+                    const badge = document.getElementById('pendingBadge');
+                    if (badge) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline';
+                    }
+                    // Alert-Banner zeigen
+                    const alert = document.getElementById('pendingAlert');
+                    if (alert) {
+                        alert.style.display = 'block';
+                        alert.innerHTML = `⚠️ <strong>${data.count}</strong>
+                            Benutzer warten auf Freischaltung –
+                            <a href="/admin/users?status=PENDING">
+                                Jetzt freischalten
+                            </a>`;
+                    }
+                }
+            })
+            .catch(() => {}); // Fehler still ignorieren
+    </script>
+
 </body>
 </html>

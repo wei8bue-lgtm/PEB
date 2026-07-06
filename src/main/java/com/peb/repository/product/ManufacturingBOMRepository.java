@@ -17,36 +17,42 @@ public interface ManufacturingBOMRepository
     List<ManufacturingBOM> findByNameContainingIgnoreCase(
             String name);
 
-    // ── Für ManufacturingBOMController (Detail-Seite) ─────────────
-    /**
-     * Lädt MfgBOM mit ProductBOMs UND Operations.
-     * Wird im Controller für die Detail-Ansicht verwendet.
-     * Zwei separate Queries vermeiden MultipleBagFetchException.
-     */
-    @Query("SELECT DISTINCT m FROM ManufacturingBOM m " +
-           "LEFT JOIN FETCH m.productBOMs " +
-           "WHERE m.id = :id")
+    @Query("""
+            SELECT m FROM ManufacturingBOM m
+             WHERE m.id = :id
+            """)
+    Optional<ManufacturingBOM> findByIdOnly(
+            @Param("id") Long id);
+
+    @Query("""
+            SELECT DISTINCT m FROM ManufacturingBOM m
+              LEFT JOIN FETCH m.productBOMs pb
+             WHERE m.id = :id
+            """)
     Optional<ManufacturingBOM> findByIdWithProductBOMs(
             @Param("id") Long id);
 
-    @Query("SELECT DISTINCT m FROM ManufacturingBOM m " +
-           "LEFT JOIN FETCH m.operations " +
-           "WHERE m.id = :id")
-    Optional<ManufacturingBOM> findByIdWithOperations(
-            @Param("id") Long id);
+	@Query("""
+			SELECT DISTINCT m FROM ManufacturingBOM m
+			  LEFT JOIN FETCH m.operations
+			 WHERE m.id = :id
+			""")
+	Optional<ManufacturingBOM> findByIdWithDetails(
+			@Param("id") Long id);
 
-    // ── Für LineBalancingService & OperationPdfService ────────────
-    /**
-     * Alias für findByIdWithOperations –
-     * wird von LineBalancingService und OperationPdfService
-     * verwendet. Lädt nur Operations (kein MultipleBag-Problem).
-     */
-    default Optional<ManufacturingBOM> findByIdWithDetails(Long id) {
-        return findByIdWithOperations(id);
-    }
+    // ── Native Query statt JPQL ───────────────────────────────────
+    // GRUND: masterId ist ein Feld aus @MappedSuperclass.
+    // Spring Data JPA validiert JPQL-Queries beim Start und
+    // kann Felder aus @MappedSuperclass manchmal nicht
+    // auflösen → Native Query umgeht dieses Problem sicher.
 
-    // ── Für Listen-Ansicht ────────────────────────────────────────
-    @Query("SELECT m FROM ManufacturingBOM m WHERE m.id = :id")
-    Optional<ManufacturingBOM> findByIdOnly(
-            @Param("id") Long id);
+    @Query(value = """
+            SELECT * FROM manufacturing_bom
+             WHERE master_id = :masterId
+                OR id        = :masterId
+             ORDER BY revision ASC
+            """,
+           nativeQuery = true)
+    List<ManufacturingBOM> findRevisionChain(
+            @Param("masterId") Long masterId);
 }

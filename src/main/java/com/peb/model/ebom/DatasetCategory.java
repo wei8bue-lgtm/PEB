@@ -17,6 +17,7 @@ public enum DatasetCategory {
     DESIGN_INVENTOR ("Design Inventor",   true,  false),
     DESIGN_SOLIDEDGE("Design SolidEdge",  true,  false),
     DESIGN_RENDERING("Design Rendering",  true,  false),
+	DESIGN_JT		("Design Rendering JT",  true,  false),
     THUMBNAIL       ("Thumbnail",         false, false),
     OTHER           ("Other",             false, false);
 

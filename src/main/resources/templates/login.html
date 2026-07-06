@@ -1,3 +1,4 @@
+<!-- src/main/resources/templates/login.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -5,46 +6,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!--
+        ENTFERNT: CSRF Meta-Tags
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        Nicht mehr nötig - Thymeleaf th:action fügt den
+        CSRF Hidden-Field automatisch ein.
+    -->
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <div class="logo-placeholder">PEB</div>
-            <h2>Production Engineering Backbone</h2>
-        </div>
+<div class="login-container">
 
-        <div th:if="${param.error}" class="alert alert-danger">
-            Invalid username or password.
-        </div>
-
-        <div th:if="${param.logout}" class="alert alert-success">
-            You have been logged out successfully.
-        </div>
-
-        <form th:action="@{/login}" method="post">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autofocus>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-
-            <button type="submit" class="btn-login">Sign In</button>
-        </form>
-
-        <div class="demo-credentials">
-            <h4>Demo Credentials:</h4>
-            <ul>
-                <li><strong>Admin:</strong> admin / admin123 (Full access)</li>
-                <li><strong>User:</strong> user / user123 (Read & Write)</li>
-                <li><strong>Viewer:</strong> viewer / viewer123 (Read only)</li>
-            </ul>
-        </div>
+    <div class="login-header">
+        <div class="logo-placeholder">PEB</div>
+        <h2>Production Engineering Backbone</h2>
+        <p class="login-subtitle">
+            Bitte melden Sie sich mit Ihren AD-Zugangsdaten an
+        </p>
     </div>
+
+    <div th:if="${param.error}" class="alert alert-danger">
+        <strong>Anmeldung fehlgeschlagen.</strong><br>
+        <span th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null}"
+              th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}">
+        </span>
+        <span th:unless="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null}">
+            Bitte prüfen Sie Ihre Zugangsdaten.
+        </span>
+    </div>
+
+    <div th:if="${param.logout}" class="alert alert-success">
+        Sie wurden erfolgreich abgemeldet.
+    </div>
+
+    <!--
+        th:action ist PFLICHT (nicht action="..."):
+        Thymeleaf fügt automatisch ein Hidden-Field ein:
+        <input type="hidden" name="_csrf" value="abc123...">
+    -->
+    <form th:action="@{/login}" method="post">
+
+        <div class="form-group">
+            <label for="username">
+                AD-Benutzername
+                <span class="label-hint">(z.B. AB1CDE)</span>
+            </label>
+            <input type="text"
+                   id="username"
+                   name="username"
+                   autocomplete="username"
+                   required
+                   autofocus
+                   placeholder="Windows-Benutzername">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Passwort</label>
+            <input type="password"
+                   id="password"
+                   name="password"
+                   autocomplete="current-password"
+                   required
+                   placeholder="Windows-Passwort">
+        </div>
+
+        <button type="submit" class="btn-login">Anmelden</button>
+
+    </form>
+
+    <div class="sso-info">
+        <p>
+            🔐 <strong>Single Sign-On aktiv</strong> –
+            Verwenden Sie Ihre Windows-Zugangsdaten.<br>
+            Bei Problemen:
+            <a href="mailto:it-support@de.bosch.com">IT-Support</a>
+        </p>
+    </div>
+
+</div>
 </body>
 </html>

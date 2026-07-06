@@ -1,14 +1,18 @@
-// DATEI: src/main/java/com/peb/service/product/ProductDataService.java
-// PACKAGE MUSS EXAKT SO SEIN:
+// src/main/java/com/peb/service/product/ProductDataService.java
 package com.peb.service.product;
 
+import com.peb.model.product.ManufacturingStatus;
 import com.peb.model.product.ProductData;
+import com.peb.model.product.ProductDataRevision;
 import com.peb.repository.product.ProductDataRepository;
+import com.peb.repository.product.ProductDataRevisionRepository;
 import com.peb.service.IDGeneratorService;
 import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +24,30 @@ import java.util.Optional;
 @Slf4j
 public class ProductDataService {
 
-    private final ProductDataRepository repository;
-    private final IDGeneratorService    idGeneratorService;
+    private final ProductDataRepository         repository;
+    private final ProductDataRevisionRepository revisionRepository;
+    private final IDGeneratorService            idGeneratorService;
 
     @Transactional
     public ProductData create(ProductData pd) {
+        // ── 1. ID generieren & ProductData speichern ──────────
         String newId = idGeneratorService.generateId(
                 ObjectType.PRODUCT_DATA);
         pd.setId(newId);
-        log.info("Erstelle ProductData: {} – '{}'",
+        ProductData saved = repository.save(pd);
+
+        // ── 2. Initiale Revision 01 automatisch erstellen ─────
+        ProductDataRevision initRev = new ProductDataRevision();
+        initRev.setProductData(saved);
+        initRev.setRevision("01");
+        initRev.setStatus(ManufacturingStatus.WORKING);
+        initRev.setCreatedBy(currentUser());
+        revisionRepository.save(initRev);
+
+        log.info("Erstelle ProductData: {} – '{}' "
+                + "mit initialer Revision 01 (WORKING)",
                 newId, pd.getName());
-        return repository.save(pd);
+        return saved;
     }
 
     @Transactional
@@ -38,11 +55,13 @@ public class ProductDataService {
         ProductData existing = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "ProductData nicht gefunden: " + id));
+
+        // Nur Stammdaten – Status läuft über LifecycleService!
         existing.setName(form.getName());
         existing.setDepartment(form.getDepartment());
         existing.setProductType(form.getProductType());
         existing.setDescription(form.getDescription());
-        existing.setStatus(form.getStatus());
+
         log.info("Aktualisiere ProductData: {}", id);
         return repository.save(existing);
     }
@@ -71,5 +90,12 @@ public class ProductDataService {
     public void delete(String id) {
         log.info("Lösche ProductData: {}", id);
         repository.deleteById(id);
+    }
+
+    // ── Hilfsmethode ─────────────────────────────────────────
+    private String currentUser() {
+        Authentication auth = SecurityContextHolder
+                .getContext().getAuthentication();
+        return auth != null ? auth.getName() : "system";
     }
 }

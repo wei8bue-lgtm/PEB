@@ -21,17 +21,17 @@
     <description>Web-based CAD and eBOM Management System</description>
 
     <properties>
-		<java.version>17</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.test.skip>true</maven.test.skip>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starters -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-ldap</artifactId>
-		</dependency>
+
+        <!-- ══════════════════════════════════════════════════════
+             SPRING BOOT STARTERS
+             ══════════════════════════════════════════════════════ -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -64,18 +64,62 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
-		<dependency>
-			<groupId>com.github.ben-manes.caffeine</groupId>
-			<artifactId>caffeine</artifactId>
-		</dependency>
 
-        <!-- Thymeleaf Security Integration -->
+        <!-- ══════════════════════════════════════════════════════
+             LDAP / ACTIVE DIRECTORY
+             ══════════════════════════════════════════════════════ -->
+
+        <!--
+            [ENTFERNT] spring-boot-starter-data-ldap
+            Grund: Enthält nur Spring Data LDAP (Repository-Pattern)
+                   aber NICHT die Security-Klassen die wir benötigen.
+
+            [NEU] spring-security-ldap
+            Enthält:
+              - ActiveDirectoryLdapAuthenticationProvider
+              - UserDetailsContextMapper
+              - LdapAuthenticator
+        -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-ldap</artifactId>
+        </dependency>
+
+        <!--
+            [NEU] UnboundID LDAP SDK
+            Hochperformante LDAP-Implementierung.
+            Wird von Spring Security LDAP zur Laufzeit benötigt
+            um die AD-Verbindung aufzubauen.
+        -->
+        <dependency>
+            <groupId>com.unboundid</groupId>
+            <artifactId>unboundid-ldapsdk</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ══════════════════════════════════════════════════════
+             THYMELEAF
+             ══════════════════════════════════════════════════════ -->
+
+        <!-- Ermöglicht sec:authorize, sec:authentication in Templates -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
 
-        <!-- Database - Oracle -->
+        <!-- ══════════════════════════════════════════════════════
+             CACHE
+             ══════════════════════════════════════════════════════ -->
+
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- ══════════════════════════════════════════════════════
+             DATENBANK
+             ══════════════════════════════════════════════════════ -->
+
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc11</artifactId>
@@ -86,14 +130,18 @@
             <artifactId>HikariCP</artifactId>
         </dependency>
 
-        <!-- Lombok -->
+        <!-- ══════════════════════════════════════════════════════
+             UTILITIES
+             ══════════════════════════════════════════════════════ -->
+
+        <!-- Lombok - Boilerplate Reduktion -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- XML Processing -->
+        <!-- XML / JAXB -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -115,20 +163,30 @@
             <version>2.15.1</version>
         </dependency>
 
-        <!-- JSON Processing -->
+        <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Image Processing for Thumbnails -->
+        <!-- Thumbnail-Generierung -->
         <dependency>
             <groupId>net.coobird</groupId>
             <artifactId>thumbnailator</artifactId>
             <version>0.4.20</version>
         </dependency>
 
-        <!-- Testing -->
+        <!-- PDF-Generierung -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>html2pdf</artifactId>
+            <version>5.0.1</version>
+        </dependency>
+
+        <!-- ══════════════════════════════════════════════════════
+             TEST
+             ══════════════════════════════════════════════════════ -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -144,19 +202,28 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-<!-- 		<dependency>
-			<groupId>org.webjars.npm</groupId>
-			<artifactId>three</artifactId>
-			<version>0.160.0</version>
-		</dependency> -->
+		
+		<!-- Google Auth Library (Service Account JSON → OAuth2 Token) -->
 		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>html2pdf</artifactId>
-			<version>5.0.1</version>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.23.0</version>
 		</dependency>
-    </dependencies>
-	
 
+		<!-- Google HTTP Client (für REST Calls zu Dialogflow CX) -->
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client</artifactId>
+			<version>1.44.1</version>
+		</dependency>
+
+		<!-- Jackson für JSON Serialisierung (bereits vorhanden, sicherheitshalber) -->
+<!-- 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency> -->
+
+    </dependencies>
 
     <build>
         <plugins>
@@ -182,4 +249,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

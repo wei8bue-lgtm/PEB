@@ -1,66 +1,126 @@
 // src/main/java/com/peb/model/product/ProductData.java
 package com.peb.model.product;
 
-import com.peb.model.base.BaseObject;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * ProductData – Baugruppenstruktur (z.B. Akku-Bohrmaschine)
- * ID-Format: PD00000001 ... PD99999999  (10 Zeichen = Prefix PD + 8 Ziffern)
- * Analog zu Design (DS + 8 Ziffern).
- *
- * Auditing (createdBy, createdDate, lastModifiedBy, lastModifiedDate)
- * erfolgt automatisch über AuditingEntityListener aus BaseObject.
- * version (optimistic locking) kommt ebenfalls aus BaseObject.
- */
-@Data
-@EqualsAndHashCode(callSuper = true)
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 @Entity
 @Table(name = "product_data")
-public class ProductData extends BaseObject {
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
+@ToString(exclude = {"productBOM", "revisions"})
+public class ProductData {
 
-    // description ist NICHT in BaseObject → hier definieren
-    @Size(max = 1000)
-    @Column(name = "description", length = 1000)
-    private String description;
+    @Id
+    @Column(name = "id", length = 20)
+    private String id;
 
-    // Produkttyp (z.B. "Akku Bohrmaschine", "Elektromotor")
-    @Size(max = 100)
+    @NotBlank
+    @Size(max = 255)
+    @Column(nullable = false)
+    private String name;
+
     @Column(name = "product_type", length = 100)
     private String productType;
 
-    // Status der ProductData
-    @Enumerated(EnumType.STRING)
-    @Column(name = "pd_status", length = 50)
-    private ProductDataStatus status = ProductDataStatus.DRAFT;
+    @Column(length = 100)
+    private String department;
 
-    // 1:1 Beziehung zu ProductBOM (Kardinalität 1:1 gemäß Anforderung)
-    // mappedBy = ProductBOM hält den FK
+    @Column(columnDefinition = "CLOB")
+    private String description;
+
+    @CreatedDate
+    @Column(name = "created_date", updatable = false)
+    private LocalDateTime createdDate;
+
+    @CreatedBy
+    @Column(name = "created_by",
+            updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
+    private LocalDateTime lastModifiedDate;
+
+    @LastModifiedBy
+    @Column(name = "last_modified_by", length = 100)
+    private String lastModifiedBy;
+
+    // ── Beziehungen ───────────────────────────────────────────
+
     @OneToOne(mappedBy = "productData",
-              cascade = CascadeType.ALL,
-              fetch = FetchType.LAZY,
-              orphanRemoval = false)
+              fetch    = FetchType.LAZY)
     private ProductBOM productBOM;
 
-    // ── Status Enum ──────────────────────────────────────────────
-    public enum ProductDataStatus {
-        DRAFT(   "Draft",    "🟡"),
-        ACTIVE(  "Active",   "🟢"),
-        RELEASED("Released", "✅"),
-        OBSOLETE("Obsolete", "🔴");
+    @OneToMany(
+        mappedBy      = "productData",
+        cascade       = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch         = FetchType.LAZY
+    )
+    @OrderBy("revision ASC")
+    private List<ProductDataRevision> revisions
+            = new ArrayList<>();
 
-        private final String displayName;
-        private final String icon;
+    // ── Convenience-Methoden ──────────────────────────────────
 
-        ProductDataStatus(String displayName, String icon) {
-            this.displayName = displayName;
-            this.icon        = icon;
+    /**
+     * Neueste Revision – letzte in der @OrderBy-sortierten Liste.
+     * Null-sicher.
+     */
+    public ProductDataRevision getLatestRevision() {
+        if (revisions == null || revisions.isEmpty()) {
+            return null;
         }
+        return revisions.get(revisions.size() - 1);
+    }
 
-        public String getDisplayName() { return displayName; }
-        public String getIcon()        { return icon;        }
+    /**
+     * Freigegebene Revision (Status RELEASED).
+     * Lambdas statt Methoden-Referenz auf Basisklasse
+     * → vermeidet Compiler-Fehler bei Generics.
+     */
+    public ProductDataRevision getReleasedRevision() {
+        return revisions.stream()
+                .filter(r -> r.isReleased())              // ← Lambda statt Methodenreferenz
+                .max(Comparator.comparing(
+                        r -> r.getRevision()))            // ← Lambda statt Methodenreferenz
+                .orElse(null);
+    }
+
+    /**
+     * Status der neuesten Revision.
+     * Gibt null zurück wenn keine Revision vorhanden.
+     */
+    public ManufacturingStatus getLatestStatus() {
+        ProductDataRevision latest = getLatestRevision();
+        return latest != null
+               ? latest.getStatus()
+               : null;
+    }
+
+    /**
+     * Status-Name für Thymeleaf – niemals null.
+     */
+    public String getLatestStatusName() {
+        ManufacturingStatus status = getLatestStatus();
+        return status != null
+               ? status.name()
+               : "KEINE_REVISION";
     }
 }

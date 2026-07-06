@@ -31,12 +31,11 @@ public class LineBalancingService {
     public LineBalancingResult calculate(Long plantBopId,
                                          String plantBopName) {
 
-        // ── Schritt 1: Knoten laden (ManyToOne per JOIN FETCH) ────
+        // ── Schritt 1: Knoten laden ───────────────────────────────
         List<PlantBOPNode> allNodes =
                 nodeRepo.findAllByPlantBOPIdWithDetails(plantBopId);
 
         // ── Schritt 2: MfgBOMs sammeln ────────────────────────────
-        // Collections (productBOP.manufacturingBOMs) separat laden
         List<ManufacturingBOM> allMfgBOMs =
                 collectMfgBOMs(allNodes);
 
@@ -49,7 +48,6 @@ public class LineBalancingService {
                 new LinkedHashMap<>();
 
         for (ManufacturingBOM mfg : allMfgBOMs) {
-            // Operationen explizit laden
             ManufacturingBOM loaded = mfgBOMRepo
                     .findByIdWithDetails(mfg.getId())
                     .orElse(mfg);
@@ -59,7 +57,7 @@ public class LineBalancingService {
                 String station =
                         (op.getWorkstation() != null
                          && !op.getWorkstation().isBlank())
-                        ? op.getWorkstation()
+                        ? op.getWorkstation().trim()
                         : "Unassigned";
                 byStation.computeIfAbsent(
                         station,
@@ -69,7 +67,6 @@ public class LineBalancingService {
 
         // ── Schritt 4: Metriken berechnen ─────────────────────────
         List<WorkstationMetrics> metrics = new ArrayList<>();
-        BigDecimal bottleneck = BigDecimal.ZERO;
 
         for (var entry : byStation.entrySet()) {
             BigDecimal target = sumField(entry.getValue(), true);
@@ -81,13 +78,16 @@ public class LineBalancingService {
                     entry.getValue(),
                     target, actual, takt);
             metrics.add(wm);
-
-            if (target.compareTo(bottleneck) > 0) {
-                bottleneck = target;
-            }
         }
 
-        // ── Schritt 5: KPIs ───────────────────────────────────────
+        // ── Schritt 5: Bottleneck = höchste ISTZEIT ───────────────
+        BigDecimal bottleneck = metrics.stream()
+                .map(WorkstationMetrics::totalActual)
+                .max(Comparator.naturalOrder())
+                .orElse(BigDecimal.ZERO);
+
+        // ── Schritt 6: KPIs ───────────────────────────────────────
+        // Gesamter Arbeitsinhalt = Summe aller Sollzeiten
         BigDecimal totalWork = metrics.stream()
                 .map(WorkstationMetrics::totalTarget)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -105,7 +105,8 @@ public class LineBalancingService {
         }
 
         BigDecimal balanceLoss =
-                BigDecimal.valueOf(100).subtract(efficiency);
+                BigDecimal.valueOf(100).subtract(efficiency)
+                          .max(BigDecimal.ZERO);
 
         log.info("Line Balancing '{}': Efficiency={}, "
                + "Bottleneck={}s, Stationen={}",
@@ -121,27 +122,18 @@ public class LineBalancingService {
 
     // ── Private Hilfsmethoden ─────────────────────────────────────
 
-    /**
-     * Sammelt alle ManufacturingBOMs aus den Knoten.
-     * ProductBOP.manufacturingBOMs wird per separatem Repository-
-     * Aufruf geladen (kein JOIN FETCH auf Collection!).
-     */
     private List<ManufacturingBOM> collectMfgBOMs(
             List<PlantBOPNode> nodes) {
 
-        // LinkedHashMap → Reihenfolge + Duplikat-Vermeidung
         Map<Long, ManufacturingBOM> result = new LinkedHashMap<>();
 
         for (PlantBOPNode node : nodes) {
 
-            // Direkte ManufacturingBOM am Knoten
             if (node.getManufacturingBOM() != null) {
                 ManufacturingBOM mfg = node.getManufacturingBOM();
                 result.putIfAbsent(mfg.getId(), mfg);
             }
 
-            // ManufacturingBOMs via ProductBOP
-            // → ProductBOP separat laden um LazyInit zu vermeiden
             if (node.getProductBOP() != null) {
                 Long pbopId = node.getProductBOP().getId();
                 ProductBOP pbop = productBOPRepo
@@ -199,26 +191,56 @@ public class LineBalancingService {
             BigDecimal                   totalActual,
             BigDecimal                   taktTime
     ) {
-        public BigDecimal idleTime(BigDecimal bottleneck) {
-            return bottleneck.subtract(totalTarget)
-                             .max(BigDecimal.ZERO);
-        }
-
+        /**
+         * Auslastung = Istzeit / Sollzeit × 100
+         * Kann > 100% sein (= überlastet)!
+         * Parameter bottleneck wird für API-Kompatibilität
+         * beibehalten, wird aber nicht mehr benötigt.
+         */
         public BigDecimal loadPct(BigDecimal bottleneck) {
-            if (bottleneck.compareTo(BigDecimal.ZERO) == 0) {
+            if (totalTarget.compareTo(BigDecimal.ZERO) == 0) {
                 return BigDecimal.ZERO;
             }
-            return totalTarget
-                    .divide(bottleneck, 4, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100))
+            // KEIN .min(100) – 133% muss sichtbar sein!
+            return totalActual
+                    .divide(totalTarget, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
+
+        /**
+         * Leerlauf = Sollzeit – Istzeit
+         * Negativ wenn überlastet (Istzeit > Sollzeit)
+         */
+        public BigDecimal idleTime(BigDecimal bottleneck) {
+            return totalTarget.subtract(totalActual);
+        }
+
+        /**
+         * CSS-Klasse basiert auf Istzeit vs. Sollzeit:
+         * > 100% = rot (überlastet)
+         * >= 80% = gelb (kritisch)
+         * < 80%  = grün (ok)
+         */
+        public String loadCssClass(BigDecimal bottleneck) {
+            double pct = loadPct(bottleneck).doubleValue();
+            if (pct > 100) return "load-red";
+            if (pct >= 80)  return "load-yellow";
+            return "load-green";
+        }
+
+        /**
+         * Balkenbreite: max. 100% damit der Balken
+         * nicht aus der Karte ragt – Text zeigt echten Wert.
+         */
+        public BigDecimal loadPctCapped(BigDecimal bottleneck) {
+            return loadPct(bottleneck)
                     .min(BigDecimal.valueOf(100));
         }
 
-        public String loadCssClass(BigDecimal bottleneck) {
-            double pct = loadPct(bottleneck).doubleValue();
-            if (pct >= 90) return "load-red";
-            if (pct >= 70) return "load-yellow";
-            return "load-green";
+        /** true wenn Station überlastet ist */
+        public boolean isOverloaded(BigDecimal bottleneck) {
+            return loadPct(bottleneck)
+                    .compareTo(BigDecimal.valueOf(100)) > 0;
         }
     }
 }

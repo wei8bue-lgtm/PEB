@@ -7,7 +7,8 @@
     <style>
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill,
+                                   minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -17,6 +18,10 @@
             border-radius: 8px;
             padding: 1.2rem;
             text-align: center;
+        }
+        .kpi-card.kpi-green {
+            background: #f0fff4;
+            border-color: #b2dfdb;
         }
         .kpi-value {
             font-size: 2rem;
@@ -33,13 +38,18 @@
         }
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill,
+                                   minmax(240px, 1fr));
             gap: 1rem;
         }
         .station-card {
             border: 1px solid #dee2e6;
             border-radius: 8px;
             overflow: hidden;
+        }
+        .station-card.overloaded {
+            border-color: #dc3545;
+            border-width: 2px;
         }
         .station-head {
             background: #0056b3;
@@ -48,6 +58,7 @@
             font-weight: 600;
             font-size: .9rem;
         }
+        .station-head.overloaded { background: #dc3545; }
         .station-body { padding: 12px 14px; }
         .load-bar {
             height: 22px;
@@ -71,12 +82,63 @@
         .load-green  { background: #28a745; }
         .load-yellow { background: #ffc107; color: #333; }
         .load-red    { background: #dc3545; }
-        .kv { display: flex; justify-content: space-between;
-              font-size: .85rem; padding: 2px 0;
-              border-bottom: 1px solid #f0f0f0; }
+        .kv {
+            display: flex;
+            justify-content: space-between;
+            font-size: .85rem;
+            padding: 2px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
         .kv:last-child { border: none; }
         .kv .k { color: #6c757d; }
         .kv .v { font-weight: 600; }
+        .overload-value { color: #dc3545; font-weight: 700; }
+        .simulation-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .simulation-box h4 { margin-top: 0; color: #495057; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .875rem;
+        }
+        .table th {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+        }
+        .table td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            vertical-align: middle;
+        }
+        .table tr:hover td { background: #f8f9fa; }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: .75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-primary  { background: #cfe2ff; color: #084298; }
+        .badge-warning  { background: #fff3cd; color: #664d03; }
+        .badge-danger   { background: #f8d7da; color: #842029; }
+        .no-suggestions {
+            text-align: center;
+            color: #6c757d;
+            padding: 2rem;
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+        }
+        .improvement-value { color: #198754; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -95,48 +157,52 @@
 
 <div class="container">
 
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Karte 1: KPIs + Workstation-Auslastung                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
     <div class="card">
         <h2 style="margin-top:0;">
             ⚖️ Line Balancing –
             <span th:text="${result.plantBOPName()}">Name</span>
         </h2>
 
-        <!-- ── KPIs ── -->
+        <!-- ── KPIs ────────────────────────────────────────────── -->
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-value"
                      th:text="${#numbers.formatDecimal(
-                                 result.efficiency(), 1, 1)} + '%'">
-                    0%
+                                 result.efficiency(),1,1)} + '%'">
                 </div>
                 <div class="kpi-label">Balance Efficiency</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
                      th:text="${#numbers.formatDecimal(
-                                 result.balanceLoss(), 1, 1)} + '%'">
-                    0%
+                                 result.balanceLoss(),1,1)} + '%'">
                 </div>
                 <div class="kpi-label">Balance Loss</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
-                     th:text="${result.bottleneck()} + 's'">0s</div>
-                <div class="kpi-label">Bottleneck (Taktzeit)</div>
+                     th:text="${result.bottleneck()} + 's'">
+                </div>
+                <div class="kpi-label">Bottleneck (Istzeit)</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
-                     th:text="${result.totalWork()} + 's'">0s</div>
+                     th:text="${result.totalWork()} + 's'">
+                </div>
                 <div class="kpi-label">Gesamter Arbeitsinhalt</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
-                     th:text="${#lists.size(result.stations())}">0</div>
+                     th:text="${#lists.size(result.stations())}">
+                </div>
                 <div class="kpi-label">Workstations</div>
             </div>
         </div>
 
-        <!-- ── Workstation Cards ── -->
+        <!-- ── Workstation Cards ────────────────────────────────── -->
         <h3>Workstation-Auslastung</h3>
 
         <div th:if="${#lists.isEmpty(result.stations())}"
@@ -147,64 +213,252 @@
         </div>
 
         <div class="station-grid"
-			 th:unless="${#lists.isEmpty(result.stations())}">
-			<div th:each="ws : ${result.stations()}"
-				 class="station-card">
-				<div class="station-head"
-					 th:text="${ws.name()}">WS-01</div>
-				<div class="station-body">
+             th:unless="${#lists.isEmpty(result.stations())}">
 
-					<!-- Auslastungsbalken – VEREINFACHT -->
-					<div class="load-bar">
-						<div class="load-fill"
-							 th:classappend="${ws.loadCssClass(
-											 result.bottleneck())}"
-							 th:style="'width:' + ${ws.loadPct(
-										result.bottleneck())} + '%'"
-							 th:text="${#numbers.formatDecimal(
-										 ws.loadPct(result.bottleneck()),
-										 1, 0)} + '%'">
-						</div>
-					</div>
+            <div th:each="ws : ${result.stations()}"
+                 th:class="${ws.isOverloaded(result.bottleneck())}
+                            ? 'station-card overloaded'
+                            : 'station-card'">
 
-					<!-- Kennzahlen – unverändert -->
-					<div class="kv">
-						<span class="k">Sollzeit</span>
-						<span class="v"
-							  th:text="${ws.totalTarget()} + 's'">
-						</span>
-					</div>
-					<div class="kv">
-						<span class="k">Istzeit</span>
-						<span class="v"
-							  th:text="${ws.totalActual()} + 's'">
-						</span>
-					</div>
-					<div class="kv">
-						<span class="k">Leerlauf</span>
-						<span class="v"
-							  th:text="${ws.idleTime(
-										 result.bottleneck())} + 's'">
-						</span>
-					</div>
-					<div class="kv">
-						<span class="k">Auslastung</span>
-						<span class="v"
-							  th:text="${#numbers.formatDecimal(
-										 ws.loadPct(result.bottleneck()),
-										 1, 1)} + '%'">
-						</span>
-					</div>
-					<div class="kv">
-						<span class="k">Ops</span>
-						<span class="v"
-							  th:text="${#lists.size(ws.operations())}">
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-    </div>
+                <!-- Kopf: rot wenn überlastet -->
+                <div th:class="${ws.isOverloaded(
+                                    result.bottleneck())}
+                                ? 'station-head overloaded'
+                                : 'station-head'"
+                     th:text="${ws.name()}">WS-01</div>
+
+                <div class="station-body">
+
+                    <!-- Balken: gekappt auf 100%,
+                                 Text zeigt echten Wert -->
+                    <div class="load-bar">
+                        <div class="load-fill"
+                             th:classappend="${ws.loadCssClass(
+                                             result.bottleneck())}"
+                             th:style="'width:' +
+                                       ${ws.loadPctCapped(
+                                           result.bottleneck())}
+                                       + '%'"
+                             th:text="${#numbers.formatDecimal(
+                                         ws.loadPct(
+                                           result.bottleneck()),
+                                         1,0)} + '%'">
+                        </div>
+                    </div>
+
+                    <!-- Sollzeit -->
+                    <div class="kv">
+                        <span class="k">Sollzeit</span>
+                        <span class="v"
+                              th:text="${ws.totalTarget()} + 's'">
+                        </span>
+                    </div>
+
+                    <!-- Istzeit -->
+                    <div class="kv">
+                        <span class="k">Istzeit</span>
+                        <span class="v"
+                              th:classappend="${ws.isOverloaded(
+                                              result.bottleneck())}
+                                              ? 'overload-value'
+                                              : ''"
+                              th:text="${ws.totalActual()} + 's'">
+                        </span>
+                    </div>
+
+                    <!-- Leerlauf / Überlast -->
+                    <div class="kv">
+                        <span class="k"
+                              th:text="${ws.idleTime(
+                                          result.bottleneck())
+                                          .compareTo(
+                                            T(java.math.BigDecimal)
+                                            .ZERO) < 0}
+                                        ? 'Überlast'
+                                        : 'Leerlauf'">
+                        </span>
+                        <span class="v"
+                              th:classappend="${ws.idleTime(
+                                              result.bottleneck())
+                                              .compareTo(
+                                                T(java.math.BigDecimal)
+                                                .ZERO) < 0}
+                                              ? 'overload-value'
+                                              : ''"
+                              th:text="${ws.idleTime(
+                                          result.bottleneck())}
+                                        + 's'">
+                        </span>
+                    </div>
+
+                    <!-- Auslastung: rot wenn > 100% -->
+                    <div class="kv">
+                        <span class="k">Auslastung</span>
+                        <span class="v"
+                              th:classappend="${ws.isOverloaded(
+                                              result.bottleneck())}
+                                              ? 'overload-value'
+                                              : ''"
+                              th:text="${#numbers.formatDecimal(
+                                          ws.loadPct(
+                                            result.bottleneck()),
+                                          1,1)} + '%'">
+                        </span>
+                    </div>
+
+                    <!-- Ops -->
+                    <div class="kv">
+                        <span class="k">Ops</span>
+                        <span class="v"
+                              th:text="${#lists.size(
+                                          ws.operations())}">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- Ende Karte 1 -->
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Karte 2: Bottleneck-Analyse                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div th:if="${report != null}"
+         class="card" style="margin-top:1rem;">
+
+        <h3 style="margin-top:0;">
+            🔍 Bottleneck-Analyse &amp; Optimierungsvorschläge
+        </h3>
+
+        <!-- ── Überlastete Stationen ─────────────────────────── -->
+        <div th:if="${not #lists.isEmpty(
+                          report.overloadedStations())}"
+             style="margin-bottom:1rem;padding:.75rem;
+                    background:#fff5f5;border:1px solid #f5c6cb;
+                    border-radius:6px;">
+            <strong style="color:#dc3545;">
+                🔴 Überlastete Stationen (Istzeit &gt; Sollzeit):
+            </strong>
+            <span th:each="ws,iter :
+                           ${report.overloadedStations()}">
+                <strong th:text="${ws.name()}"></strong>
+                (<span th:text="${#numbers.formatDecimal(
+                                   ws.loadPct(result.bottleneck()),
+                                   1,1)}"></span>%)
+                <span th:if="${!iter.last}">, </span>
+            </span>
+        </div>
+
+        <!-- ── Keine Probleme ────────────────────────────────── -->
+        <div th:if="${#lists.isEmpty(
+                          report.overloadedStations())}"
+             style="margin-bottom:1rem;padding:.75rem;
+                    background:#f0fff4;border:1px solid #b2dfdb;
+                    border-radius:6px;">
+            ✅ Alle Stationen im Soll – keine Überlastung erkannt.
+        </div>
+
+        <!-- ── Simulation ───────────────────────────────────── -->
+        <div th:if="${not #lists.isEmpty(report.suggestions())}"
+             class="simulation-box">
+            <h4>📊 Simulation – Bester Vorschlag</h4>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value"
+                         th:text="${report.simulation()
+                                          .currentBottleneck()}
+                                   + 's'">
+                    </div>
+                    <div class="kpi-label">
+                        Aktueller Bottleneck
+                    </div>
+                </div>
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-value"
+                         th:text="${report.simulation()
+                                          .simulatedBottleneck()}
+                                   + 's'">
+                    </div>
+                    <div class="kpi-label">
+                        Simulierter Bottleneck
+                    </div>
+                </div>
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-value"
+                         th:text="${#numbers.formatDecimal(
+                                     report.simulation()
+                                           .newEfficiency(),
+                                     1,1)} + '%'">
+                    </div>
+                    <div class="kpi-label">Neue Efficiency</div>
+                </div>
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-value"
+                         th:text="${report.simulation()
+                                          .bottleneckReduction()}
+                                   + 's'">
+                    </div>
+                    <div class="kpi-label">Entlastung</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Vorschlagsliste ──────────────────────────────── -->
+        <div th:if="${#lists.isEmpty(report.suggestions())}"
+             class="no-suggestions">
+            ✅ Keine Optimierungsvorschläge –
+            alle Stationen innerhalb der Schwellenwerte.
+        </div>
+
+        <table th:unless="${#lists.isEmpty(report.suggestions())}"
+               class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Typ</th>
+                    <th>Von</th>
+                    <th>Nach</th>
+                    <th>Operation</th>
+                    <th>Beschreibung</th>
+                    <th style="text-align:right;">Entlastung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="s,iter : ${report.suggestions()}">
+                    <td th:text="${iter.count}"
+                        style="color:#6c757d;font-size:.8rem;">
+                    </td>
+                    <td>
+                        <span th:class="'badge badge-'
+                                        + ${s.type().cssClass}"
+                              th:text="${s.type().label}">
+                        </span>
+                    </td>
+                    <td th:text="${s.fromStation()}"></td>
+                    <td>
+                        <span th:if="${s.fromStation()
+                                       != s.toStation()}"
+                              th:text="${s.toStation()}">
+                        </span>
+                        <span th:if="${s.fromStation()
+                                       == s.toStation()}"
+                              style="color:#6c757d;">–</span>
+                    </td>
+                    <td th:text="${s.operation().getName()}">
+                    </td>
+                    <td th:text="${s.description()}"
+                        style="font-size:.8rem;color:#495057;">
+                    </td>
+                    <td style="text-align:right;">
+                        <span class="improvement-value"
+                              th:text="'-' + ${s.improvement()}
+                                       + 's'">
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div><!-- Ende Karte 2 -->
+
 </div>
 </body>
 </html>

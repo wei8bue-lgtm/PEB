@@ -135,9 +135,29 @@
 <div class="header">
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="${pageTitle}">Dataset Management</h1>
-    <div style="margin-left: auto;">
-        <button onclick="history.back()" class="btn btn-primary">← Zurück</button>
-    </div>
+<div style="margin-left: auto;">
+
+    <!-- DESIGN → zurück zur Design-Detail-Seite -->
+    <a th:if="${revisionType == 'DESIGN' and objectId != null}"
+       th:href="@{/designs/{id}(id=${objectId})}"
+       class="btn btn-primary">← Zurück</a>
+
+    <!-- DESIGN ohne objectId → zurück zur Liste -->
+    <a th:if="${revisionType == 'DESIGN' and objectId == null}"
+       th:href="@{/designs}"
+       class="btn btn-primary">← Zurück</a>
+
+    <!-- EBOM → zurück zur EBOM-Seite -->
+    <a th:if="${revisionType == 'EBOM' and objectId != null}"
+       th:href="@{/ebom/{id}(id=${objectId})}"
+       class="btn btn-primary">← Zurück</a>
+
+    <!-- Fallback -->
+    <a th:if="${revisionType != 'DESIGN' and revisionType != 'EBOM'}"
+       th:href="@{/}"
+       class="btn btn-primary">← Zurück</a>
+
+</div>
 </div>
 
 <div class="container">

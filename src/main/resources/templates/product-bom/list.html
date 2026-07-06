@@ -3,6 +3,8 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Product BOM – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
@@ -18,23 +20,23 @@
 
 <div class="container">
 
-    <!-- Flash -->
+    <!-- ── Flash-Nachrichten ─────────────────────────────────── -->
     <div th:if="${successMessage}" class="card"
-         style="background:#d4edda;border-color:#c3e6cb;
-                padding:1rem;">
-        <p style="margin:0;color:#155724;"
+         style="background:#d4edda; border-color:#c3e6cb;
+                padding:1rem; margin-bottom:1rem;">
+        <p style="margin:0; color:#155724;"
            th:text="${successMessage}"></p>
     </div>
     <div th:if="${errorMessage}" class="card"
-         style="background:#f8d7da;border-color:#f5c6cb;
-                padding:1rem;">
-        <p style="margin:0;color:#721c24;"
+         style="background:#f8d7da; border-color:#f5c6cb;
+                padding:1rem; margin-bottom:1rem;">
+        <p style="margin:0; color:#721c24;"
            th:text="${errorMessage}"></p>
     </div>
 
     <div class="card">
-        <div style="display:flex;justify-content:space-between;
-                    align-items:center;margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between;
+                    align-items:center; margin-bottom:1rem;">
             <h2 style="margin:0;">Product BOM Liste</h2>
             <a th:href="@{/product-bom/new}"
                class="btn btn-primary"
@@ -43,91 +45,152 @@
             </a>
         </div>
 
-        <!-- Suche -->
+        <!-- ── Suche ─────────────────────────────────────────── -->
         <form method="get"
-              style="display:flex;gap:.5rem;margin-bottom:1.5rem;">
+              style="display:flex; gap:.5rem;
+                     margin-bottom:1.5rem;">
             <input type="text"
                    name="search"
                    th:value="${search}"
                    placeholder="Name suchen…"
                    class="search-box"
-                   style="flex:1;max-width:400px;">
-            <button type="submit"
-                    class="btn btn-primary">
+                   style="flex:1; max-width:400px;">
+            <button type="submit" class="btn btn-primary">
                 🔍 Suchen
             </button>
-            <a th:href="@{/product-bom}"
-               class="btn btn-primary">
+            <a th:href="@{/product-bom}" class="btn btn-primary">
                 ✖ Reset
             </a>
         </form>
 
-        <!-- Tabelle -->
-        <table style="width:100%;border-collapse:collapse;">
+        <!-- ── Tabelle ───────────────────────────────────────── -->
+        <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#f8f9fa;
                            border-bottom:2px solid #ddd;">
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         ID
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         Name
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         Version
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
+                        Status
+                    </th>
+                    <th style="padding:.75rem; text-align:left;">
                         ProductData
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         Mfg BOMs
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         Erstellt
                     </th>
-                    <th style="padding:.75rem;text-align:left;">
+                    <th style="padding:.75rem; text-align:left;">
                         Aktionen
                     </th>
                 </tr>
             </thead>
             <tbody>
+
+                <!-- Leer-Zeile -->
                 <tr th:if="${#lists.isEmpty(bomList)}">
-                    <td colspan="7"
-                        style="padding:2rem;text-align:center;
+                    <td colspan="8"
+                        style="padding:2rem; text-align:center;
                                color:#6c757d;">
                         Keine Product BOMs vorhanden.
                     </td>
                 </tr>
+
                 <tr th:each="bom : ${bomList}"
                     style="border-bottom:1px solid #eee;">
-                    <td style="padding:.75rem;">
-                        <span th:text="${bom.id}"
-                              style="font-family:monospace;
-                                     font-weight:600;">
-                        </span>
-                    </td>
-                    <td style="padding:.75rem;">
-                        <a th:href="@{/product-bom/{id}(
-                                        id=${bom.id})}"
-                           th:text="${bom.name}"
-                           style="color:#0066cc;
-                                  font-weight:500;
+
+                    <!-- ID -->
+                    <td style="padding:.75rem;
+                               font-family:monospace;">
+                        <a th:href="@{/product-bom/{id}(id=${bom.id})}"
+                           th:text="${bom.id}"
+                           style="color:#0066cc; font-weight:600;
                                   text-decoration:none;">
                         </a>
                     </td>
-                    <td style="padding:.75rem;text-align:center;">
+
+                    <!-- Name -->
+                    <td style="padding:.75rem;">
+                        <a th:href="@{/product-bom/{id}(id=${bom.id})}"
+                           th:text="${bom.name}"
+                           style="color:#0066cc; font-weight:500;
+                                  text-decoration:none;">
+                        </a>
+                    </td>
+
+                    <!-- Version -->
+                    <td style="padding:.75rem; text-align:center;">
                         <span style="font-size:.8rem;
                                      padding:2px 8px;
                                      background:#e9ecef;
                                      border-radius:10px;"
-                              th:text="${bom.bomVersion}">
+                              th:text="${bom.bomVersion ?: '01'}">
                             01
                         </span>
                     </td>
+
+                    <!-- Status – über latestStatusName -->
+                    <td style="padding:.75rem;">
+                        <th:block th:with="sn=${bom.latestStatusName}">
+                            <span th:if="${sn == 'WORKING'}"
+                                  style="display:inline-block;
+                                         padding:.25rem .6rem;
+                                         border-radius:4px;
+                                         font-size:.8rem;
+                                         font-weight:600;
+                                         background:#fff3cd;
+                                         color:#856404;
+                                         border:1px solid #ffc107;">
+                                ⚙️ WORKING
+                            </span>
+                            <span th:if="${sn == 'RELEASED'}"
+                                  style="display:inline-block;
+                                         padding:.25rem .6rem;
+                                         border-radius:4px;
+                                         font-size:.8rem;
+                                         font-weight:600;
+                                         background:#d4edda;
+                                         color:#155724;
+                                         border:1px solid #28a745;">
+                                ✅ RELEASED
+                            </span>
+                            <span th:if="${sn == 'OBSOLETE'}"
+                                  style="display:inline-block;
+                                         padding:.25rem .6rem;
+                                         border-radius:4px;
+                                         font-size:.8rem;
+                                         font-weight:600;
+                                         background:#f8d7da;
+                                         color:#721c24;
+                                         border:1px solid #f5c6cb;">
+                                🔒 OBSOLETE
+                            </span>
+                            <span th:if="${sn == 'KEINE_REVISION'}"
+                                  style="display:inline-block;
+                                         padding:.25rem .6rem;
+                                         border-radius:4px;
+                                         font-size:.8rem;
+                                         background:#f8f9fa;
+                                         color:#6c757d;
+                                         border:1px solid #dee2e6;">
+                                — Keine Revision
+                            </span>
+                        </th:block>
+                    </td>
+
+                    <!-- ProductData -->
                     <td style="padding:.75rem;">
                         <a th:if="${bom.productData != null}"
-                           th:href="@{/product-data/{id}(
-                                        id=${bom.productData.id})}"
+                           th:href="@{/product-data/{id}(id=${bom.productData.id})}"
                            th:text="${bom.productData.id
                                       + ' – '
                                       + bom.productData.name}"
@@ -136,11 +199,14 @@
                                   font-size:.85rem;">
                         </a>
                         <span th:if="${bom.productData == null}"
-                              style="color:#6c757d;font-size:.85rem;">
+                              style="color:#6c757d;
+                                     font-size:.85rem;">
                             ⚠️ Nicht zugewiesen
                         </span>
                     </td>
-                    <td style="padding:.75rem;text-align:center;">
+
+                    <!-- Mfg BOMs Anzahl -->
+                    <td style="padding:.75rem; text-align:center;">
                         <span style="font-size:.85rem;
                                      font-weight:600;"
                               th:text="${#lists.size(
@@ -148,20 +214,100 @@
                             0
                         </span>
                     </td>
-                    <td style="padding:.75rem;
-                               font-size:.85rem;color:#6c757d;"
+
+                    <!-- Erstellt -->
+                    <td style="padding:.75rem; font-size:.85rem;
+                               color:#6c757d;"
                         th:text="${bom.createdDate != null
                             ? #temporals.format(bom.createdDate,
                                 'dd.MM.yyyy')
                             : '—'}">
                     </td>
+
+                    <!-- Aktionen -->
                     <td style="padding:.75rem;">
-                        <div style="display:flex;gap:.35rem;">
-                            <a th:href="@{/product-bom/{id}(
-                                            id=${bom.id})}"
-                               class="btn btn-primary btn-sm">
-                                👁️
-                            </a>
+                        <div style="display:flex; gap:.35rem;
+                                    align-items:center;
+                                    flex-wrap:wrap;">
+
+                            <!-- View -->
+                            <a th:href="@{/product-bom/{id}(id=${bom.id})}"
+                               class="btn btn-primary btn-sm"
+                               title="Anzeigen">👁️</a>
+
+                            <!-- Edit – nur bei WORKING -->
+                            <div sec:authorize="hasAuthority('WRITE')">
+                                <a th:if="${bom.latestStatusName == 'WORKING'}"
+                                   th:href="@{/product-bom/{id}/edit(id=${bom.id})}"
+                                   class="btn btn-primary btn-sm"
+                                   title="Bearbeiten"
+                                   style="background:#ffc107;
+                                          color:#212529;
+                                          border-color:#ffc107;">
+                                    ✏️
+                                </a>
+                            </div>
+
+                            <!-- Delete -->
+                            <div sec:authorize="hasAuthority('DELETE')">
+
+                                <!-- Löschen erlaubt:
+                                     WORKING + keine PD
+                                     + keine MfgBOMs -->
+                                <form th:if="${bom.latestStatusName == 'WORKING'
+                                              and bom.productData == null
+                                              and #lists.isEmpty(bom.manufacturingBOMs)}"
+                                      th:action="@{/product-bom/{id}/delete(id=${bom.id})}"
+                                      method="post"
+                                      onsubmit="return confirm(
+                                          'Product BOM \''
+                                          + /*[[${bom.name}]]*/ ''
+                                          + '\' wirklich löschen?');">
+                                    <input type="hidden"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}"/>
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Löschen">
+                                        🗑️
+                                    </button>
+                                </form>
+
+                                <!-- Löschen gesperrt –
+                                     RELEASED / OBSOLETE -->
+                                <button th:if="${bom.latestStatusName == 'RELEASED'
+                                                or bom.latestStatusName == 'OBSOLETE'}"
+                                        type="button" disabled
+                                        class="btn btn-sm"
+                                        style="background:#e9ecef;
+                                               color:#6c757d;
+                                               cursor:not-allowed;
+                                               border:1px solid #dee2e6;"
+                                        title="Löschen nicht möglich: Status ist nicht WORKING">
+                                    🔒
+                                </button>
+
+                                <!-- Löschen gesperrt –
+                                     Verknüpfungen vorhanden -->
+                                <button th:if="${bom.latestStatusName == 'WORKING'
+                                                and (bom.productData != null
+                                                     or !#lists.isEmpty(bom.manufacturingBOMs))}"
+                                        type="button" disabled
+                                        class="btn btn-sm"
+                                        style="background:#e9ecef;
+                                               color:#6c757d;
+                                               cursor:not-allowed;
+                                               border:1px solid #dee2e6;"
+                                        th:title="${bom.productData != null
+                                                   and !#lists.isEmpty(bom.manufacturingBOMs)
+                                                   ? 'Löschen nicht möglich: ProductData und Mfg BOMs verknüpft'
+                                                   : bom.productData != null
+                                                   ? 'Löschen nicht möglich: ProductData verknüpft'
+                                                   : 'Löschen nicht möglich: Mfg BOMs verknüpft'}">
+                                    🔒
+                                </button>
+
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -169,7 +315,7 @@
         </table>
 
         <!-- Statistik -->
-        <div style="margin-top:1rem;font-size:.85rem;
+        <div style="margin-top:1rem; font-size:.85rem;
                     color:#6c757d;">
             Gesamt:
             <strong th:text="${#lists.size(bomList)}">0</strong>
