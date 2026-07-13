@@ -1,9 +1,11 @@
 package com.peb.controller;
 
 import com.peb.dto.EBOMObjectDTO;
+import com.peb.dto.EclassClassificationDTO;
 import com.peb.model.ebom.*;
 import com.peb.service.EBOMService;
 import com.peb.service.DesignService;
+import com.peb.service.EclassService;
 import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +25,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EBOMController {
 
-    private final EBOMService ebomService;
-    private final DesignService designService;
+    private final EBOMService   ebomService;
+    private final DesignService  designService;
+    private final EclassService  eclassService;
 
     @GetMapping
     public String listEBOM(Model model) {
@@ -95,7 +98,12 @@ public class EBOMController {
                 // Design not found or deleted
             }
         }
-        
+
+        // ECLASS-Klassifizierung laden
+        EclassClassificationDTO eclassClassification =
+                eclassService.getClassification(id, ebomObject.getObjectType());
+        model.addAttribute("eclassClassification", eclassClassification);
+
         return "ebom-view";
     }
 

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLASS Klassifizierung - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .eclass-search-wrap { position: relative; }
+        .eclass-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+            background: #fff; border: 1px solid #ced4da; border-radius: 0 0 4px 4px;
+            max-height: 260px; overflow-y: auto; display: none;
+        }
+        .eclass-dropdown.open { display: block; }
+        .eclass-option {
+            padding: .4rem .7rem; cursor: pointer; font-size: .9rem; border-bottom: 1px solid #f0f0f0;
+        }
+        .eclass-option:hover { background: #e8f0fe; }
+        .eclass-option .code { font-weight: 700; color: #333; margin-right: .4rem; }
+        .prop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem 1.5rem; }
+        .prop-field label { font-size: .85rem; color: #555; margin-bottom: .2rem; display: block; }
+        .prop-field input { width: 100%; padding: .4rem .6rem; border: 1px solid #ced4da; border-radius: 4px; }
+        .prop-unit { font-size: .8rem; color: #888; margin-top: .2rem; }
+        .selected-class-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: #e8f0fe; border: 1px solid #c5d9f9; border-radius: 6px;
+            padding: .4rem .8rem; margin-bottom: 1rem; font-size: .9rem;
+        }
+        .selected-class-badge .code { font-weight: 700; color: #1a73e8; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>ECLASS Klassifizierung</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/}" class="btn btn-secondary">← Zurück</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Objekt-Info -->
+    <div class="card">
+        <h3>Objekt</h3>
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <td th:text="${objectId}"></td>
+                <th>Typ</th>
+                <td th:text="${objectType}"></td>
+            </tr>
+        </table>
+
+        <!-- Bestehende Klassifizierung anzeigen -->
+        <div th:if="${classification != null}" class="selected-class-badge">
+            <span>Aktuelle Klasse:</span>
+            <span class="code" th:text="${classification.eclassCode}"></span>
+            <span th:text="${classification.eclassName}"></span>
+            <span style="color:#888;font-size:.8rem" th:text="'v' + ${classification.eclassVersion}"></span>
+        </div>
+    </div>
+
+    <!-- Klassifizierungsformular -->
+    <div class="card">
+        <h3>ECLASS-Klasse zuweisen</h3>
+
+        <form th:action="@{'/eclass/classify/' + ${objectType} + '/' + ${objectId}}"
+              method="post" id="classifyForm">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+            <!-- Klassen-Suche -->
+            <div class="form-group" style="margin-bottom:1rem">
+                <label><strong>ECLASS-Klasse suchen</strong></label>
+                <div class="eclass-search-wrap">
+                    <input type="text" id="classSearch" class="form-control"
+                           placeholder="Name oder Code eingeben (z.B. Elektromotor, 27-37)…"
+                           autocomplete="off"
+                           th:value="${classification != null ? classification.eclassCode + ' – ' + classification.eclassName : ''}">
+                    <div class="eclass-dropdown" id="classDropdown"></div>
+                </div>
+                <input type="hidden" name="eclassClassId" id="eclassClassId"
+                       th:value="${classification?.eclassClassId}"/>
+            </div>
+
+            <!-- Property-Formular (wird dynamisch geladen) -->
+            <div id="propertySection"></div>
+
+            <div style="margin-top:1.5rem;display:flex;gap:.75rem">
+                <button type="submit" class="btn btn-primary"
+                        id="saveBtn" disabled>Klassifizierung speichern</button>
+                <a th:href="@{'/' + ${objectType.name().toLowerCase()} + 's/' + ${objectId}}"
+                   class="btn btn-secondary">Abbrechen</a>
+
+                <!-- Klassifizierung entfernen -->
+                <div th:if="${classification != null}" style="margin-left:auto">
+                    <form th:action="@{'/eclass/remove/' + ${objectType} + '/' + ${objectId}}"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('Klassifizierung wirklich entfernen?')">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-danger">Klassifizierung entfernen</button>
+                    </form>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ECLASS-Katalog-Link -->
+    <div class="card" style="padding:.75rem 1rem">
+        <a th:href="@{/eclass}" target="_blank">📂 ECLASS-Katalog öffnen</a>
+        &nbsp;|&nbsp;
+        <a th:href="@{'/eclass/similar/' + ${objectType} + '/' + ${objectId}}">
+            🔄 Ähnliche Objekte anzeigen
+        </a>
+    </div>
+</div>
+
+<script>
+const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+const classIdInput = document.getElementById('eclassClassId');
+const saveBtn = document.getElementById('saveBtn');
+
+// Bereits geladene Klasse vorhanden? → Button aktivieren
+if (classIdInput.value) saveBtn.disabled = false;
+
+// ── Suche ─────────────────────────────────────────────────────────────────
+let searchTimer;
+document.getElementById('classSearch').addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    const term = this.value.trim();
+    if (term.length < 2) { closeDropdown(); return; }
+    searchTimer = setTimeout(() => fetchClasses(term), 250);
+});
+
+async function fetchClasses(term) {
+    const res  = await fetch(`/api/v1/eclass/search?term=${encodeURIComponent(term)}`);
+    const data = await res.json();
+    renderDropdown(data);
+}
+
+function renderDropdown(classes) {
+    const dd = document.getElementById('classDropdown');
+    if (!classes.length) { dd.innerHTML = '<div class="eclass-option" style="color:#888">Keine Treffer</div>'; }
+    else {
+        dd.innerHTML = classes
+            .filter(c => c.classLevel === 4)   // nur Commodities klassifizierbar
+            .map(c => `<div class="eclass-option" onclick="selectClass(${c.id},'${escHtml(c.code)}','${escHtml(c.name||c.nameEn||'')}')">
+                <span class="code">${escHtml(c.code)}</span>${escHtml(c.name||c.nameEn||'')}
+            </div>`).join('');
+        if (!dd.innerHTML) dd.innerHTML = '<div class="eclass-option" style="color:#888">Nur Commodities (Ebene 4) können klassifiziert werden.</div>';
+    }
+    dd.classList.add('open');
+}
+
+function closeDropdown() {
+    document.getElementById('classDropdown').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.eclass-search-wrap')) closeDropdown();
+});
+
+// ── Klasse auswählen ──────────────────────────────────────────────────────
+async function selectClass(id, code, name) {
+    document.getElementById('classSearch').value = code + ' – ' + name;
+    classIdInput.value = id;
+    closeDropdown();
+    saveBtn.disabled = false;
+    await loadProperties(id);
+}
+
+async function loadProperties(classId) {
+    const res  = await fetch(`/api/v1/eclass/classes/${classId}`);
+    const data = await res.json();
+
+    const section = document.getElementById('propertySection');
+    if (!data.properties || !data.properties.length) {
+        section.innerHTML = '<p style="color:#888;margin-top:.5rem">Diese Klasse hat keine Merkmale definiert.</p>';
+        return;
+    }
+
+    section.innerHTML = `
+        <h4 style="margin-top:1rem">Merkmale ausfüllen</h4>
+        <div class="prop-grid">
+            ${data.properties.map(p => `
+                <div class="prop-field">
+                    <label>${escHtml(p.name||p.nameEn||'Merkmal ' + p.id)}</label>
+                    <input type="text" name="prop_${p.id}"
+                           placeholder="${escHtml(p.dataType||'Wert')}">
+                    ${p.unit ? `<div class="prop-unit">Einheit: ${escHtml(p.unit)}</div>` : ''}
+                </div>`).join('')}
+        </div>`;
+}
+
+// Initial laden falls Klasse schon gesetzt
+(async () => {
+    const existingId = classIdInput.value;
+    if (existingId) await loadProperties(existingId);
+})();
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

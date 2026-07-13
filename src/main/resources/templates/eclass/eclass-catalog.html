@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLASS Katalog - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .eclass-search-box { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+        .eclass-search-box input {
+            flex: 1; padding: .55rem .75rem; border: 1px solid #ced4da;
+            border-radius: 4px; font-size: .95rem;
+        }
+        .tree-panel { display: flex; gap: 1rem; }
+        .tree-col {
+            flex: 1; border: 1px solid #dee2e6; border-radius: 6px;
+            padding: .75rem; max-height: 520px; overflow-y: auto;
+        }
+        .tree-col h4 { margin: 0 0 .5rem; font-size: .85rem; color: #6c757d; text-transform: uppercase; }
+        .tree-item {
+            display: block; padding: .35rem .5rem; border-radius: 4px;
+            cursor: pointer; font-size: .9rem; text-decoration: none; color: inherit;
+        }
+        .tree-item:hover, .tree-item.active { background: #e8f0fe; color: #1a73e8; }
+        .tree-item .code { font-weight: 600; margin-right: .4rem; color: #555; }
+        .search-result-list { margin-top: .5rem; }
+        .search-result-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: .4rem .6rem; border-radius: 4px; border-bottom: 1px solid #f0f0f0;
+        }
+        .search-result-item:hover { background: #f8f9fa; }
+        .badge-level { font-size: .72rem; padding: .15rem .4rem; border-radius: 3px; color: #fff; }
+        .level-1 { background: #6c757d; }
+        .level-2 { background: #17a2b8; }
+        .level-3 { background: #28a745; }
+        .level-4 { background: #007bff; }
+        .stat-badge {
+            display: inline-block; background: #e8f0fe; color: #1a73e8;
+            padding: .2rem .6rem; border-radius: 10px; font-size: .85rem; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>ECLASS Katalog</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/}" class="btn btn-secondary">&larr; Zurueck</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Statistik -->
+    <div class="card" style="display:flex;gap:2rem;align-items:center;">
+        <div>
+            <strong>ECLASS Katalog</strong> &nbsp;
+            <span th:if="${versions != null and !versions.empty}">
+                Version(en):
+                <span th:each="v : ${versions}" class="stat-badge" th:text="${v}"></span>
+            </span>
+            <span th:unless="${versions != null and !versions.empty}" style="color:#888">
+                Noch kein Katalog importiert
+            </span>
+        </div>
+        <div>
+            <span class="stat-badge" th:text="${commodityCount} + ' Commodities'"></span>
+        </div>
+        <div sec:authorize="hasRole('ADMIN')" style="margin-left:auto">
+            <a th:href="@{/eclass/import}" class="btn btn-primary">&#x2B06; XML importieren</a>
+        </div>
+    </div>
+
+    <!-- Suche -->
+    <div class="card">
+        <h3>Klassensuche</h3>
+        <div class="eclass-search-box">
+            <input type="text" id="eclassSearch"
+                   placeholder="Klasse suchen (z.B. Elektromotor, 27-37-04, motor)..."
+                   autocomplete="off">
+            <button class="btn btn-primary" onclick="doSearch()">Suchen</button>
+        </div>
+        <div id="searchResults" class="search-result-list"></div>
+    </div>
+
+    <!-- Hierarchie-Browser -->
+    <div class="card">
+        <h3>Hierarchie-Browser</h3>
+        <p style="color:#888;font-size:.9rem">Klicken Sie auf ein Segment um die Untergruppen zu laden.</p>
+        <div class="tree-panel">
+
+            <div class="tree-col">
+                <h4>Segment</h4>
+                <div id="colSegment">
+                    <div th:if="${segments == null or segments.empty}" style="color:#888">
+                        Kein Katalog vorhanden.
+                    </div>
+                    <a th:each="seg : ${segments}"
+                       class="tree-item"
+                       th:id="'seg-' + ${seg.code}"
+                       th:attr="data-code=${seg.code}"
+                       href="#"
+                       onclick="loadLevel('maingroup', this.getAttribute('data-code'), this); return false;">
+                        <span class="code" th:text="${seg.code}"></span>
+                        <span th:text="${seg.name} ?: ${seg.nameEn}"></span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="tree-col">
+                <h4>Hauptgruppe</h4>
+                <div id="colMainGroup"><span style="color:#ccc">&larr; Segment waehlen</span></div>
+            </div>
+
+            <div class="tree-col">
+                <h4>Gruppe</h4>
+                <div id="colGroup"><span style="color:#ccc">&larr; Hauptgruppe waehlen</span></div>
+            </div>
+
+            <div class="tree-col">
+                <h4>Commodity</h4>
+                <div id="colCommodity"><span style="color:#ccc">&larr; Gruppe waehlen</span></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+var colMap  = { maingroup:'colMainGroup', group:'colGroup', commodity:'colCommodity' };
+var sibCol  = { maingroup:'colSegment',   group:'colMainGroup', commodity:'colGroup' };
+var order   = ['maingroup','group','commodity'];
+var nextLvl = { maingroup:'group', group:'commodity', commodity:null };
+var lvlLabel = ['','Segment','Hauptgruppe','Gruppe','Commodity'];
+
+function loadLevel(level, parent, clickedEl) {
+    document.querySelectorAll('#' + sibCol[level] + ' .tree-item')
+            .forEach(function(el) { el.classList.remove('active'); });
+    if (clickedEl) clickedEl.classList.add('active');
+
+    var idx = order.indexOf(level);
+    for (var i = idx; i < order.length; i++) {
+        document.getElementById(colMap[order[i]]).innerHTML =
+            '<span style="color:#ccc">&#x2190; Waehlen</span>';
+    }
+
+    var col = document.getElementById(colMap[level]);
+    col.innerHTML = '<span style="color:#aaa">Lade...</span>';
+
+    fetch('/eclass/browse?level=' + encodeURIComponent(level) + '&parent=' + encodeURIComponent(parent))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.length) {
+                col.innerHTML = '<span style="color:#888">Keine Eintraege</span>';
+                return;
+            }
+            col.innerHTML = data.map(function(c) {
+                var name = c.name || c.nameEn || '';
+                if (nextLvl[level]) {
+                    return '<a class="tree-item" href="#" onclick="loadLevel(\'' + nextLvl[level] + '\',\'' + escHtml(c.code) + '\',this);return false;">'
+                         + '<span class="code">' + escHtml(c.code) + '</span> ' + escHtml(name)
+                         + '</a>';
+                } else {
+                    return '<a class="tree-item" href="/eclass/' + c.id + '">'
+                         + '<span class="code">' + escHtml(c.code) + '</span> ' + escHtml(name)
+                         + '</a>';
+                }
+            }).join('');
+        })
+        .catch(function(err) {
+            col.innerHTML = '<span style="color:red">Fehler: ' + err.message + '</span>';
+        });
+}
+
+function doSearch() {
+    var term = document.getElementById('eclassSearch').value.trim();
+    if (!term) return;
+    var el = document.getElementById('searchResults');
+    el.innerHTML = '<span style="color:#aaa">Suche...</span>';
+
+    fetch('/eclass/search?term=' + encodeURIComponent(term))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.length) { el.innerHTML = '<p style="color:#888">Keine Ergebnisse gefunden.</p>'; return; }
+            el.innerHTML = data.map(function(c) {
+                var name = c.name || c.nameEn || '';
+                var lvl  = c.classLevel || 4;
+                return '<div class="search-result-item">'
+                     + '<span><span class="badge-level level-' + lvl + '">' + (lvlLabel[lvl]||'') + '</span>'
+                     + ' <strong>' + escHtml(c.code) + '</strong> &ndash; ' + escHtml(name) + '</span>'
+                     + '<a href="/eclass/' + c.id + '" class="btn btn-secondary" style="padding:.2rem .6rem;font-size:.8rem">Detail</a>'
+                     + '</div>';
+            }).join('');
+        })
+        .catch(function(err) {
+            el.innerHTML = '<p style="color:red">Fehler: ' + err.message + '</p>';
+        });
+}
+
+document.getElementById('eclassSearch').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doSearch();
+});
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

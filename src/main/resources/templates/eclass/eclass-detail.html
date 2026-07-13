@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLASS Klassen-Detail - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .irdi-badge {
+            font-family: monospace; background: #f8f9fa; border: 1px solid #dee2e6;
+            padding: .15rem .5rem; border-radius: 3px; font-size: .85rem;
+        }
+        .prop-table th { width: 35%; background: #f8f9fa; }
+        .hierarchy-path {
+            display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+        }
+        .hierarchy-step {
+            display: flex; align-items: center; gap: .3rem;
+            background: #e8f0fe; padding: .2rem .6rem; border-radius: 12px; font-size: .85rem;
+        }
+        .hierarchy-step .code { font-weight: 700; color: #1a73e8; }
+        .sep { color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>ECLASS Klassen-Detail</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/eclass}" class="btn btn-secondary">← Katalog</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Hierarchie-Pfad -->
+    <div class="card">
+        <div class="hierarchy-path">
+            <div class="hierarchy-step" th:if="${eclassClass.segment != null}">
+                <span class="code" th:text="${eclassClass.segment}"></span>
+                <span>Segment</span>
+            </div>
+            <span class="sep" th:if="${eclassClass.mainGroup != null}">›</span>
+            <div class="hierarchy-step" th:if="${eclassClass.mainGroup != null}">
+                <span class="code" th:text="${eclassClass.mainGroup}"></span>
+                <span>Hauptgruppe</span>
+            </div>
+            <span class="sep" th:if="${eclassClass.groupCode != null}">›</span>
+            <div class="hierarchy-step" th:if="${eclassClass.groupCode != null}">
+                <span class="code" th:text="${eclassClass.groupCode}"></span>
+                <span>Gruppe</span>
+            </div>
+            <span class="sep" th:if="${eclassClass.classLevel == 4}">›</span>
+            <div class="hierarchy-step" th:if="${eclassClass.classLevel == 4}"
+                 style="background:#1a73e8;color:#fff">
+                <span class="code" style="color:#fff" th:text="${eclassClass.code}"></span>
+                <span>Commodity</span>
+            </div>
+        </div>
+
+        <!-- Hauptattribute -->
+        <table class="table">
+            <tr>
+                <th>ECLASS-Code</th>
+                <td><strong th:text="${eclassClass.code}"></strong></td>
+                <th>Version</th>
+                <td th:text="${eclassClass.version}"></td>
+            </tr>
+            <tr>
+                <th>Name (DE)</th>
+                <td th:text="${eclassClass.name}"></td>
+                <th>Name (EN)</th>
+                <td th:text="${eclassClass.nameEn}"></td>
+            </tr>
+            <tr>
+                <th>IRDI</th>
+                <td><span class="irdi-badge" th:text="${eclassClass.irdi}"></span></td>
+                <th>Ebene</th>
+                <td th:text="${eclassClass.classLevel == 1 ? 'Segment' :
+                               eclassClass.classLevel == 2 ? 'Hauptgruppe' :
+                               eclassClass.classLevel == 3 ? 'Gruppe' : 'Commodity'}"></td>
+            </tr>
+            <tr th:if="${eclassClass.definition != null}">
+                <th>Definition</th>
+                <td colspan="3" th:text="${eclassClass.definition}"></td>
+            </tr>
+            <tr th:if="${eclassClass.keywords != null}">
+                <th>Schlagwörter</th>
+                <td colspan="3" th:text="${eclassClass.keywords}"></td>
+            </tr>
+        </table>
+
+        <!-- Objekte dieser Klasse -->
+        <a th:href="@{'/eclass/objects/' + ${eclassClass.code}}" class="btn btn-secondary">
+            🔍 Alle Objekte dieser Klasse anzeigen
+        </a>
+    </div>
+
+    <!-- Merkmale / Properties -->
+    <div class="card" th:if="${eclassClass.properties != null and !eclassClass.properties.empty}">
+        <h3>Merkmale (<span th:text="${eclassClass.properties.size()}"></span>)</h3>
+        <table class="table prop-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IRDI</th>
+                    <th>Name (DE)</th>
+                    <th>Name (EN)</th>
+                    <th>Einheit</th>
+                    <th>Datentyp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="prop, stat : ${eclassClass.properties}">
+                    <td th:text="${stat.count}"></td>
+                    <td><span class="irdi-badge" th:text="${prop.irdi}"></span></td>
+                    <td th:text="${prop.name}"></td>
+                    <td th:text="${prop.nameEn}"></td>
+                    <td th:text="${prop.unit}"></td>
+                    <td th:text="${prop.dataType}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card" th:unless="${eclassClass.properties != null and !eclassClass.properties.empty}">
+        <p style="color:#888">Keine Merkmale für diese Klasse definiert (BASIC-Import oder Klasse ohne Merkmale).</p>
+    </div>
+
+</div>
+</body>
+</html>

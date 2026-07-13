@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLASS XML Import - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .upload-zone {
+            border: 2px dashed #ced4da; border-radius: 8px; padding: 2.5rem;
+            text-align: center; cursor: pointer; transition: border-color .2s, background .2s;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: #1a73e8; background: #e8f0fe;
+        }
+        .upload-zone .icon { font-size: 3rem; margin-bottom: .5rem; }
+        .upload-zone p { color: #666; margin: .4rem 0; }
+        .file-selected { background: #f0fff4; border-color: #28a745 !important; }
+        .progress-bar-wrap {
+            background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden; display: none;
+        }
+        .progress-bar {
+            height: 100%; background: #1a73e8; width: 0; transition: width .3s;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: .8rem;
+        }
+        .stat-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: .5rem; }
+        .stat-item {
+            background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;
+            padding: .5rem 1rem; text-align: center;
+        }
+        .stat-item .num { font-size: 1.5rem; font-weight: 700; color: #1a73e8; }
+        .stat-item .label { font-size: .8rem; color: #666; }
+        .info-box {
+            background: #e8f0fe; border-left: 4px solid #1a73e8;
+            padding: .75rem 1rem; border-radius: 4px; font-size: .9rem;
+        }
+        .warn-box {
+            background: #fff3cd; border-left: 4px solid #ffc107;
+            padding: .75rem 1rem; border-radius: 4px; font-size: .9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>ECLASS XML Import</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/eclass}" class="btn btn-secondary">← Katalog</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+    <div th:if="${info}"    class="alert alert-info"    th:text="${info}"></div>
+
+    <!-- Aktuelle Katalog-Statistik -->
+    <div class="card">
+        <h3>Aktueller Katalog</h3>
+        <div class="stat-row">
+            <div class="stat-item">
+                <div class="num" th:text="${commodityCount}">0</div>
+                <div class="label">Commodities (Ebene 4)</div>
+            </div>
+            <div class="stat-item">
+                <div class="num">
+                    <span th:if="${versions != null and !versions.empty}"
+                          th:text="${versions[0]}">–</span>
+                    <span th:unless="${versions != null and !versions.empty}">–</span>
+                </div>
+                <div class="label">Aktuelle Version</div>
+            </div>
+            <div class="stat-item" th:if="${versions != null and versions.size() > 1}">
+                <div class="num" th:text="${versions.size()}"></div>
+                <div class="label">Versionen</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import-Anleitung -->
+    <div class="card">
+        <h3>Hinweise zum Import</h3>
+        <div class="info-box">
+            <strong>Unterstützte Formate:</strong>
+            ECLASS Advanced XML (ZIP oder Einzel-XML), alle Versionen ab 10.x.<br>
+            Die Datei kann direkt von <strong>eclass.eu</strong> heruntergeladen werden
+            (Mitgliedschaft erforderlich).<br><br>
+            <strong>Verhalten beim Re-Import:</strong>
+            Bestehende Klassen werden aktualisiert, neue hinzugefügt.
+            Bereits zugewiesene Klassifizierungen bleiben erhalten.
+        </div>
+    </div>
+
+    <!-- Upload-Formular -->
+    <div class="card">
+        <h3>Datei importieren</h3>
+
+        <form th:action="@{/eclass/import}" method="post"
+              enctype="multipart/form-data" id="importForm">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+            <!-- Drag-and-Drop Zone -->
+            <div class="upload-zone" id="dropZone"
+                 onclick="document.getElementById('importFile').click()">
+                <div class="icon">&#128196;</div>
+                <p><strong>XML- oder ZIP-Datei auswaehlen</strong> oder hier ablegen</p>
+                <p id="fileNameDisplay" style="color:#888">Noch keine Datei ausgewaehlt</p>
+            </div>
+            <input type="file" name="file" id="importFile" accept=".xml,.zip"
+                   style="display:none" onchange="onFileSelected(this)">
+
+            <!-- Optionale Versions-Angabe -->
+            <div class="form-group" style="margin-top:1rem">
+                <label>Version (optional, wird automatisch erkannt):</label>
+                <input type="text" name="forceVersion" placeholder="z.B. 16.0"
+                       style="max-width:200px;padding:.4rem .6rem;border:1px solid #ced4da;border-radius:4px">
+            </div>
+
+            <!-- Fortschrittsanzeige -->
+            <div class="progress-bar-wrap" id="progressWrap" style="margin-top:1rem">
+                <div class="progress-bar" id="progressBar">Importiere&#x2026;</div>
+            </div>
+
+            <div style="margin-top:1.5rem;display:flex;gap:.75rem">
+                <button type="submit" class="btn btn-primary" id="importBtn" disabled
+                        onclick="startImport()">
+                    Import starten
+                </button>
+                <a th:href="@{/eclass}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Admin: Hierarchie reparieren -->
+    <div class="card">
+        <h3>Hierarchie reparieren</h3>
+        <div class="warn-box" style="margin-bottom:1rem">
+            <strong>Einmalig nach Erstimport ausfuehren</strong> – korrigiert Segment, Hauptgruppe,
+            Gruppe und Ebene (1–4) aller importierten Klassen aus dem ECLASS-Code.
+            Danach ist der Hierarchie-Browser im Katalog verfuegbar.
+        </div>
+        <form th:action="@{/eclass/admin/fix-hierarchy}" method="post"
+              onsubmit="return confirm('Hierarchie-Felder fuer alle ECLASS-Klassen neu berechnen?')">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-warning">Hierarchie jetzt reparieren</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('importFile');
+const importBtn = document.getElementById('importBtn');
+
+dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        onFileSelected(fileInput);
+    }
+});
+
+function onFileSelected(input) {
+    if (input.files.length) {
+        const file = input.files[0];
+        document.getElementById('fileNameDisplay').textContent =
+            file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+        dropZone.classList.add('file-selected');
+        importBtn.disabled = false;
+    }
+}
+
+function startImport() {
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar  = document.getElementById('progressBar');
+    progressWrap.style.display = 'block';
+    importBtn.disabled = true;
+    importBtn.textContent = 'Importiere… (kann mehrere Minuten dauern)';
+
+    let w = 0;
+    const interval = setInterval(() => {
+        w = Math.min(w + Math.random() * 3, 85);
+        progressBar.style.width = w + '%';
+        progressBar.textContent = Math.round(w) + '%';
+    }, 500);
+
+    document.getElementById('importForm').submit();
+}
+</script>
+</body>
+</html>

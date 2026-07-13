@@ -1,11 +1,14 @@
 package com.peb.controller;
 
 import com.peb.dto.DesignDTO;
+import com.peb.dto.EclassClassificationDTO;
 import com.peb.model.base.Dataset;
 import com.peb.model.cad.Design;
 import com.peb.model.ebom.DatasetCategory;
 import com.peb.service.DatasetService;
 import com.peb.service.DesignService;
+import com.peb.service.EclassService;
+import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -22,6 +25,7 @@ public class DesignController {
 
     private final DesignService  designService;
     private final DatasetService datasetService;
+    private final EclassService  eclassService;
 
     @GetMapping
     public String listDesigns(Model model) {
@@ -97,6 +101,11 @@ public String viewDesign(@PathVariable String id, Model model,HttpServletRespons
         model.addAttribute("embeddedDataset",  null);
         model.addAttribute("embeddedCategory", null);
     }
+
+    // ECLASS-Klassifizierung laden
+    EclassClassificationDTO eclassClassification =
+            eclassService.getClassification(id, ObjectType.DESIGN);
+    model.addAttribute("eclassClassification", eclassClassification);
 
     return "designs/design-view";
 }

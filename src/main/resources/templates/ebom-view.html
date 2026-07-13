@@ -581,5 +581,79 @@
 
 </script>
 
+<!-- ══ ECLASS-Klassifizierung ════════════════════════════════ -->
+<div class="card" style="border-left: 4px solid #1a73e8;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;">
+        <h3 style="margin:0;">🏷️ ECLASS-Klassifizierung</h3>
+        <div style="display:flex; gap:.5rem;" sec:authorize="hasAuthority('WRITE')">
+            <a th:href="@{'/eclass/classify/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}"
+               class="btn btn-primary btn-sm">
+                <span th:text="${eclassClassification != null ? '✏️ Ändern' : '+ Klassifizieren'}"></span>
+            </a>
+            <a th:if="${eclassClassification != null}"
+               th:href="@{'/eclass/similar/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}"
+               class="btn btn-secondary btn-sm" title="Ähnliche Objekte finden">
+                🔄 Ähnliche
+            </a>
+        </div>
+    </div>
+
+    <!-- Klassifizierung vorhanden -->
+    <div th:if="${eclassClassification != null}">
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <th style="width:180px; padding:.4rem; background:#f8f9fa;">ECLASS-Code</th>
+                <td style="padding:.4rem;">
+                    <strong th:text="${eclassClassification.eclassCode}"></strong>
+                    &nbsp;
+                    <a th:href="@{'/eclass/objects/' + ${eclassClassification.eclassCode}}"
+                       style="font-size:.85rem; color:#1a73e8;">
+                        Alle Objekte dieses Codes
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <th style="padding:.4rem; background:#f8f9fa;">Bezeichnung</th>
+                <td style="padding:.4rem;" th:text="${eclassClassification.eclassName}"></td>
+            </tr>
+            <tr>
+                <th style="padding:.4rem; background:#f8f9fa;">Version</th>
+                <td style="padding:.4rem;" th:text="${eclassClassification.eclassVersion}"></td>
+            </tr>
+            <tr th:if="${eclassClassification.eclassIrdi != null}">
+                <th style="padding:.4rem; background:#f8f9fa;">IRDI</th>
+                <td style="padding:.4rem;">
+                    <code style="font-size:.85rem;" th:text="${eclassClassification.eclassIrdi}"></code>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Merkmalswerte -->
+        <div th:if="${!eclassClassification.propertyValues.empty}"
+             style="margin-top:.75rem;">
+            <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;">Merkmalswerte</h4>
+            <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
+                <tr th:each="entry : ${eclassClassification.propertyValues}">
+                    <th style="width:50%; padding:.3rem .5rem; background:#f8f9fa; font-weight:500;"
+                        th:text="${eclassClassification.propertyNames[entry.key]}"></th>
+                    <td style="padding:.3rem .5rem;">
+                        <span th:text="${entry.value}"></span>
+                        <span th:if="${eclassClassification.propertyUnits[entry.key] != null}"
+                              style="color:#888; font-size:.85rem;"
+                              th:text="' ' + ${eclassClassification.propertyUnits[entry.key]}"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Noch nicht klassifiziert -->
+    <div th:unless="${eclassClassification != null}"
+         style="color:#888; display:flex; align-items:center; gap:.75rem; padding:.5rem 0;">
+        <span style="font-size:1.5rem; opacity:.4;">🏷️</span>
+        <span>Dieses Objekt ist noch nicht ECLASS-klassifiziert.</span>
+    </div>
+</div>
+
 </body>
 </html>

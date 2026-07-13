@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ähnliche Objekte - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .type-badge {
+            display: inline-block; padding: .15rem .5rem; border-radius: 3px;
+            font-size: .8rem; font-weight: 600; color: #fff;
+        }
+        .type-DESIGN    { background: #17a2b8; }
+        .type-DRAWING   { background: #17a2b8; }
+        .type-MACHINE   { background: #dc3545; }
+        .type-SYSTEM    { background: #fd7e14; }
+        .type-SUBSYSTEM { background: #007bff; }
+        .type-MODULE    { background: #28a745; }
+        .type-SUBMODULE { background: #6c757d; }
+        .type-PART      { background: #343a40; }
+        .type-AUXILIARY { background: #adb5bd; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>Ähnliche Objekte (Wiederverwendung)</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="${detailUrl}" class="btn btn-secondary">← Zurück zum Objekt</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Referenz-Objekt -->
+    <div class="card">
+        <h3>Referenz-Objekt</h3>
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <td th:text="${objectId}"></td>
+                <th>Typ</th>
+                <td>
+                    <span class="type-badge"
+                          th:classappend="'type-' + ${objectType}"
+                          th:text="${objectType}"></span>
+                </td>
+            </tr>
+            <tr th:if="${classification != null}">
+                <th>ECLASS-Klasse</th>
+                <td>
+                    <strong th:text="${classification.eclassCode}"></strong>
+                    – <span th:text="${classification.eclassName}"></span>
+                </td>
+                <th>Version</th>
+                <td th:text="${classification.eclassVersion}"></td>
+            </tr>
+        </table>
+
+        <div th:unless="${classification != null}" class="alert alert-warning">
+            Dieses Objekt hat noch keine ECLASS-Klassifizierung.
+            <a th:href="@{'/eclass/classify/' + ${objectType} + '/' + ${objectId}}">
+                Jetzt klassifizieren
+            </a>
+        </div>
+    </div>
+
+    <!-- Ähnliche Objekte -->
+    <div class="card" th:if="${classification != null}">
+        <h3>
+            Objekte mit derselben ECLASS-Klasse
+            <span th:text="'(' + ${similarObjects.size()} + ')'"></span>
+        </h3>
+
+        <div th:if="${similarObjects.empty}" style="color:#888;padding:1rem 0">
+            Keine ähnlichen Objekte gefunden. Klassifizieren Sie weitere Objekte
+            mit dem Code <strong th:text="${classification.eclassCode}"></strong>,
+            um sie hier zu sehen.
+        </div>
+
+        <table class="table" th:unless="${similarObjects.empty}">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Typ</th>
+                    <th>Name</th>
+                    <th>Abteilung</th>
+                    <th>ECLASS</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="obj : ${similarObjects}">
+                    <td><code th:text="${obj.objectId}"></code></td>
+                    <td>
+                        <span class="type-badge"
+                              th:classappend="'type-' + ${obj.objectType}"
+                              th:text="${obj.objectType}"></span>
+                    </td>
+                    <td th:text="${obj.objectName}"></td>
+                    <td th:text="${obj.objectDepartment}"></td>
+                    <td>
+                        <strong th:text="${obj.eclassCode}"></strong><br>
+                        <small th:text="${obj.eclassName}" style="color:#666"></small>
+                    </td>
+                    <td>
+                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary">
+                            Öffnen
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Link zum ECLASS-Code-Browser -->
+        <div style="margin-top:1rem">
+            <a th:href="@{'/eclass/objects/' + ${classification.eclassCode}}"
+               class="btn btn-secondary">
+                Alle Objekte von <span th:text="${classification.eclassCode}"></span> anzeigen
+            </a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
