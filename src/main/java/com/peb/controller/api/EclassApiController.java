@@ -24,11 +24,24 @@ public class EclassApiController {
     /**
      * Volltextsuche im ECLASS-Katalog (für Autocomplete-Dropdown).
      * GET /api/v1/eclass/search?term=motor
+     * GET /api/v1/eclass/search?term=stahl&objectType=MATERIAL
+     *   → bei objectType=MATERIAL werden nur Treffer aus den für Materialien
+     *     zulässigen Segmenten 35-* / 31-* zurückgegeben. Für alle anderen
+     *     Objekttypen (oder ohne Parameter) unverändertes Verhalten.
      */
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<List<EclassClassDTO>> search(@RequestParam String term) {
-        return ResponseEntity.ok(eclassService.searchClasses(term));
+    public ResponseEntity<List<EclassClassDTO>> search(@RequestParam String term,
+                                                         @RequestParam(required = false) String objectType) {
+        ObjectType type = null;
+        if (objectType != null && !objectType.isBlank()) {
+            try {
+                type = ObjectType.valueOf(objectType.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                // Unbekannter/ungültiger objectType-Wert → wie ohne Parameter behandeln
+            }
+        }
+        return ResponseEntity.ok(eclassService.searchClasses(term, type));
     }
 
     /**

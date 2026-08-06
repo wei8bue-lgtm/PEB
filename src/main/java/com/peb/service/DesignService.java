@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.peb.model.material.Material;
+import com.peb.repository.MaterialRepository;
+import com.peb.service.search.SearchIndexService;
 import java.util.List;
 
 /**
@@ -28,28 +30,52 @@ public class DesignService {
     private final IDGeneratorService         idGeneratorService;
     private final SynchronizationService     synchronizationService;
     private final EBOMService                ebomService;
+	private final MaterialRepository         materialRepository; 
+	private final SearchIndexService         searchIndexService; // NEU: zentrale Suche
 
-    @Transactional
-    public Design createDesign(String name, String department) {
-        Design design = new Design();
-        design.setId(idGeneratorService.generateId(ObjectType.DESIGN));
-        design.setName(name);
-        design.setDepartment(department);
+	@Transactional
+	public Design createDesign(String name, String department, String mass, String materialId) {
+		Design design = new Design();
+		design.setId(idGeneratorService.generateId(ObjectType.DESIGN));
+		design.setName(name);
+		design.setDepartment(department);
+		design.setMass(mass);
 
-        design = designRepository.save(design);
+		if (materialId != null && !materialId.isBlank()) {
+			Material material = materialRepository.findById(materialId)
+					.orElseThrow(() -> new ObjectNotFoundException(
+							"Material nicht gefunden: " + materialId));
+			design.setLinkedMaterialId(materialId);
+			design.setMaterial(material.getName());
+		}
 
-        // Create initial revision
-        DesignRevision revision = new DesignRevision();
-        revision.setDesign(design);
-        revision.setRevision("01");
-        revision.setReleaseStatus(ReleaseStatus.WORKING);
-        revision.syncFromParent();
-        designRevisionRepository.save(revision);
+		design = designRepository.save(design);
 
-        return design;
-    }
+		// Create initial revision
+		DesignRevision revision = new DesignRevision();
+		revision.setDesign(design);
+		revision.setRevision("01");
+		revision.setReleaseStatus(ReleaseStatus.WORKING);
+		revision.syncFromParent();
+		designRevisionRepository.save(revision);
+		design.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort greift
 
-    @Transactional(readOnly = true)
+		// NEU: zentrale Suche aktualisieren
+		searchIndexService.index(ObjectType.DESIGN, design);
+
+		return design;
+	}
+
+	/**
+	 * Überladene Methode für Rückwärtskompatibilität
+	 * (falls andere Stellen createDesign ohne Mass/Material aufrufen)
+	 */
+	@Transactional
+	public Design createDesign(String name, String department) {
+		return createDesign(name, department, null, null);
+	}
+
+    @Transactional(readOnly = true, noRollbackFor = com.peb.exception.ObjectNotFoundException.class)
     public Design getDesign(String id) {
         return designRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException(
@@ -60,6 +86,13 @@ public class DesignService {
     public List<Design> getAllDesigns() {
         return designRepository.findAll();
     }
+	
+	@Transactional(readOnly = true)
+	public DesignRevision getRevision(Long revisionId) {
+		return designRevisionRepository.findById(revisionId)
+				.orElseThrow(() -> new ObjectNotFoundException(
+						"Design revision not found: " + revisionId));
+	}
 
     /**
      * Design aktualisieren.
@@ -70,64 +103,83 @@ public class DesignService {
      * 3. Sync ausführen    ← liest neue Werte aus DB
      */
     @Transactional
-    public Design updateDesign(String id, String name, String department,
-                               String mass, String material, String childView) {
-        Design design = getDesign(id);
+	public Design updateDesign(String id, String name, String department,
+							   String mass, String materialId, String childView) {
+		Design design = getDesign(id);
 
-        // 1. Alte Werte merken (VOR setMass/setMaterial)
-        String oldMass     = design.getMass();
-        String oldMaterial = design.getMaterial();
+		String oldMass             = design.getMass();
+		String oldLinkedMaterialId = design.getLinkedMaterialId();
 
-        // 2. Felder setzen
-        design.setName(name);
-        design.setDepartment(department);
-        design.setMass(mass);
-        design.setMaterial(material);
-        design.setChildView(childView);
+		design.setName(name);
+		design.setDepartment(department);
+		design.setMass(mass);
+		design.setChildView(childView);
 
-        // Revision synchronisieren
-        DesignRevision latestRevision = design.getLatestRevision();
-        if (latestRevision != null
-                && latestRevision.getReleaseStatus() == ReleaseStatus.WORKING) {
-            latestRevision.syncFromParent();
-            designRevisionRepository.save(latestRevision);
-        }
+		// ── Material-Verknüpfung auflösen (Design ist jetzt führend) ──
+		if (materialId != null && !materialId.isBlank()) {
+			Material material = materialRepository.findById(materialId)
+					.orElseThrow(() -> new ObjectNotFoundException(
+							"Material nicht gefunden: " + materialId));
+			design.setLinkedMaterialId(materialId);
+			design.setMaterial(material.getName());
+		} else {
+			design.setLinkedMaterialId(null);
+			design.setMaterial(null);
+		}
 
-        // 3. ERST speichern – dann Sync (damit DB aktuell ist)
-        Design savedDesign = designRepository.save(design);
-        designRepository.flush(); // sicherstellen dass Werte in DB sind
+		DesignRevision latestRevision = design.getLatestRevision();
+		if (latestRevision != null
+				&& latestRevision.getReleaseStatus() == ReleaseStatus.WORKING) {
+			latestRevision.syncFromParent();
+			designRevisionRepository.save(latestRevision);
+		}
 
-        // 4. Mass geändert → alle verlinkten eBOM-Objekte aktualisieren
-        if (mass != null && !mass.equals(oldMass)) {
-            log.info("Design[{}] mass geändert: '{}' → '{}' → Sync zu eBOM",
-                     id, oldMass, mass);
-            syncMassToLinkedEBOMObjects(id);
-        }
+		Design savedDesign = designRepository.save(design);
+		designRepository.flush();
 
-        // 5. Material geändert → Info loggen
-        //    (Material-Sync läuft eBOM → Design, nicht andersrum)
-        if (material != null && !material.equals(oldMaterial)) {
-            log.info("Design[{}] material geändert: '{}' → '{}'",
-                     id, oldMaterial, material);
-        }
+		if (mass != null && !mass.equals(oldMass)) {
+			log.info("Design[{}] mass geändert: '{}' → '{}' → Sync zu eBOM", id, oldMass, mass);
+			syncMassToLinkedEBOMObjects(id);
+		}
 
-        return savedDesign;
-    }
+		// ── NEU: Material-Link geändert → eBOM-Sync ────────────────────
+		if (!java.util.Objects.equals(materialId, oldLinkedMaterialId)) {
+			log.info("Design[{}] Material-Link geändert: '{}' → '{}' → Sync zu eBOM",
+					 id, oldLinkedMaterialId, materialId);
+			syncMaterialToLinkedEBOMObjects(id);
+		}
 
-    /**
-     * Überladene Methode für Rückwärtskompatibilität
-     * (falls andere Stellen updateDesign ohne childView aufrufen)
-     */
-    @Transactional
-    public Design updateDesign(String id, String name, String department,
-                               String mass, String material) {
-        return updateDesign(id, name, department, mass, material, null);
-    }
+		// NEU: zentrale Suche aktualisieren
+		searchIndexService.index(ObjectType.DESIGN, savedDesign);
+
+		return savedDesign;
+	}
+
+	@Transactional
+	public Design updateDesign(String id, String name, String department,
+							   String mass, String materialId) {
+		return updateDesign(id, name, department, mass, materialId, null);
+	}
+	
+	@Transactional
+	public void syncMaterialToLinkedEBOMObjects(String designId) {
+		List<EBOMObject> allEBOMObjects = ebomService.getAllEBOMObjects();
+
+		long count = allEBOMObjects.stream()
+				.filter(ebom -> designId.equals(ebom.getLinkedDesignId()))
+				.peek(ebom -> synchronizationService.syncMaterialFromDesign(designId, ebom.getId()))
+				.count();
+
+		log.info("Material-Sync Design[{}] → {} verlinkte eBOM-Objekte", designId, count);
+	}
 
     @Transactional
     public void deleteDesign(String id) {
         Design design = getDesign(id);
         designRepository.delete(design);
+
+        // NEU: aus zentraler Suche entfernen
+        searchIndexService.remove(ObjectType.DESIGN, id);
     }
 
     @Transactional(readOnly = true)

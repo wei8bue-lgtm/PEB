@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title th:text="'Arbeitsanweisung – ' + ${mfgBOM.name}">
+    <title th:text="#{workInstruction.titlePrefix} + ' – ' + ${mfgBOM.name}">
         Arbeitsanweisung
     </title>
     <style>
@@ -109,14 +109,14 @@
     <button onclick="window.print()"
             style="padding:.5rem 1.2rem;background:#0056b3;
                    color:white;border:none;border-radius:4px;
-                   cursor:pointer;font-size:.9rem;">
+                   cursor:pointer;font-size:.9rem;" th:text="#{button.printSave}">
         🖨️ Drucken / Als PDF speichern
     </button>
     <a th:href="@{/manufacturing-bom/{id}(id=${mfgBOM.id})}"
        style="padding:.5rem 1.2rem;background:#6c757d;
               color:white;border-radius:4px;
               text-decoration:none;font-size:.9rem;">
-        ← Zurück
+        ← <span th:text="#{button.back}">Zurück</span>
     </a>
 </div>
 
@@ -125,18 +125,15 @@
     <!-- Kopfzeile -->
     <div class="doc-head">
         <div>
-            <h1>🔧 Arbeitsanweisung</h1>
+            <h1 th:text="#{workInstruction.heading}">🔧 Arbeitsanweisung</h1>
             <div class="sub"
-                 th:text="'Manufacturing BOM: '
-                           + ${mfgBOM.name}
-                           + '  |  Version: '
-                           + ${mfgBOM.bomVersion}">
+                 th:text="#{workInstruction.subtitle(${mfgBOM.name}, ${mfgBOM.bomVersion})}">
             </div>
         </div>
         <div style="text-align:right;font-size:8.5pt;opacity:.85;">
-            Erstellt von:
+            <span th:text="#{lifecycle.history.createdBy}">Erstellt von:</span>
             <span th:text="${mfgBOM.createdBy ?: '—'}"></span><br>
-            Druckdatum:
+            <span th:text="#{label.printDate}">Druckdatum:</span>
             <span th:text="${#temporals.format(
                 #temporals.createNow(), 'dd.MM.yyyy HH:mm')}">
             </span>
@@ -146,23 +143,23 @@
     <!-- Meta-Tabelle -->
     <table class="meta">
         <tr>
-            <td>Bezeichnung</td>
+            <td th:text="#{label.designation}">Bezeichnung</td>
             <td th:text="${mfgBOM.name}">—</td>
         </tr>
         <tr>
-            <td>Version</td>
+            <td th:text="#{label.version}">Version</td>
             <td th:text="${mfgBOM.bomVersion}">01</td>
         </tr>
         <tr>
-            <td>Beschreibung</td>
+            <td th:text="#{label.description}">Beschreibung</td>
             <td th:text="${mfgBOM.description ?: '—'}">—</td>
         </tr>
         <tr>
-            <td>Anzahl Operationen</td>
+            <td th:text="#{label.operationCount}">Anzahl Operationen</td>
             <td th:text="${#lists.size(operations)}">0</td>
         </tr>
         <tr>
-            <td>Erstellt von</td>
+            <td th:text="#{lifecycle.history.createdBy}">Erstellt von</td>
             <td th:text="${mfgBOM.createdBy ?: '—'}">—</td>
         </tr>
     </table>
@@ -171,7 +168,7 @@
     <div th:if="${#lists.isEmpty(operations)}"
          style="text-align:center;color:#6c757d;padding:2rem;
                 border:2px dashed #dee2e6;border-radius:6px;">
-        Keine Operationen vorhanden.
+        <span th:text="#{workInstruction.noOperations}">Keine Operationen vorhanden.</span>
     </div>
 
     <!-- Operationskarten -->
@@ -188,10 +185,10 @@
             <div>
                 <span th:text="${op.operationType.displayName}">
                 </span>
-                &nbsp;|&nbsp; Workstation:
+                &nbsp;|&nbsp; <span th:text="#{label.workstationLabel}">Workstation:</span>
                 <span th:text="${op.workstation ?: '—'}"></span>
                 &nbsp;|&nbsp;
-                <span th:text="${op.workerCount ?: 1}"></span> MA
+                <span th:text="${op.workerCount ?: 1}"></span> <span th:text="#{label.workersUnit}">MA</span>
             </div>
         </div>
 
@@ -200,32 +197,32 @@
             <!-- Zeitgitter -->
             <div class="time-grid">
                 <div class="tc">
-                    <div class="lbl">Sollzeit</div>
+                    <div class="lbl" th:text="#{label.targetTimeShort}">Sollzeit</div>
                     <div class="val"
                          th:text="${op.cycleTimeTarget ?: '—'}">
                     </div>
-                    <div class="unit">Sekunden</div>
+                    <div class="unit" th:text="#{label.seconds}">Sekunden</div>
                 </div>
                 <div class="tc">
-                    <div class="lbl">Istzeit</div>
+                    <div class="lbl" th:text="#{label.actualTimeShort}">Istzeit</div>
                     <div class="val"
                          th:text="${op.cycleTimeActual ?: '—'}">
                     </div>
-                    <div class="unit">Sekunden</div>
+                    <div class="unit" th:text="#{label.seconds}">Sekunden</div>
                 </div>
                 <div class="tc">
-                    <div class="lbl">Linientakt</div>
+                    <div class="lbl" th:text="#{label.lineTaktShort}">Linientakt</div>
                     <div class="val"
                          th:text="${op.lineTaktTime ?: '—'}">
                     </div>
-                    <div class="unit">Sekunden</div>
+                    <div class="unit" th:text="#{label.seconds}">Sekunden</div>
                 </div>
                 <div class="tc">
-                    <div class="lbl">Wartezeit</div>
+                    <div class="lbl" th:text="#{label.waitTimeShort}">Wartezeit</div>
                     <div class="val"
                          th:text="${op.waitTime ?: '—'}">
                     </div>
-                    <div class="unit">Sekunden</div>
+                    <div class="unit" th:text="#{label.seconds}">Sekunden</div>
                 </div>
             </div>
 
@@ -233,7 +230,7 @@
             <div th:if="${op.toolsRequired != null
                           and !op.toolsRequired.isBlank()}"
                  class="box box-info">
-                <div class="box-title">🔧 Benötigte Werkzeuge</div>
+                <div class="box-title" th:text="#{label.toolsRequired}">🔧 Benötigte Werkzeuge</div>
                 <span th:text="${op.toolsRequired}"></span>
             </div>
 
@@ -241,7 +238,7 @@
             <div th:if="${op.workInstructions != null
                           and !op.workInstructions.isBlank()}"
                  class="box box-warn">
-                <div class="box-title">📋 Arbeitsschritte</div>
+                <div class="box-title" th:text="#{label.workInstructions}">📋 Arbeitsschritte</div>
                 <span th:utext="${op.workInstructions
                                     .replace(
                                         T(java.lang.System)
@@ -254,7 +251,7 @@
             <div th:if="${op.safetyNotes != null
                           and !op.safetyNotes.isBlank()}"
                  class="box box-danger">
-                <div class="box-title">
+                <div class="box-title" th:text="#{label.safetyNotes}">
                     ⚠️ Sicherheitshinweise
                 </div>
                 <span th:utext="${op.safetyNotes
@@ -270,11 +267,11 @@
 
     <!-- Footer -->
     <div class="doc-footer">
-        PEB – Production Engineering Backbone &nbsp;|&nbsp;
-        Manufacturing BOM ID:
+        <span th:text="#{app.title}">PEB – Production Engineering Backbone</span> &nbsp;|&nbsp;
+        <span th:text="#{label.mfgBomId}">Manufacturing BOM ID:</span>
         <span th:text="${mfgBOM.id}"></span>
         &nbsp;|&nbsp;
-        Gedruckt am:
+        <span th:text="#{label.printedOn}">Gedruckt am:</span>
         <span th:text="${#temporals.format(
             #temporals.createNow(), 'dd.MM.yyyy HH:mm:ss')}">
         </span>

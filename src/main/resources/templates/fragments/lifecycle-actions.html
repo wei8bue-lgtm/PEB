@@ -8,7 +8,7 @@
      class="card"
      sec:authorize="hasAuthority('EXECUTE')">
 
-    <h3 style="margin-top:0;">🔄 Lifecycle-Aktionen</h3>
+    <h3 style="margin-top:0;" th:text="'🔄 ' + #{lifecycle.title}">🔄 Lifecycle-Aktionen</h3>
 
     <!-- ── Status + Revision Anzeige ──────────────────────────── -->
     <div style="display:flex; align-items:center; gap:1.5rem;
@@ -19,7 +19,8 @@
             <div style="font-size:.78rem; color:#6c757d;
                         text-transform:uppercase;
                         letter-spacing:.5px;
-                        margin-bottom:.25rem;">
+                        margin-bottom:.25rem;"
+                 th:text="#{label.status}">
                 Status
             </div>
             <span th:if="${object.status.name() == 'WORKING'}"
@@ -43,7 +44,8 @@
             <div style="font-size:.78rem; color:#6c757d;
                         text-transform:uppercase;
                         letter-spacing:.5px;
-                        margin-bottom:.25rem;">
+                        margin-bottom:.25rem;"
+                 th:text="#{label.revision}">
                 Revision
             </div>
             <span style="font-weight:700; font-size:1.1rem;"
@@ -54,7 +56,8 @@
             <div style="font-size:.78rem; color:#6c757d;
                         text-transform:uppercase;
                         letter-spacing:.5px;
-                        margin-bottom:.25rem;">
+                        margin-bottom:.25rem;"
+                 th:text="#{lifecycle.predecessorId}">
                 Vorgänger-ID
             </div>
             <code style="font-size:.85rem;"
@@ -67,30 +70,28 @@
         <div style="background:#d4edda; border:1px solid #c3e6cb;
                     border-radius:6px; padding:1rem;">
             <div style="font-weight:600; color:#155724;
-                        margin-bottom:.5rem;">
+                        margin-bottom:.5rem;"
+                 th:text="'🏁 ' + #{lifecycle.release.title}">
                 🏁 Freigabe (Release)
             </div>
             <p style="margin:0 0 .75rem; font-size:.9rem;
                       color:#155724;">
-                Revision
+                <span th:text="#{label.revision}">Revision</span>
                 <strong th:text="${object.revision ?: '01'}">
                     01
                 </strong>
-                ist im Status <strong>Working</strong>.
-                Nach der Freigabe werden alle anderen
-                Revisionen auf Obsolete gesetzt.
+                <span th:text="#{lifecycle.release.statusIs}">ist im Status</span> <strong th:text="#{status.working}">Working</strong>.
+                <span th:text="#{lifecycle.release.afterText}">Nach der Freigabe werden alle anderen
+                Revisionen auf Obsolete gesetzt.</span>
             </p>
             <form th:action="@{'/api/manufacturing/'
                               + ${objectType}
                               + '/' + ${objectId}
                               + '/release'}"
                   method="post"
-                  onsubmit="return confirm(
-                      'Revision freigeben?\n'
-                      + 'Alle anderen Revisionen werden '
-                      + 'auf Obsolete gesetzt.');">
+                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('lifecycle.release.confirm'))}');|">
                 <button type="submit" class="btn btn-success">
-                    🏁 Jetzt freigeben
+                    🏁 <span th:text="#{lifecycle.release.button}">Jetzt freigeben</span>
                 </button>
             </form>
         </div>
@@ -105,12 +106,12 @@
                     display:flex; align-items:center; gap:.5rem;">
             <span>✅</span>
             <span style="font-size:.9rem; color:#155724;">
-                Revision
+                <span th:text="#{label.revision}">Revision</span>
                 <strong th:text="${object.revision ?: '01'}">
                     01
                 </strong>
-                ist freigegeben. Bearbeitung nur über
-                neue Revision möglich.
+                <span th:text="#{lifecycle.released.isReleased}">ist freigegeben. Bearbeitung nur über
+                neue Revision möglich.</span>
             </span>
         </div>
 
@@ -118,28 +119,26 @@
         <div style="background:#cce5ff; border:1px solid #b8daff;
                     border-radius:6px; padding:1rem;">
             <div style="font-weight:600; color:#004085;
-                        margin-bottom:.5rem;">
+                        margin-bottom:.5rem;"
+                 th:text="'📝 ' + #{lifecycle.revise.title}">
                 📝 Neue Revision (Revise)
             </div>
             <p style="margin:0 0 .75rem; font-size:.9rem;
                       color:#004085;">
-                Erstellt eine neue Working-Revision.
-                Die aktuelle Revision bleibt
-                <strong>Released</strong>.
-                Du wirst automatisch zur neuen Revision
-                weitergeleitet.
+                <span th:text="#{lifecycle.revise.text}">Erstellt eine neue Working-Revision.
+                Die aktuelle Revision bleibt</span>
+                <strong th:text="#{status.released}">Released</strong>.
+                <span th:text="#{lifecycle.revise.text2}">Du wirst automatisch zur neuen Revision
+                weitergeleitet.</span>
             </p>
             <form th:action="@{'/api/manufacturing/'
                               + ${objectType}
                               + '/' + ${objectId}
                               + '/revise'}"
                   method="post"
-                  onsubmit="return confirm(
-                      'Neue Working-Revision erstellen?\n'
-                      + 'Du wirst zur neuen Revision '
-                      + 'weitergeleitet.');">
+                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('lifecycle.revise.confirm'))}');|">
                 <button type="submit" class="btn btn-primary">
-                    📝 Revise
+                    📝 <span th:text="#{lifecycle.revise.button}">Revise</span>
                 </button>
             </form>
         </div>
@@ -148,11 +147,12 @@
         <div style="background:#fff3cd; border:1px solid #ffeaa7;
                     border-radius:6px; padding:1rem;">
             <div style="font-weight:600; color:#856404;
-                        margin-bottom:.5rem;">
+                        margin-bottom:.5rem;"
+                 th:text="'💾 ' + #{lifecycle.saveas.title}">
                 💾 Kopie erstellen (Save As)
             </div>
             <p style="margin:0 0 .75rem; font-size:.9rem;
-                      color:#856404;">
+                      color:#856404;" th:text="#{lifecycle.saveas.text}">
                 Erstellt eine unabhängige Kopie als
                 neues Objekt (Revision 01, Working).
                 Das Original bleibt unverändert.
@@ -161,7 +161,8 @@
                     class="btn btn-warning mfg-saveas-btn"
                     th:data-object-type="${objectType}"
                     th:data-object-id="${objectId}"
-                    th:data-redirect-url="${redirectUrl}">
+                    th:data-redirect-url="${redirectUrl}"
+                    th:text="'💾 ' + #{button.saveas}">
                 💾 Save As
             </button>
         </div>
@@ -172,11 +173,12 @@
          style="background:#f8d7da; border:1px solid #f5c6cb;
                 border-radius:6px; padding:1rem;">
         <div style="font-weight:600; color:#721c24;
-                    margin-bottom:.5rem;">
+                    margin-bottom:.5rem;"
+             th:text="'🔴 ' + #{lifecycle.obsolete.title}">
             🔴 Obsolete – Keine Aktionen verfügbar
         </div>
         <p style="margin:0 0 .75rem; font-size:.9rem;
-                  color:#721c24;">
+                  color:#721c24;" th:text="#{lifecycle.obsolete.text}">
             Dieses Objekt ist veraltet.
             Bitte wechsle zur aktuellen Revision.
         </p>
@@ -195,7 +197,8 @@
                    th:href="@{'/' + ${objectType}
                               + '/' + ${rev.id}}"
                    class="btn btn-primary"
-                   style="font-size:.85rem;">
+                   style="font-size:.85rem;"
+                   th:text="#{lifecycle.obsolete.switchLink}">
                     → Zur aktuellen Revision wechseln
                 </a>
             </th:block>
@@ -209,7 +212,8 @@
                 border-top:1px solid #dee2e6;">
 
         <h4 style="margin:0 0 1rem; font-size:1rem;
-                   color:#212529;">
+                   color:#212529;"
+            th:text="'📋 ' + #{lifecycle.history.title}">
             📋 Revisionen
         </h4>
 
@@ -217,7 +221,8 @@
                       or #lists.isEmpty(revisionChain)}"
              style="color:#6c757d; font-size:.9rem;
                     padding:.75rem; background:#f8f9fa;
-                    border-radius:4px; text-align:center;">
+                    border-radius:4px; text-align:center;"
+             th:text="#{lifecycle.history.empty}">
             Noch keine Revisionshistorie vorhanden.
         </div>
 
@@ -230,19 +235,19 @@
                            border-bottom:2px solid #dee2e6;">
                     <th style="padding:.6rem .75rem;
                                text-align:left;
-                               color:#495057;">Revision</th>
+                               color:#495057;" th:text="#{label.revision}">Revision</th>
                     <th style="padding:.6rem .75rem;
                                text-align:left;
-                               color:#495057;">Status</th>
+                               color:#495057;" th:text="#{label.status}">Status</th>
                     <th style="padding:.6rem .75rem;
                                text-align:left;
-                               color:#495057;">Erstellt am</th>
+                               color:#495057;" th:text="#{lifecycle.history.createdAt}">Erstellt am</th>
                     <th style="padding:.6rem .75rem;
                                text-align:left;
-                               color:#495057;">Erstellt von</th>
+                               color:#495057;" th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
                     <th style="padding:.6rem .75rem;
                                text-align:left;
-                               color:#495057;">ID</th>
+                               color:#495057;" th:text="#{label.id}">ID</th>
                 </tr>
             </thead>
             <tbody>
@@ -280,7 +285,8 @@
                                      color:white;
                                      padding:1px 6px;
                                      border-radius:8px;
-                                     font-family:inherit;">
+                                     font-family:inherit;"
+                              th:text="#{lifecycle.history.current}">
                             aktuell
                         </span>
 
@@ -297,7 +303,8 @@
                                      color:white;
                                      padding:1px 6px;
                                      border-radius:8px;
-                                     font-family:inherit;">
+                                     font-family:inherit;"
+                              th:text="#{lifecycle.history.thisPage}">
                             diese Seite
                         </span>
                     </td>
@@ -346,9 +353,7 @@
                                   font-size:.85rem;
                                   color:#0056b3;
                                   text-decoration:none;"
-                           th:title="'Revision '
-                                     + ${rev.revision}
-                                     + ' öffnen'">
+                           th:title="#{lifecycle.history.openRevision(${rev.revision})}">
                         </a>
                     </td>
                 </tr>

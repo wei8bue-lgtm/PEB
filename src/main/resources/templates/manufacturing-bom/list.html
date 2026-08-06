@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title>Manufacturing BOM – PEB</title>
+    <title th:text="#{mfgBom.title}">Manufacturing BOM – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>🔧 Manufacturing BOM</h1>
+    <h1 th:text="#{mfgBom.heading}">🔧 Manufacturing BOM</h1>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
-        <a th:href="@{/}" class="btn btn-primary">🏠 Home</a>
+        <a th:href="@{/}" class="btn btn-primary">🏠 <span th:text="#{button.home}">Home</span></a>
     </div>
 </div>
 
@@ -37,10 +37,10 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
-            <h2 style="margin:0;">Manufacturing BOM Liste</h2>
+            <h2 style="margin:0;" th:text="#{mfgBom.listHeading}">Manufacturing BOM Liste</h2>
             <a th:href="@{/manufacturing-bom/new}"
                class="btn btn-primary"
-               sec:authorize="hasAuthority('WRITE')">
+               sec:authorize="hasAuthority('WRITE')" th:text="#{button.newMfgBom}">
                 ➕ Neue Mfg BOM
             </a>
         </div>
@@ -52,14 +52,14 @@
             <input type="text"
                    name="search"
                    th:value="${search}"
-                   placeholder="Name suchen…"
+                   th:placeholder="#{mfgBom.searchPlaceholder}" placeholder="Name suchen…"
                    class="search-box"
                    style="flex:1; max-width:400px;">
             <button type="submit" class="btn btn-primary">
-                🔍 Suchen
+                🔍 <span th:text="#{button.searchPlain}">Suchen</span>
             </button>
             <a th:href="@{/manufacturing-bom}"
-               class="btn btn-primary">✖ Reset</a>
+               class="btn btn-primary">✖ <span th:text="#{button.reset}">Reset</span></a>
         </form>
 
         <!-- ── Tabelle ───────────────────────────────────────── -->
@@ -67,31 +67,31 @@
             <thead>
                 <tr style="background:#f8f9fa;
                            border-bottom:2px solid #ddd;">
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.id}">
                         ID
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.name}">
                         Name
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.version}">
                         Version
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{common.status}">
                         Status
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.productBoms}">
                         Product BOMs
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.operations}">
                         Operationen
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{lifecycle.history.createdBy}">
                         Erstellt von
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.createdDate}">
                         Erstellt am
                     </th>
-                    <th style="padding:.75rem; text-align:left;">
+                    <th style="padding:.75rem; text-align:left;" th:text="#{label.actions}">
                         Aktionen
                     </th>
                 </tr>
@@ -100,7 +100,7 @@
                 <tr th:if="${#lists.isEmpty(mfgBomList)}">
                     <td colspan="9"
                         style="padding:2rem; text-align:center;
-                               color:#6c757d;">
+                               color:#6c757d;" th:text="#{mfgBom.noneFound}">
                         Keine Manufacturing BOMs vorhanden.
                     </td>
                 </tr>
@@ -177,7 +177,7 @@
                                          background:#f8f9fa;
                                          color:#6c757d;
                                          border:1px solid #dee2e6;">
-                                — Keine Revision
+                                <span th:text="#{status.noRevision}">— Keine Revision</span>
                             </span>
                         </th:block>
                     </td>
@@ -218,19 +218,19 @@
                             <a th:href="@{/manufacturing-bom/{id}/work-instruction(id=${bom.id})}"
                                class="btn btn-primary btn-sm"
                                target="_blank"
-                               title="Arbeitsanweisung">📄</a>
+                               th:title="#{title.workInstruction}" title="Arbeitsanweisung">📄</a>
 
                             <!-- View -->
                             <a th:href="@{/manufacturing-bom/{id}(id=${bom.id})}"
                                class="btn btn-primary btn-sm"
-                               title="Anzeigen">👁️</a>
+                               th:title="#{button.view}" title="Anzeigen">👁️</a>
 
                             <!-- Edit – nur bei WORKING -->
                             <div sec:authorize="hasAuthority('WRITE')">
                                 <a th:if="${bom.latestStatusName == 'WORKING'}"
                                    th:href="@{/manufacturing-bom/{id}/edit(id=${bom.id})}"
                                    class="btn btn-primary btn-sm"
-                                   title="Bearbeiten"
+                                   th:title="#{button.edit}" title="Bearbeiten"
                                    style="background:#ffc107;
                                           color:#212529;
                                           border-color:#ffc107;">
@@ -246,16 +246,13 @@
                                               and #lists.isEmpty(bom.productBOMs)}"
                                       th:action="@{/manufacturing-bom/{id}/delete(id=${bom.id})}"
                                       method="post"
-                                      onsubmit="return confirm(
-                                          'Manufacturing BOM \''
-                                          + /*[[${bom.name}]]*/ ''
-                                          + '\' wirklich löschen?');">
+                                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmDelete', bom.name))}');|">
                                     <input type="hidden"
                                            th:name="${_csrf.parameterName}"
                                            th:value="${_csrf.token}"/>
                                     <button type="submit"
                                             class="btn btn-danger btn-sm"
-                                            title="Löschen">
+                                            th:title="#{button.delete}" title="Löschen">
                                         🗑️
                                     </button>
                                 </form>
@@ -269,7 +266,7 @@
                                                color:#6c757d;
                                                cursor:not-allowed;
                                                border:1px solid #dee2e6;"
-                                        title="Löschen nicht möglich: Status ist nicht WORKING">
+                                        th:title="#{mfgBom.deleteBlockedStatus}" title="Löschen nicht möglich: Status ist nicht WORKING">
                                     🔒
                                 </button>
 
@@ -282,9 +279,7 @@
                                                color:#6c757d;
                                                cursor:not-allowed;
                                                border:1px solid #dee2e6;"
-                                        th:title="${'Löschen nicht möglich: '
-                                            + #lists.size(bom.productBOMs)
-                                            + ' Product BOM(s) verknüpft'}">
+                                        th:title="#{mfgBom.deleteBlockedLinked(${#lists.size(bom.productBOMs)})}">
                                     🔒
                                 </button>
                             </div>
@@ -296,9 +291,9 @@
 
         <div style="margin-top:1rem; font-size:.85rem;
                     color:#6c757d;">
-            Gesamt:
+            <span th:text="#{mfgBom.total}">Gesamt:</span>
             <strong th:text="${#lists.size(mfgBomList)}">0</strong>
-            Einträge
+            <span th:text="#{mfgBom.entries}">Einträge</span>
         </div>
     </div>
 </div>

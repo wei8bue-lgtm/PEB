@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="${plantBOP.name} + ' – Plant BOP – PEB'">Plant BOP</title>
+    <title th:text="${plantBOP.name} + ' ' + #{plantBop.titleSuffix}">Plant BOP</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<script th:src="@{/js/lifecycle.js}"></script>
     <style>
@@ -73,11 +74,11 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>🏭 Plant BOP</h1>
+    <h1 th:text="#{plantBop.heading}">🏭 Plant BOP</h1>
     <div style="margin-left:auto;display:flex;gap:.5rem;">
         <a th:href="@{/plant-bop/{id}/balancing(id=${plantBOP.id})}"
            class="btn btn-primary">⚖️ Line Balancing</a>
-        <a th:href="@{/plant-bop}" class="btn btn-primary">← Zurück</a>
+        <a th:href="@{/plant-bop}" class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
     </div>
 </div>
 
@@ -103,8 +104,8 @@
                     <span th:if="${plantBOP.plantCode != null
                                    and !plantBOP.plantCode.isBlank()}"
                           th:text="'🏭 ' + ${plantBOP.plantCode} + '  |  '"></span>
-                    Version: <strong th:text="${plantBOP.bopVersion}">01</strong>
-                    &nbsp;|&nbsp; Erstellt von:
+                    <span th:text="#{label.version} + ':'">Version:</span> <strong th:text="${plantBOP.bopVersion}">01</strong>
+                    &nbsp;|&nbsp; <span th:text="#{lifecycle.history.createdBy} + ':'">Erstellt von:</span>
                     <strong th:text="${plantBOP.createdBy ?: '—'}"></strong>
                 </div>
                 <p th:if="${plantBOP.description != null
@@ -121,7 +122,7 @@
         <!--  BAUMSTRUKTUR                                  -->
         <!-- ══════════════════════════════════════════════ -->
         <div class="card">
-            <h3 style="margin-top:0;">🌳 Vollständige Struktur</h3>
+            <h3 style="margin-top:0;" th:text="#{plantBop.fullStructure}">🌳 Vollständige Struktur</h3>
 
             <div class="tree-wrap">
 
@@ -142,8 +143,8 @@
                      style="margin:1rem 2rem;color:#6c757d;padding:.75rem;
                             border:2px dashed #dee2e6;border-radius:6px;
                             text-align:center;">
-                    Noch keine Knoten vorhanden.<br>
-                    <small>Füge rechts den ersten Knoten hinzu.</small>
+                    <span th:text="#{plantBop.noNodesYet}">Noch keine Knoten vorhanden.</span><br>
+                    <small th:text="#{plantBop.addFirstNodeHint}">Füge rechts den ersten Knoten hinzu.</small>
                 </div>
 
 				<!-- ══ EBENE 1 ══ -->
@@ -169,7 +170,7 @@
 							<span th:if="${n1.nodeType.name() == 'BOE' and n1.boeId != null}" class="t-badge" th:text="'ID: ' + ${n1.boeId}"></span>
 							<div class="t-del" sec:authorize="hasAuthority('DELETE')">
 								<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n1.id})}" method="post">
-									<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+									<button type="submit" th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteNode'))}');|">🗑️</button>
 								</form>
 							</div>
 						</div>
@@ -206,8 +207,8 @@
 										<span class="t-toggle leaf">·</span>
 										<span th:text="${op.operationType.icon}">⚙️</span>
 										<span th:text="${op.name}"></span>
-										<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
-										<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+										<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="${#messages.msg('label.targetAbbrev') + ' ' + op.cycleTimeTarget + 's'}"></span>
+										<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="${#messages.msg('label.actualAbbrev') + ' ' + op.cycleTimeActual + 's'}"></span>
 									</div>
 								</div>
 							</div>
@@ -234,7 +235,7 @@
 									<span th:if="${n2.nodeType.name() == 'BOE' and n2.boeId != null}" class="t-badge" th:text="'ID: ' + ${n2.boeId}"></span>
 									<div class="t-del" sec:authorize="hasAuthority('DELETE')">
 										<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n2.id})}" method="post">
-											<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+											<button type="submit" th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteNode'))}');|">🗑️</button>
 										</form>
 									</div>
 								</div>
@@ -271,8 +272,8 @@
 												<span class="t-toggle leaf">·</span>
 												<span th:text="${op.operationType.icon}">⚙️</span>
 												<span th:text="${op.name}"></span>
-												<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
-												<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+												<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="${#messages.msg('label.targetAbbrev') + ' ' + op.cycleTimeTarget + 's'}"></span>
+												<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="${#messages.msg('label.actualAbbrev') + ' ' + op.cycleTimeActual + 's'}"></span>
 											</div>
 										</div>
 									</div>
@@ -299,7 +300,7 @@
 											<span th:if="${n3.nodeType.name() == 'BOE' and n3.boeId != null}" class="t-badge" th:text="'ID: ' + ${n3.boeId}"></span>
 											<div class="t-del" sec:authorize="hasAuthority('DELETE')">
 												<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n3.id})}" method="post">
-													<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+													<button type="submit" th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteNode'))}');|">🗑️</button>
 												</form>
 											</div>
 										</div>
@@ -328,8 +329,8 @@
 														<span class="t-toggle leaf">·</span>
 														<span th:text="${op.operationType.icon}">⚙️</span>
 														<span th:text="${op.name}"></span>
-														<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
-														<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+														<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="${#messages.msg('label.targetAbbrev') + ' ' + op.cycleTimeTarget + 's'}"></span>
+														<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="${#messages.msg('label.actualAbbrev') + ' ' + op.cycleTimeActual + 's'}"></span>
 													</div>
 												</div>
 											</div>
@@ -356,7 +357,7 @@
 													<span th:if="${n4.nodeType.name() == 'BOE' and n4.boeId != null}" class="t-badge" th:text="'ID: ' + ${n4.boeId}"></span>
 													<div class="t-del" sec:authorize="hasAuthority('DELETE')">
 														<form th:action="@{/plant-bop/{p}/nodes/{n}/delete(p=${plantBOP.id},n=${n4.id})}" method="post">
-															<button type="submit" onclick="return confirm('Knoten löschen?')">🗑️</button>
+															<button type="submit" th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteNode'))}');|">🗑️</button>
 														</form>
 													</div>
 												</div>
@@ -385,8 +386,8 @@
 																<span class="t-toggle leaf">·</span>
 																<span th:text="${op.operationType.icon}">⚙️</span>
 																<span th:text="${op.name}"></span>
-																<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="'Soll: ' + ${op.cycleTimeTarget} + 's'"></span>
-																<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="'Ist: ' + ${op.cycleTimeActual} + 's'"></span>
+																<span th:if="${op.cycleTimeTarget != null}" class="t-time" th:text="${#messages.msg('label.targetAbbrev') + ' ' + op.cycleTimeTarget + 's'}"></span>
+																<span th:if="${op.cycleTimeActual != null}" class="t-time" style="background:#d4edda;" th:text="${#messages.msg('label.actualAbbrev') + ' ' + op.cycleTimeActual + 's'}"></span>
 															</div>
 														</div>
 													</div>
@@ -415,16 +416,16 @@
         <!--  HINZUFÜGEN-PANEL                             -->
         <!-- ══════════════════════════════════════════════ -->
         <div class="card" sec:authorize="hasAuthority('WRITE')">
-            <h3 style="margin-top:0;">➕ Knoten hinzufügen</h3>
+            <h3 style="margin-top:0;" th:text="#{button.addNode}">➕ Knoten hinzufügen</h3>
             <form th:action="@{/plant-bop/{id}/nodes/add(id=${plantBOP.id})}"
                   method="post">
                 <div class="add-panel">
 
                     <div class="fp">
-                        <label>Knotentyp *</label>
+                        <label th:text="#{label.nodeType} + ' *'">Knotentyp *</label>
                         <select name="nodeType" id="nodeTypeSelect"
                                 onchange="onTypeChange(this.value)" required>
-                            <option value="">— Typ wählen —</option>
+                            <option value="" th:text="#{option.selectType}">— Typ wählen —</option>
                             <option th:each="t : ${nodeTypes}"
                                     th:value="${t.name()}"
                                     th:text="${t.label}"></option>
@@ -432,19 +433,20 @@
                     </div>
 
                     <div class="fp">
-                        <label>Name *</label>
+                        <label th:text="#{label.name} + ' *'">Name *</label>
                         <input type="text" name="nodeName" required
+                               th:placeholder="#{label.namePlaceholderNode}"
                                placeholder="z.B. Halle A, Linie 1 …">
                     </div>
 
                     <div class="fp">
-                        <label>Übergeordneter Knoten
-                            <span style="color:#6c757d;font-weight:400;">
+                        <label><span th:text="#{label.parentNode}">Übergeordneter Knoten</span>
+                            <span style="color:#6c757d;font-weight:400;" th:text="#{plantBop.emptyMeansRoot}">
                                 (leer = Root)
                             </span>
                         </label>
                         <select name="parentId">
-                            <option value="">— Root-Ebene —</option>
+                            <option value="" th:text="#{option.rootLevel}">— Root-Ebene —</option>
                             <option th:each="n : ${allNodes}"
                                     th:value="${n.id}"
                                     th:text="${n.nodeType.icon + ' ' + n.name}">
@@ -453,9 +455,9 @@
                     </div>
 
                     <div class="fp" id="fieldProductBop" style="display:none;">
-                        <label>Product BOP auswählen</label>
+                        <label th:text="#{label.selectProductBop}">Product BOP auswählen</label>
                         <select name="productBopId">
-                            <option value="">— wählen —</option>
+                            <option value="" th:text="#{option.selectDash}">— wählen —</option>
                             <option th:each="pb : ${availableProductBOPs}"
                                     th:value="${pb.id}"
                                     th:text="${pb.name + ' (v' + pb.bopVersion + ')'}">
@@ -464,9 +466,9 @@
                     </div>
 
                     <div class="fp" id="fieldMfgBom" style="display:none;">
-                        <label>Manufacturing BOM auswählen</label>
+                        <label th:text="#{label.selectMfgBom}">Manufacturing BOM auswählen</label>
                         <select name="mfgBomId">
-                            <option value="">— wählen —</option>
+                            <option value="" th:text="#{option.selectDash}">— wählen —</option>
                             <option th:each="mb : ${availableMfgBOMs}"
                                     th:value="${mb.id}"
                                     th:text="${mb.name + ' (v' + mb.bomVersion + ')'}">
@@ -475,17 +477,18 @@
                     </div>
 
                     <div class="fp" id="fieldBoeId" style="display:none;">
-                        <label>BOE-ID</label>
-                        <input type="number" name="boeId" placeholder="z.B. 12345">
+                        <label th:text="#{label.boeId}">BOE-ID</label>
+                        <input type="number" name="boeId" th:placeholder="#{label.boeIdPlaceholder}" placeholder="z.B. 12345">
                     </div>
                     <div class="fp" id="fieldBoeName" style="display:none;">
-                        <label>BOE-Name</label>
+                        <label th:text="#{label.boeName}">BOE-Name</label>
                         <input type="text" name="boeName"
+                               th:placeholder="#{label.boeNamePlaceholder}"
                                placeholder="z.B. Schraubenset M6">
                     </div>
 
                     <button type="submit" class="btn btn-primary"
-                            style="width:100%;margin-top:.25rem;">
+                            style="width:100%;margin-top:.25rem;" th:text="#{button.saveNode}">
                         ➕ Knoten speichern
                     </button>
                 </div>
@@ -498,7 +501,7 @@
          LIFECYCLE-AKTIONEN – inline (kein Fragment!)
          ══════════════════════════════════════════════════════════ -->
     <div class="card" style="margin-top:1.5rem;">
-        <h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
+        <h3 style="margin-top:0;" th:text="'⚡ ' + #{lifecycle.title}">⚡ Lifecycle-Aktionen</h3>
 
         <div style="display:flex; gap:.75rem;
                     align-items:center; flex-wrap:wrap;">
@@ -510,7 +513,7 @@
                    class="btn btn-primary"
                    style="background:#0066cc;
                           border-color:#0066cc;">
-                    ✏️ Bearbeiten
+                    ✏️ <span th:text="#{button.edit}">Bearbeiten</span>
                 </a>
             </div>
 
@@ -526,7 +529,7 @@
                             class="btn btn-primary"
                             style="background:#28a745;
                                    border-color:#28a745;"
-                            onclick="return confirm('Plant BOP freigeben?\nStatus wechselt zu RELEASED.');">
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmReleaseFull'))}');|" th:text="#{mfgBom.releaseButton}">
                         ✅ Freigeben (Release)
                     </button>
                 </form>
@@ -544,7 +547,7 @@
                             class="btn btn-primary"
                             style="background:#fd7e14;
                                    border-color:#fd7e14;"
-                            onclick="return confirm('Neue Revision erstellen?\nEine neue WORKING-Revision wird angelegt.');">
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmRevise'))}');|" th:text="#{mfgBom.reviseButton}">
                         📝 Revidieren (Revise)
                     </button>
                 </form>
@@ -556,7 +559,7 @@
                         class="btn btn-primary"
                         style="background:#6f42c1;
                                border-color:#6f42c1;"
-                        onclick="openSaveAsDialog()">
+                        onclick="openSaveAsDialog()" th:text="#{mfgBom.saveAsButton}">
                     💾 Save As…
                 </button>
             </div>
@@ -574,8 +577,8 @@
                            th:value="${_csrf.token}"/>
                     <button type="submit"
                             class="btn btn-danger"
-                            onclick="return confirm('Plant BOP wirklich löschen?');">
-                        🗑️ Löschen
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteSimple'))}');|">
+                        🗑️ <span th:text="#{button.delete}">Löschen</span>
                     </button>
                 </form>
 
@@ -587,9 +590,7 @@
                         style="background:#e9ecef; color:#6c757d;
                                cursor:not-allowed;
                                border:1px solid #dee2e6;"
-                        th:title="${'Löschen nicht möglich: '
-                            + #lists.size(plantBOP.nodes)
-                            + ' Knoten vorhanden'}">
+                        th:title="#{plantBop.deleteBlockedNodes(${#lists.size(plantBOP.nodes)})}" th:text="#{mfgBom.deleteLockedButton}">
                     🔒 Löschen gesperrt
                 </button>
 
@@ -601,7 +602,7 @@
                         style="background:#e9ecef; color:#6c757d;
                                cursor:not-allowed;
                                border:1px solid #dee2e6;"
-                        title="Löschen nicht möglich: Status ist nicht WORKING">
+                        th:title="#{mfgBom.deleteBlockedStatus}" title="Löschen nicht möglich: Status ist nicht WORKING" th:text="#{mfgBom.deleteLockedButton}">
                     🔒 Löschen gesperrt
                 </button>
             </div>
@@ -610,22 +611,22 @@
             <span th:if="${statusName == 'OBSOLETE'}"
                   style="color:#6c757d; font-size:.9rem;
                          font-style:italic;">
-                🔒 Obsolete Revision –
-                keine Lifecycle-Aktionen verfügbar.
+                <span th:text="#{mfgBom.obsoleteNotice}">🔒 Obsolete Revision –
+                keine Lifecycle-Aktionen verfügbar.</span>
             </span>
             <span th:if="${statusName == 'KEINE_REVISION'}"
                   style="color:#dc3545; font-size:.9rem;">
-                ⚠️ Keine Revision vorhanden.
+                <span th:text="#{mfgBom.noRevisionNotice}">⚠️ Keine Revision vorhanden.</span>
             </span>
         </div>
     </div>
 
     <!-- ── Revisionsverlauf ───────────────────────────────────── -->
     <div class="card" style="margin-top:1.5rem;">
-        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.revisionHistory}">📜 Revisionsverlauf</h3>
 
         <div th:if="${#lists.isEmpty(revisionChain)}"
-             style="color:#6c757d; padding:1rem 0;">
+             style="color:#6c757d; padding:1rem 0;" th:text="#{docTemplate.noRevisions}">
             Keine Revisionen vorhanden.
         </div>
 
@@ -636,13 +637,13 @@
                 <tr style="background:#f8f9fa;
                            border-bottom:2px solid #ddd;">
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Revision</th>
+                               text-align:left;" th:text="#{label.revision}">Revision</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Status</th>
+                               text-align:left;" th:text="#{common.status}">Status</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Erstellt von</th>
+                               text-align:left;" th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Erstellt am</th>
+                               text-align:left;" th:text="#{label.createdDate}">Erstellt am</th>
                 </tr>
             </thead>
             <tbody>
@@ -712,14 +713,15 @@
     <div style="background:#fff; border-radius:8px;
                 padding:2rem; min-width:380px;
                 box-shadow:0 4px 20px rgba(0,0,0,.3);">
-        <h3 style="margin-top:0;">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.saveAsTitle}">
             💾 Save As – Kopie erstellen
         </h3>
         <p style="color:#6c757d; font-size:.9rem;">
-            Neuer Name für die Kopie von
+            <span th:text="#{mfgBom.saveAsPromptLabel}">Neuer Name für die Kopie von</span>
             <strong th:text="${plantBOP.name}">—</strong>:
         </p>
         <input id="saveAsName" type="text"
+               th:placeholder="#{mfgBom.newNamePlaceholder}"
                placeholder="Neuer Name…"
                style="width:100%; padding:.5rem;
                       border:1px solid #ced4da;
@@ -733,13 +735,13 @@
                     style="background:#6c757d;
                            border-color:#6c757d;"
                     onclick="closeSaveAsDialog()">
-                ✖ Abbrechen
+                ✖ <span th:text="#{button.cancel}">Abbrechen</span>
             </button>
             <button type="button"
                     class="btn btn-primary"
                     style="background:#6f42c1;
                            border-color:#6f42c1;"
-                    onclick="executeSaveAs()">
+                    onclick="executeSaveAs()" th:text="#{button.createCopy}">
                 💾 Kopie erstellen
             </button>
         </div>
@@ -756,6 +758,13 @@
                            'meta[name="_csrf_header"]')
                                .getAttribute('content');
     const plantBopId = /*[[${plantBOP.id}]]*/ '';
+
+    const detailI18n = {
+        pleaseEnterName: /*[[#{mfgBom.pleaseEnterName}]]*/ '⚠️ Bitte einen Namen eingeben.',
+        errorPrefix: /*[[#{eclass.errorPrefix}]]*/ 'Fehler:',
+        copyCreatedAlert: /*[[#{mfgBom.copyCreatedAlert}]]*/ 'Kopie erstellt: {0} (ID: {1})',
+        networkError: /*[[#{mfgBom.networkError}]]*/ 'Netzwerkfehler:'
+    };
 
     function openSaveAsDialog() {
         const overlay = document.getElementById('saveAsOverlay');
@@ -774,7 +783,7 @@
         const newName = document.getElementById('saveAsName')
                                 .value.trim();
         if (!newName) {
-            alert('⚠️ Bitte einen Namen eingeben.');
+            alert(detailI18n.pleaseEnterName);
             return;
         }
         fetch('/api/manufacturing/plant-bop/'
@@ -786,18 +795,18 @@
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                alert('❌ Fehler: ' + data.error);
+                alert('❌ ' + detailI18n.errorPrefix + ' ' + data.error);
             } else {
                 closeSaveAsDialog();
-                alert('✅ Kopie erstellt: '
-                      + data.name
-                      + ' (ID: ' + data.id + ')');
+                alert('✅ ' + detailI18n.copyCreatedAlert
+                      .replace('{0}', data.name)
+                      .replace('{1}', data.id));
                 window.location.href =
                     '/plant-bop/' + data.id;
             }
         })
         .catch(err => {
-            alert('❌ Netzwerkfehler: ' + err.message);
+            alert('❌ ' + detailI18n.networkError + ' ' + err.message);
         });
     }
 

@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLASS Katalog - PEB</title>
+    <title th:text="#{eclass.catalogTitle}">ECLASS Katalog - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -47,10 +48,10 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>ECLASS Katalog</h1>
+    <h1 th:text="#{eclass.catalogHeading}">ECLASS Katalog</h1>
     <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
         <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/}" class="btn btn-secondary">&larr; Zurueck</a>
+        <a th:href="@{/}" class="btn btn-secondary">&larr; <span th:text="#{button.back}">Zurück</span></a>
     </div>
 </div>
 
@@ -59,12 +60,12 @@
     <!-- Statistik -->
     <div class="card" style="display:flex;gap:2rem;align-items:center;">
         <div>
-            <strong>ECLASS Katalog</strong> &nbsp;
+            <strong th:text="#{eclass.catalogHeading}">ECLASS Katalog</strong> &nbsp;
             <span th:if="${versions != null and !versions.empty}">
-                Version(en):
+                <span th:text="#{eclass.versions}">Version(en):</span>
                 <span th:each="v : ${versions}" class="stat-badge" th:text="${v}"></span>
             </span>
-            <span th:unless="${versions != null and !versions.empty}" style="color:#888">
+            <span th:unless="${versions != null and !versions.empty}" style="color:#888" th:text="#{eclass.noCatalogImported}">
                 Noch kein Katalog importiert
             </span>
         </div>
@@ -72,32 +73,32 @@
             <span class="stat-badge" th:text="${commodityCount} + ' Commodities'"></span>
         </div>
         <div sec:authorize="hasRole('ADMIN')" style="margin-left:auto">
-            <a th:href="@{/eclass/import}" class="btn btn-primary">&#x2B06; XML importieren</a>
+            <a th:href="@{/eclass/import}" class="btn btn-primary" th:text="#{button.importXml}">&#x2B06; XML importieren</a>
         </div>
     </div>
 
     <!-- Suche -->
     <div class="card">
-        <h3>Klassensuche</h3>
+        <h3 th:text="#{eclass.classSearch}">Klassensuche</h3>
         <div class="eclass-search-box">
             <input type="text" id="eclassSearch"
-                   placeholder="Klasse suchen (z.B. Elektromotor, 27-37-04, motor)..."
+                   th:placeholder="#{eclass.searchPlaceholder}" placeholder="Klasse suchen (z.B. Elektromotor, 27-37-04, motor)..."
                    autocomplete="off">
-            <button class="btn btn-primary" onclick="doSearch()">Suchen</button>
+            <button class="btn btn-primary" onclick="doSearch()" th:text="#{button.searchPlain}">Suchen</button>
         </div>
         <div id="searchResults" class="search-result-list"></div>
     </div>
 
     <!-- Hierarchie-Browser -->
     <div class="card">
-        <h3>Hierarchie-Browser</h3>
-        <p style="color:#888;font-size:.9rem">Klicken Sie auf ein Segment um die Untergruppen zu laden.</p>
+        <h3 th:text="#{eclass.hierarchyBrowser}">Hierarchie-Browser</h3>
+        <p style="color:#888;font-size:.9rem" th:text="#{eclass.clickToLoadSubgroups}">Klicken Sie auf ein Segment um die Untergruppen zu laden.</p>
         <div class="tree-panel">
 
             <div class="tree-col">
-                <h4>Segment</h4>
+                <h4 th:text="#{eclass.segment}">Segment</h4>
                 <div id="colSegment">
-                    <div th:if="${segments == null or segments.empty}" style="color:#888">
+                    <div th:if="${segments == null or segments.empty}" style="color:#888" th:text="#{eclass.noCatalog}">
                         Kein Katalog vorhanden.
                     </div>
                     <a th:each="seg : ${segments}"
@@ -113,30 +114,43 @@
             </div>
 
             <div class="tree-col">
-                <h4>Hauptgruppe</h4>
-                <div id="colMainGroup"><span style="color:#ccc">&larr; Segment waehlen</span></div>
+                <h4 th:text="#{eclass.mainGroup}">Hauptgruppe</h4>
+                <div id="colMainGroup"><span style="color:#ccc">&larr; <span th:text="#{eclass.selectSegment}">Segment wählen</span></span></div>
             </div>
 
             <div class="tree-col">
-                <h4>Gruppe</h4>
-                <div id="colGroup"><span style="color:#ccc">&larr; Hauptgruppe waehlen</span></div>
+                <h4 th:text="#{eclass.group}">Gruppe</h4>
+                <div id="colGroup"><span style="color:#ccc">&larr; <span th:text="#{eclass.selectMainGroup}">Hauptgruppe wählen</span></span></div>
             </div>
 
             <div class="tree-col">
-                <h4>Commodity</h4>
-                <div id="colCommodity"><span style="color:#ccc">&larr; Gruppe waehlen</span></div>
+                <h4 th:text="#{eclass.commodity}">Commodity</h4>
+                <div id="colCommodity"><span style="color:#ccc">&larr; <span th:text="#{eclass.selectGroup}">Gruppe wählen</span></span></div>
             </div>
 
         </div>
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
 var colMap  = { maingroup:'colMainGroup', group:'colGroup', commodity:'colCommodity' };
 var sibCol  = { maingroup:'colSegment',   group:'colMainGroup', commodity:'colGroup' };
 var order   = ['maingroup','group','commodity'];
 var nextLvl = { maingroup:'group', group:'commodity', commodity:null };
-var lvlLabel = ['','Segment','Hauptgruppe','Gruppe','Commodity'];
+var lvlLabel = [
+    '',
+    /*[[#{eclass.lvlLabelSegment}]]*/ 'Segment',
+    /*[[#{eclass.lvlLabelMainGroup}]]*/ 'Hauptgruppe',
+    /*[[#{eclass.lvlLabelGroup}]]*/ 'Gruppe',
+    /*[[#{eclass.lvlLabelCommodity}]]*/ 'Commodity'
+];
+var i18nSelect  = /*[[#{eclass.selectWord}]]*/ 'Wählen';
+var i18nLoading = /*[[#{eclass.loading}]]*/ 'Lade...';
+var i18nNoEntries = /*[[#{eclass.noEntries}]]*/ 'Keine Einträge';
+var i18nError = /*[[#{eclass.errorPrefix}]]*/ 'Fehler:';
+var i18nSearching = /*[[#{eclass.searching}]]*/ 'Suche...';
+var i18nNoResults = /*[[#{eclass.noResultsFound}]]*/ 'Keine Ergebnisse gefunden.';
+var i18nDetail = /*[[#{button.details}]]*/ 'Detail';
 
 function loadLevel(level, parent, clickedEl) {
     document.querySelectorAll('#' + sibCol[level] + ' .tree-item')
@@ -146,17 +160,17 @@ function loadLevel(level, parent, clickedEl) {
     var idx = order.indexOf(level);
     for (var i = idx; i < order.length; i++) {
         document.getElementById(colMap[order[i]]).innerHTML =
-            '<span style="color:#ccc">&#x2190; Waehlen</span>';
+            '<span style="color:#ccc">&#x2190; ' + i18nSelect + '</span>';
     }
 
     var col = document.getElementById(colMap[level]);
-    col.innerHTML = '<span style="color:#aaa">Lade...</span>';
+    col.innerHTML = '<span style="color:#aaa">' + i18nLoading + '</span>';
 
     fetch('/eclass/browse?level=' + encodeURIComponent(level) + '&parent=' + encodeURIComponent(parent))
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (!data.length) {
-                col.innerHTML = '<span style="color:#888">Keine Eintraege</span>';
+                col.innerHTML = '<span style="color:#888">' + i18nNoEntries + '</span>';
                 return;
             }
             col.innerHTML = data.map(function(c) {
@@ -173,7 +187,7 @@ function loadLevel(level, parent, clickedEl) {
             }).join('');
         })
         .catch(function(err) {
-            col.innerHTML = '<span style="color:red">Fehler: ' + err.message + '</span>';
+            col.innerHTML = '<span style="color:red">' + i18nError + ' ' + err.message + '</span>';
         });
 }
 
@@ -181,24 +195,24 @@ function doSearch() {
     var term = document.getElementById('eclassSearch').value.trim();
     if (!term) return;
     var el = document.getElementById('searchResults');
-    el.innerHTML = '<span style="color:#aaa">Suche...</span>';
+    el.innerHTML = '<span style="color:#aaa">' + i18nSearching + '</span>';
 
     fetch('/eclass/search?term=' + encodeURIComponent(term))
         .then(function(res) { return res.json(); })
         .then(function(data) {
-            if (!data.length) { el.innerHTML = '<p style="color:#888">Keine Ergebnisse gefunden.</p>'; return; }
+            if (!data.length) { el.innerHTML = '<p style="color:#888">' + i18nNoResults + '</p>'; return; }
             el.innerHTML = data.map(function(c) {
                 var name = c.name || c.nameEn || '';
                 var lvl  = c.classLevel || 4;
                 return '<div class="search-result-item">'
                      + '<span><span class="badge-level level-' + lvl + '">' + (lvlLabel[lvl]||'') + '</span>'
                      + ' <strong>' + escHtml(c.code) + '</strong> &ndash; ' + escHtml(name) + '</span>'
-                     + '<a href="/eclass/' + c.id + '" class="btn btn-secondary" style="padding:.2rem .6rem;font-size:.8rem">Detail</a>'
+                     + '<a href="/eclass/' + c.id + '" class="btn btn-secondary" style="padding:.2rem .6rem;font-size:.8rem">' + i18nDetail + '</a>'
                      + '</div>';
             }).join('');
         })
         .catch(function(err) {
-            el.innerHTML = '<p style="color:red">Fehler: ' + err.message + '</p>';
+            el.innerHTML = '<p style="color:red">' + i18nError + ' ' + err.message + '</p>';
         });
 }
 

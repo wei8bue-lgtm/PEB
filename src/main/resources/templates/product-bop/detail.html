@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="${bop.name} + ' – Product BOP – PEB'">
+    <title th:text="${bop.name} + ' ' + #{pBop.titleSuffix}">
         Product BOP
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -82,10 +83,10 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>⚙️ Product BOP</h1>
+    <h1 th:text="#{pBop.heading}">⚙️ Product BOP</h1>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
         <a th:href="@{/product-bop}"
-           class="btn btn-primary">← Zurück</a>
+           class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
     </div>
 </div>
 
@@ -113,7 +114,7 @@
                 th:text="${bop.name}">Product BOP</h2>
             <span style="background:#e9ecef; padding:3px 12px;
                          border-radius:12px; font-size:.85rem;"
-                  th:text="'Version: ' + ${bop.bopVersion}">
+                  th:text="#{label.versionPrefix(${bop.bopVersion})}">
             </span>
         </div>
 
@@ -121,7 +122,7 @@
             <tr>
                 <th style="width:180px; padding:.5rem;
                            text-align:left; background:#f8f9fa;
-                           border-bottom:1px solid #eee;">
+                           border-bottom:1px solid #eee;" th:text="#{label.id}">
                     ID
                 </th>
                 <td style="padding:.5rem;
@@ -133,7 +134,7 @@
             <tr>
                 <th style="padding:.5rem; text-align:left;
                            background:#f8f9fa;
-                           border-bottom:1px solid #eee;">
+                           border-bottom:1px solid #eee;" th:text="#{common.status}">
                     Status
                 </th>
                 <td style="padding:.5rem;
@@ -152,14 +153,14 @@
                     </span>
                     <span th:if="${statusName == 'KEINE_REVISION'}"
                           class="status-badge status-none">
-                        — Keine Revision
+                        <span th:text="#{status.noRevision}">— Keine Revision</span>
                     </span>
                 </td>
             </tr>
             <tr>
                 <th style="padding:.5rem; text-align:left;
                            background:#f8f9fa;
-                           border-bottom:1px solid #eee;">
+                           border-bottom:1px solid #eee;" th:text="#{label.currentRevision}">
                     Aktuelle Revision
                 </th>
                 <td style="padding:.5rem;
@@ -170,7 +171,7 @@
             <tr>
                 <th style="padding:.5rem; text-align:left;
                            background:#f8f9fa;
-                           border-bottom:1px solid #eee;">
+                           border-bottom:1px solid #eee;" th:text="#{label.description}">
                     Beschreibung
                 </th>
                 <td style="padding:.5rem;
@@ -180,7 +181,7 @@
             <tr>
                 <th style="padding:.5rem; text-align:left;
                            background:#f8f9fa;
-                           border-bottom:1px solid #eee;">
+                           border-bottom:1px solid #eee;" th:text="#{lifecycle.history.createdBy}">
                     Erstellt von
                 </th>
                 <td style="padding:.5rem;
@@ -189,7 +190,7 @@
             </tr>
             <tr>
                 <th style="padding:.5rem; text-align:left;
-                           background:#f8f9fa;">
+                           background:#f8f9fa;" th:text="#{label.createdDate}">
                     Erstellt am
                 </th>
                 <td style="padding:.5rem;"
@@ -205,7 +206,7 @@
          LIFECYCLE-AKTIONEN – inline (kein Fragment!)
          ══════════════════════════════════════════════════════════ -->
     <div class="card">
-        <h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
+        <h3 style="margin-top:0;" th:text="'⚡ ' + #{lifecycle.title}">⚡ Lifecycle-Aktionen</h3>
 
         <div class="lifecycle-bar">
 
@@ -216,7 +217,7 @@
                    class="btn btn-primary"
                    style="background:#0066cc;
                           border-color:#0066cc;">
-                    ✏️ Bearbeiten
+                    ✏️ <span th:text="#{button.edit}">Bearbeiten</span>
                 </a>
             </div>
 
@@ -262,7 +263,7 @@
                         class="btn btn-primary"
                         style="background:#6f42c1;
                                border-color:#6f42c1;"
-                        onclick="openSaveAsDialog()">
+                        onclick="openSaveAsDialog()" th:text="#{mfgBom.saveAsButton}">
                     💾 Save As…
                 </button>
             </div>
@@ -280,8 +281,8 @@
                            th:value="${_csrf.token}"/>
                     <button type="submit"
                             class="btn btn-danger"
-                            onclick="return confirm('Product BOP wirklich löschen?');">
-                        🗑️ Löschen
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('pBop.confirmDeleteSimple'))}');|">
+                        🗑️ <span th:text="#{button.delete}">Löschen</span>
                     </button>
                 </form>
 
@@ -292,9 +293,7 @@
                         style="background:#e9ecef; color:#6c757d;
                                cursor:not-allowed;
                                border:1px solid #dee2e6;"
-                        th:title="${'Löschen nicht möglich: '
-                            + #lists.size(bop.manufacturingBOMs)
-                            + ' Mfg BOM(s) verknüpft'}">
+                        th:title="#{pBop.deleteBlockedMfgBoms(${#lists.size(bop.manufacturingBOMs)})}" th:text="#{mfgBom.deleteLockedButton}">
                     🔒 Löschen gesperrt
                 </button>
             </div>
@@ -303,12 +302,12 @@
             <span th:if="${statusName == 'OBSOLETE'}"
                   style="color:#6c757d; font-size:.9rem;
                          font-style:italic;">
-                🔒 Obsolete Revision –
-                keine Lifecycle-Aktionen verfügbar.
+                <span th:text="#{mfgBom.obsoleteNotice}">🔒 Obsolete Revision –
+                keine Lifecycle-Aktionen verfügbar.</span>
             </span>
             <span th:if="${statusName == 'KEINE_REVISION'}"
                   style="color:#dc3545; font-size:.9rem;">
-                ⚠️ Keine Revision vorhanden.
+                <span th:text="#{mfgBom.noRevisionNotice}">⚠️ Keine Revision vorhanden.</span>
             </span>
         </div>
     </div>
@@ -336,7 +335,7 @@
             <!-- Keine MfgBOMs -->
             <div th:if="${#lists.isEmpty(bop.manufacturingBOMs)}"
                  style="margin-left:1.5rem; color:#6c757d;
-                        padding:.5rem;">
+                        padding:.5rem;" th:text="#{pBop.noMfgBomsAssigned}">
                 Noch keine Manufacturing BOMs zugewiesen.
             </div>
 
@@ -359,7 +358,7 @@
                     <form th:action="@{/product-bop/{id}/mfg-boms/{mfgId}/remove(id=${bop.id},mfgId=${mfg.id})}"
                           method="post"
                           style="margin-left:auto;"
-                          onsubmit="return confirm('Manufacturing BOM entfernen?');"
+                          th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('pBop.confirmRemoveMfgBom'))}');|"
                           sec:authorize="hasAuthority('DELETE')">
                         <input type="hidden"
                                th:name="${_csrf.parameterName}"
@@ -396,7 +395,7 @@
         <!-- Manufacturing BOM hinzufügen -->
         <div class="add-section"
              sec:authorize="hasAuthority('WRITE')">
-            <h4 style="margin:0 0 .75rem;">
+            <h4 style="margin:0 0 .75rem;" th:text="#{button.addMfgBom}">
                 ➕ Manufacturing BOM hinzufügen
             </h4>
             <form th:action="@{/product-bop/{id}/mfg-boms/add(id=${bop.id})}"
@@ -410,7 +409,7 @@
                                border:1px solid #ced4da;
                                border-radius:4px;
                                font-size:.87rem;">
-                    <option value="">
+                    <option value="" th:text="#{option.selectMfgBom2}">
                         — Manufacturing BOM wählen —
                     </option>
                     <option th:each="mb : ${availableMfgBOMs}"
@@ -423,7 +422,7 @@
                     </option>
                 </select>
                 <button type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary" th:text="#{button.addShort}">
                     ➕ Hinzufügen
                 </button>
             </form>
@@ -432,10 +431,10 @@
 
     <!-- ── Revisionsverlauf ───────────────────────────────────── -->
     <div class="card">
-        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.revisionHistory}">📜 Revisionsverlauf</h3>
 
         <div th:if="${#lists.isEmpty(revisionChain)}"
-             style="color:#6c757d; padding:1rem 0;">
+             style="color:#6c757d; padding:1rem 0;" th:text="#{docTemplate.noRevisions}">
             Keine Revisionen vorhanden.
         </div>
 
@@ -443,10 +442,10 @@
                class="rev-table">
             <thead>
                 <tr>
-                    <th>Revision</th>
-                    <th>Status</th>
-                    <th>Erstellt von</th>
-                    <th>Erstellt am</th>
+                    <th th:text="#{label.revision}">Revision</th>
+                    <th th:text="#{common.status}">Status</th>
+                    <th th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
+                    <th th:text="#{label.createdDate}">Erstellt am</th>
                 </tr>
             </thead>
             <tbody>
@@ -498,14 +497,15 @@
     <div style="background:#fff; border-radius:8px;
                 padding:2rem; min-width:380px;
                 box-shadow:0 4px 20px rgba(0,0,0,.3);">
-        <h3 style="margin-top:0;">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.saveAsTitle}">
             💾 Save As – Kopie erstellen
         </h3>
         <p style="color:#6c757d; font-size:.9rem;">
-            Neuer Name für die Kopie von
+            <span th:text="#{mfgBom.saveAsPromptLabel}">Neuer Name für die Kopie von</span>
             <strong th:text="${bop.name}">—</strong>:
         </p>
         <input id="saveAsName" type="text"
+               th:placeholder="#{mfgBom.newNamePlaceholder}"
                placeholder="Neuer Name…"
                style="width:100%; padding:.5rem;
                       border:1px solid #ced4da;
@@ -519,13 +519,13 @@
                     style="background:#6c757d;
                            border-color:#6c757d;"
                     onclick="closeSaveAsDialog()">
-                ✖ Abbrechen
+                ✖ <span th:text="#{button.cancel}">Abbrechen</span>
             </button>
             <button type="button"
                     class="btn btn-primary"
                     style="background:#6f42c1;
                            border-color:#6f42c1;"
-                    onclick="executeSaveAs()">
+                    onclick="executeSaveAs()" th:text="#{button.createCopy}">
                 💾 Kopie erstellen
             </button>
         </div>
@@ -542,6 +542,13 @@
                            'meta[name="_csrf_header"]')
                                .getAttribute('content');
     const bopId = /*[[${bop.id}]]*/ '';
+
+    const detailI18n = {
+        pleaseEnterName: /*[[#{mfgBom.pleaseEnterName}]]*/ '⚠️ Bitte einen Namen eingeben.',
+        errorPrefix: /*[[#{eclass.errorPrefix}]]*/ 'Fehler:',
+        copyCreatedAlert: /*[[#{mfgBom.copyCreatedAlert}]]*/ 'Kopie erstellt: {0} (ID: {1})',
+        networkError: /*[[#{mfgBom.networkError}]]*/ 'Netzwerkfehler:'
+    };
 
     function openSaveAsDialog() {
         const overlay = document.getElementById('saveAsOverlay');
@@ -560,7 +567,7 @@
         const newName = document.getElementById('saveAsName')
                                 .value.trim();
         if (!newName) {
-            alert('⚠️ Bitte einen Namen eingeben.');
+            alert(detailI18n.pleaseEnterName);
             return;
         }
         fetch('/api/manufacturing/product-bop/'
@@ -572,18 +579,18 @@
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                alert('❌ Fehler: ' + data.error);
+                alert('❌ ' + detailI18n.errorPrefix + ' ' + data.error);
             } else {
                 closeSaveAsDialog();
-                alert('✅ Kopie erstellt: '
-                      + data.name
-                      + ' (ID: ' + data.id + ')');
+                alert('✅ ' + detailI18n.copyCreatedAlert
+                      .replace('{0}', data.name)
+                      .replace('{1}', data.id));
                 window.location.href =
                     '/product-bop/' + data.id;
             }
         })
         .catch(err => {
-            alert('❌ Netzwerkfehler: ' + err.message);
+            alert('❌ ' + detailI18n.networkError + ' ' + err.message);
         });
     }
 

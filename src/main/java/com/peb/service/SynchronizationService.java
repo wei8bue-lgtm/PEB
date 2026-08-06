@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * Regeln:
  *  - Mass:     Design  → eBOM  (Design ist führend)
- *  - Material: eBOM    → Design (eBOM ist führend)
+ *  - Material: eBOM    → Design (Design ist führend)
  */
 @Service
 @RequiredArgsConstructor
@@ -58,42 +58,72 @@ public class SynchronizationService {
         }
     }
 
-    /**
-     * Material: eBOM → Design
-     * Wird aufgerufen wenn EBOMObject.material geändert wird.
-     */
-    @Transactional
-    public void syncMaterialToDesign(String ebomId, String designId) {
-        EBOMObject ebomObject  = getEBOMObject(ebomId);
-        Design     design      = loadDesign(designId);
+	/**
+	 * Material: Design → eBOM
+	 * Wird aufgerufen wenn Design.material (bzw. die Material-Verknüpfung) geändert wird.
+	 */
+	@Transactional
+	public void syncMaterialFromDesign(String designId, String ebomId) {
+		Design design = loadDesign(designId);
+		EBOMObject ebomObject = getEBOMObject(ebomId);
 
-        String ebomMaterial   = ebomObject.getMaterial();
-        String designMaterial = design.getMaterial();
+		String designMaterial = design.getMaterial();
+		String ebomMaterial   = ebomObject.getMaterial();
 
-        if (ebomMaterial != null && !ebomMaterial.isBlank()
-                && !ebomMaterial.equals(designMaterial)) {
+		if (designMaterial != null && !designMaterial.isBlank()
+				&& !designMaterial.equals(ebomMaterial)) {
 
-            design.setMaterial(ebomMaterial);
-            designRepository.save(design);
+			ebomObject.setMaterial(designMaterial);
+			saveEBOMObject(ebomObject);
 
-            log.info("Sync Material  eBOM[{}] → Design[{}]: '{}' → '{}'",
-                     ebomId, designId, designMaterial, ebomMaterial);
-        } else {
-            log.debug("Sync Material  eBOM[{}] → Design[{}]: keine Änderung (eBOM='{}', Design='{}')",
-                      ebomId, designId, ebomMaterial, designMaterial);
-        }
-    }
+			log.info("Sync Material  Design[{}] → eBOM[{}]: '{}' → '{}'",
+					 designId, ebomId, ebomMaterial, designMaterial);
+		} else {
+			log.debug("Sync Material  Design[{}] → eBOM[{}]: keine Änderung (Design='{}', eBOM='{}')",
+					  designId, ebomId, designMaterial, ebomMaterial);
+		}
+	}
 
     /**
      * Vollständige bidirektionale Synchronisation.
      * Wird beim erstmaligen Verlinken aufgerufen.
      */
-    @Transactional
-    public void performFullSync(String designId, String ebomId) {
-        log.info("Full Sync: Design[{}] ↔ eBOM[{}]", designId, ebomId);
-        syncMassFromDesign(designId, ebomId);
-        syncMaterialToDesign(ebomId, designId);
-    }
+	@Transactional
+	public void performFullSync(String designId, String ebomId) {
+		log.info("Full Sync: Design[{}] ↔ eBOM[{}]", designId, ebomId);
+		syncMassFromDesign(designId, ebomId);
+		syncMaterialFromDesign(designId, ebomId);   // ← geändert (vorher syncMaterialToDesign(ebomId, designId))
+	}
+
+	@Transactional
+	public void syncMaterialToAllLinkedEbomObjects(String designId) {
+		Design design = loadDesign(designId);
+
+		machineRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		systemRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		subsystemRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		ebomModuleRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		submoduleRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		partRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+		auxiliaryRepository.findAll().stream()
+			.filter(o -> designId.equals(o.getLinkedDesignId()))
+			.forEach(o -> syncMaterialFromDesign(designId, o.getId()));
+
+		log.info("Material-Propagation abgeschlossen für Design[{}], neues Material='{}'",
+				 designId, design.getMaterial());
+	}
 
     /**
      * Wird aufgerufen wenn Design.mass direkt geändert wird.

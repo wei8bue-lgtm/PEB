@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit eBOM Object - PEB</title>
+    <title th:text="#{ebom.editTitle}">Edit eBOM Object - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -11,27 +11,27 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Edit eBOM Object</h1>
+        <h1 th:text="#{ebom.editHeading}">Edit eBOM Object</h1>
         <div style="margin-left: auto;">
-            <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-primary">Back to Object</a>
+            <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-primary" th:text="#{button.backToObject}">Back to Object</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Edit Object Information</h2>
-            <p><strong>Type:</strong> <span th:text="${objectType.displayName}">Type</span></p>
+            <h2 th:text="#{ebom.editInfo}">Edit Object Information</h2>
+            <p><strong th:text="#{label.typeColon}">Type:</strong> <span th:text="${objectType.displayName}">Type</span></p>
 
             <form th:action="@{/ebom/{id}(id=${ebomId})}" th:object="${ebomObject}" method="post">
                 <div class="form-group">
-                    <label for="name">Name *</label>
+                    <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256">
                 </div>
 
                 <div class="form-group">
-                    <label for="linkedDesignId">Linked Design Object</label>
+                    <label for="linkedDesignId" th:text="#{label.linkedDesign}">Linked Design Object</label>
                     <select id="linkedDesignId" th:field="*{linkedDesignId}">
-                        <option value="">-- No Design Link --</option>
+                        <option value="" th:text="#{common.noDesignLinkShort}">-- No Design Link --</option>
                         <option th:each="design : ${designs}" 
                                 th:value="${design.id}" 
                                 th:text="${design.id + ' - ' + design.name}">
@@ -41,28 +41,35 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128">
                 </div>
 
                 <div class="form-group">
-                    <label for="mass">Mass (kg)</label>
+                    <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
                     <input type="text" id="mass" th:field="*{mass}" maxlength="8" readonly>
                 </div>
 
                 <div class="form-group">
-                    <label for="material">Material</label>
+                    <label for="material" th:text="#{label.material}">Material</label>
                     <input type="text" id="material" th:field="*{material}" maxlength="256">
                 </div>
 
                 <div class="form-group">
-                    <label for="supplier">Supplier (External System)</label>
-                    <input type="text" id="supplier" th:field="*{supplier}" maxlength="256">
+                    <label for="supplier" th:text="#{label.supplier}">Lieferant</label>
+                    <select id="supplier" th:field="*{supplier}">
+                        <option value="" th:text="#{common.noSupplier}">-- Kein Lieferant --</option>
+                        <option th:each="s : ${suppliers}"
+                                th:value="${s.id}"
+                                th:text="${s.id + ' - ' + s.name}">
+                            Lieferant
+                        </option>
+                    </select>
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Save Changes</button>
+                    <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
                 </div>
             </form>
         </div>

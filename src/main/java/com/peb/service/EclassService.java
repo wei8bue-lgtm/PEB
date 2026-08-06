@@ -46,16 +46,59 @@ public class EclassService {
     private final SubmoduleRepository  submoduleRepository;
     private final AuxiliaryRepository  auxiliaryRepository;
 
+    // ── Objekttyp-spezifische Suchbeschränkungen ────────────────────────────
+
+    /**
+     * ECLASS-Segmente, in denen Materialien klassifiziert werden dürfen.
+     * 35 = Werkstoffe/Halbzeuge (vormals Segment 24), 31 = Chemische Grundstoffe/Kunststoffe.
+     * Gilt ausschließlich für {@link ObjectType#MATERIAL} – alle anderen
+     * Objekttypen sind von dieser Einschränkung nicht betroffen.
+     */
+    private static final Set<String> MATERIAL_ALLOWED_SEGMENTS = Set.of("35", "31");
+
+    private static final int SEARCH_RESULT_LIMIT = 20;
+
+    /** Größerer Fetch-Puffer, falls anschließend serverseitig nach Segment gefiltert wird,
+     *  damit trotz Filterung genügend Treffer übrig bleiben. */
+    private static final int SEARCH_FETCH_LIMIT_WHEN_FILTERED = 200;
+
     // ── Katalog-Abfragen ────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<EclassClassDTO> searchClasses(String term) {
+        return searchClasses(term, null);
+    }
+
+    /**
+     * Volltextsuche im ECLASS-Katalog, optional beschränkt auf die für einen
+     * bestimmten Objekttyp zulässigen Segmente.
+     *
+     * @param term       Suchbegriff (Name oder Code)
+     * @param objectType optional – wenn {@link ObjectType#MATERIAL}, werden nur
+     *                   Treffer aus den Segmenten 35-* / 31-* zurückgegeben.
+     *                   Für alle anderen Objekttypen (oder null) unverändertes Verhalten.
+     */
+    @Transactional(readOnly = true)
+    public List<EclassClassDTO> searchClasses(String term, ObjectType objectType) {
         if (term == null || term.isBlank()) return List.of();
-        return eclassClassRepository
-                .searchByTermTop20(term.trim(), PageRequest.of(0, 20))
+
+        boolean restrictToMaterialSegments = objectType == ObjectType.MATERIAL;
+        int fetchSize = restrictToMaterialSegments ? SEARCH_FETCH_LIMIT_WHEN_FILTERED : SEARCH_RESULT_LIMIT;
+
+        List<EclassClassDTO> results = eclassClassRepository
+                .searchByTermTop20(term.trim(), PageRequest.of(0, fetchSize))
                 .stream()
                 .map(EclassClassDTO::from)
                 .collect(Collectors.toList());
+
+        if (restrictToMaterialSegments) {
+            results = results.stream()
+                    .filter(c -> MATERIAL_ALLOWED_SEGMENTS.contains(c.getSegment()))
+                    .limit(SEARCH_RESULT_LIMIT)
+                    .collect(Collectors.toList());
+        }
+
+        return results;
     }
 
     @Transactional(readOnly = true)

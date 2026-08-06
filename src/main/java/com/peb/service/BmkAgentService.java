@@ -4,6 +4,7 @@ package com.peb.service;
 import com.peb.client.DialogflowCxAgentClient;
 import com.peb.dto.BmkAgentResponseDTO;
 import com.peb.dto.BmkAgentTreeDTO;
+import com.peb.dto.BmkExportDTO;
 import com.peb.model.structure.StructureRelation;
 import com.peb.repository.StructureRelationRepository;
 import lombok.RequiredArgsConstructor;
@@ -151,6 +152,83 @@ public BmkAgentResponseDTO generateBmkForTree(
 // ═════════════════════════════════════════════════════════
 // MODUS B: KI-AGENT INTEGRATION
 // ═════════════════════════════════════════════════════════
+
+/**
+ * Baut die flache Export-Repräsentation der BMK-Konfiguration eines
+ * Strukturbaums. Read-only – verändert nichts in der DB.
+ *
+ * @param rootObjectId   Object-ID des Root-Knotens
+ * @param rootRevisionId Revision-ID des Root-Knotens
+ */
+@Transactional(readOnly = true)
+public BmkExportDTO exportBmkConfiguration(
+        String rootObjectId,
+        Long   rootRevisionId) {
+
+    List<BmkExportDTO.Entry> entries = new ArrayList<>();
+    collectExportEntries(rootObjectId, rootRevisionId, "", 1, entries);
+
+    log.info("BMK-Export für Root [{}/rev{}]: {} Relationen.",
+             rootObjectId, rootRevisionId, entries.size());
+
+    return BmkExportDTO.builder()
+            .rootObjectId(rootObjectId)
+            .rootRevisionId(rootRevisionId)
+            .norm("N54_D6_DIN_EN_81346-2")
+            .exportedAt(LocalDateTime.now())
+            .relationCount(entries.size())
+            .relations(entries)
+            .build();
+}
+
+/**
+ * Sammelt rekursiv alle Relationen des Baums in einer flachen Liste –
+ * inkl. des bereits generierten, gespeicherten BMK.
+ */
+private void collectExportEntries(
+        String parentObjectId,
+        Long   parentRevisionId,
+        String parentBmkPath,
+        int    depth,
+        List<BmkExportDTO.Entry> entries) {
+
+    List<StructureRelation> children =
+            structureRelationRepository
+                    .findByParentIdAndParentRevisionId(
+                            parentObjectId, parentRevisionId);
+
+    for (StructureRelation rel : children) {
+
+        String refDes = rel.getReferenceDesignator();
+        String contextPath = assembleBmk(parentBmkPath,
+                                         refDes == null ? "" : refDes);
+
+        entries.add(BmkExportDTO.Entry.builder()
+                .relationId(rel.getRelationId())
+                .parentObjectId(parentObjectId)
+                .childObjectId(rel.getChildId())
+                .childObjectType(
+                    rel.getChildId() != null && rel.getChildId().length() >= 2
+                        ? rel.getChildId().substring(0, 2)
+                        : "?")
+                .quantity(rel.getQuantity())
+                .positionNumber(rel.getPositionNumber())
+                .referenceDesignator(refDes)
+                .bmk(rel.getBmk())
+                .parentBmkPath(parentBmkPath)
+                .depth(depth)
+                .bmkGeneratedAt(rel.getBmkGeneratedAt())
+                .bmkGeneratedBy(rel.getBmkGeneratedBy())
+                .build());
+
+        collectExportEntries(
+                rel.getChildId(),
+                rel.getChildRevisionId(),
+                contextPath,
+                depth + 1,
+                entries);
+    }
+}
 
 private int generateViaAiAgent(
         String        rootObjectId,

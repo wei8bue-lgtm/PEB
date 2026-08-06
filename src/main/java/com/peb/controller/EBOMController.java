@@ -6,6 +6,7 @@ import com.peb.model.ebom.*;
 import com.peb.service.EBOMService;
 import com.peb.service.DesignService;
 import com.peb.service.EclassService;
+import com.peb.service.SupplierService;
 import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +29,7 @@ public class EBOMController {
     private final EBOMService   ebomService;
     private final DesignService  designService;
     private final EclassService  eclassService;
+    private final SupplierService supplierService;
 
     @GetMapping
     public String listEBOM(Model model) {
@@ -53,6 +55,7 @@ public class EBOMController {
         
         model.addAttribute("objectTypes", ebomTypes);
         model.addAttribute("designs", designService.getAllDesigns());
+        model.addAttribute("suppliers", supplierService.getReleasedActiveSuppliers());
         return "ebom-form";
     }
 
@@ -80,6 +83,7 @@ public class EBOMController {
                 .collect(Collectors.toList());
             model.addAttribute("objectTypes", ebomTypes);
             model.addAttribute("designs", designService.getAllDesigns());
+            model.addAttribute("suppliers", supplierService.getReleasedActiveSuppliers());
             
             return "ebom-form";
         }
@@ -124,6 +128,7 @@ public class EBOMController {
         model.addAttribute("ebomId", id);
         model.addAttribute("objectType", ebomObject.getObjectType());
         model.addAttribute("designs", designService.getAllDesigns());
+        model.addAttribute("suppliers", supplierService.getReleasedActiveSuppliers());
         return "ebom-edit";
     }
 

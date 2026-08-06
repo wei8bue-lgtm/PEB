@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title>Structure View - PEB</title>
+    <title th:text="${objectId} + ' - Structure View - PEB'">Structure View - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         /* ── Tree ───────────────────────────────────────────── */
@@ -229,20 +230,28 @@
 <!-- ══ Header ════════════════════════════════════════════════ -->
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>Structure Management</h1>
+    <h1 th:text="#{sview.heading}">Structure Management</h1>
     <div style="margin-left: auto;">
-        <a th:href="@{/ebom}" class="btn btn-primary">Back to eBOM</a>
+        <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{button.backToEbom}">Back to eBOM</a>
     </div>
 </div>
 
 <div class="container">
 <div class="card">
-    <h2>Structure for: <span th:text="${objectId}">Object ID</span></h2>
+    <h2><span th:text="#{sview.structureFor}">Structure for:</span> <span th:text="${objectId}">Object ID</span></h2>
+	
+	<div th:if="${param.documentCreated}" class="alert alert-success"
+		 style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:1rem; border-radius:4px; margin-bottom:1rem;">
+		<span th:text="#{sview.documentCreatedAlert}">✅ Dokument wurde erstellt und in der Struktur verlinkt.</span>
+	</div>
+	<div th:if="${error}" class="alert alert-danger"
+		 style="background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem;"
+		 th:text="${error}"></div>
 
     <!-- ══ No revision warning ════════════════════════════════ -->
     <div th:if="${revisionId == null}" class="alert alert-warning">
-        <strong>No revision found!</strong>
-        <p>This object has no revisions yet.</p>
+        <strong th:text="#{sview.noRevisionFound}">No revision found!</strong>
+        <p th:text="#{sview.noRevisionText}">This object has no revisions yet.</p>
     </div>
 
     <div th:if="${revisionId != null}">
@@ -253,7 +262,7 @@
         <details open>
             <summary style="cursor:pointer; font-weight:600;
                             font-size:1.05rem; margin-bottom:0.75rem;">
-                📂 Current Structure (Tree View)
+                <span th:text="#{sview.currentStructureTree}">📂 Current Structure (Tree View)</span>
             </summary>
             <div class="tree-view" th:if="${structureTree != null}">
                 <div th:replace="~{fragments/tree-node :: tree-node(
@@ -275,7 +284,7 @@
 				<h3 style="margin:0;">
 					🏷️ BMK &amp; Reference Designator
 					<span style="font-size:0.8rem; color:#6c757d;
-								 font-weight:normal;">
+								 font-weight:normal;" th:text="#{sview.inContextNote}">
 						(in-context, per Verbauungsposition)
 					</span>
 				</h3>
@@ -286,8 +295,8 @@
 
 				 <!-- Linke Seite: Status-Info -->
 				 <div style="flex:1; min-width:200px;">
-					 <strong>🤖 BMK Generierung</strong>
-					 <div class="agent-status" id="agentStatus">
+					 <strong th:text="#{sview.bmkGeneration}">🤖 BMK Generierung</strong>
+					 <div class="agent-status" id="agentStatus" th:text="#{sview.readyChooseMode}">
 						 Bereit. Wähle einen Modus zur BMK-Generierung.
 					 </div>
 					 <!-- KI-Badge – zeigt welcher Modus zuletzt lief -->
@@ -357,17 +366,17 @@
 				<table class="bmk-table" id="bmkTable">
 					<thead>
 						<tr>
-							<th>Objekt</th>
-							<th>Name</th>
-							<th>Qty</th>
-							<th>Status</th>
-							<th title="Vom User eingegebener Teil-BMK">
+							<th th:text="#{eclass.object}">Objekt</th>
+							<th th:text="#{label.name}">Name</th>
+							<th th:text="#{tree.qty}">Qty</th>
+							<th th:text="#{common.status}">Status</th>
+							<th title="Vom User eingegebener Teil-BMK" th:title="#{sview.refDesPartialTitle}">
 								Reference Designator
 							</th>
-							<th title="Vollständiges BMK, generiert vom Agenten">
+							<th title="Vollständiges BMK, generiert vom Agenten" th:title="#{sview.bmkGeneratedTitle}" th:text="#{sview.bmkGeneratedCol}">
 								BMK (generiert)
 							</th>
-							<th sec:authorize="hasAuthority('WRITE')">
+							<th sec:authorize="hasAuthority('WRITE')" th:text="#{label.actions}">
 								Aktionen
 							</th>
 						</tr>
@@ -382,7 +391,7 @@
         <!-- ══ Add Child Form ════════════════════════════════ -->
         <div class="card" style="margin-top: 2rem;"
              sec:authorize="hasAuthority('WRITE')">
-            <h3>Add Component to Structure</h3>
+            <h3 th:text="#{sview.addComponent}">Add Component to Structure</h3>
             <div class="add-child-form">
                 <form id="addChildForm">
                     <input type="hidden" id="parentId"
@@ -391,47 +400,49 @@
                            th:value="${revisionId}">
 
                     <div class="form-group">
-                        <label for="childType">Component Type</label>
+                        <label for="childType" th:text="#{label.componentType}">Component Type</label>
                         <select id="childType" required>
-                            <option value="">-- Select Type --</option>
+                            <option value="" th:text="#{option.selectTypeDD}">-- Select Type --</option>
                             <option th:each="type : ${allowedTypes}"
                                     th:value="${type}"
                                     th:text="${
-                                      #strings.equals(type,'MA')?'Machine (MA)':
-                                      #strings.equals(type,'SY')?'System (SY)':
-                                      #strings.equals(type,'SU')?'Subsystem (SU)':
-                                      #strings.equals(type,'MO')?'Module (MO)':
-                                      #strings.equals(type,'MU')?'Submodule (MU)':
-                                      #strings.equals(type,'PT')?'Part (PT)':
-                                      #strings.equals(type,'AX')?'Auxiliary (AX)':
-                                      #strings.equals(type,'DS')?'Design (DS)':
-                                      #strings.equals(type,'DR')?'Drawing (DR)':type}">
+                                      #strings.equals(type,'MA')?#messages.msg('entity.machine')+' (MA)':
+                                      #strings.equals(type,'SY')?#messages.msg('entity.system')+' (SY)':
+                                      #strings.equals(type,'SU')?#messages.msg('entity.subsystem')+' (SU)':
+                                      #strings.equals(type,'MO')?#messages.msg('entity.module')+' (MO)':
+                                      #strings.equals(type,'MU')?#messages.msg('entity.submodule')+' (MU)':
+                                      #strings.equals(type,'PT')?#messages.msg('entity.part')+' (PT)':
+                                      #strings.equals(type,'AX')?#messages.msg('entity.auxiliary')+' (AX)':
+                                      #strings.equals(type,'DS')?#messages.msg('entity.design')+' (DS)':
+                                      #strings.equals(type,'DR')?#messages.msg('entity.drawing')+' (DR)':
+									  #strings.equals(type,'DC')?#messages.msg('entity.document')+' (DC)':type}">
                             </option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="childSelect">Select Component</label>
+                        <label for="childSelect" th:text="#{label.componentSelect}">Select Component</label>
                         <select id="childSelect" required disabled>
-                            <option value="">-- Select type first --</option>
+                            <option value="" th:text="#{option.selectTypeFirst}">-- Select type first --</option>
                         </select>
                         <small id="revisionWarning"
-                               style="display:none; color:#dc3545;">
+                               style="display:none; color:#dc3545;" th:text="#{sview.noRevisionCannotAdd}">
                             ⚠ No revision – cannot add.
                         </small>
                     </div>
 
                     <div class="form-group">
-                        <label for="quantity">Quantity</label>
+                        <label for="quantity" th:text="#{label.quantity}">Quantity</label>
                         <input type="number" id="quantity"
                                value="1" min="1" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="positionNumber">
+                        <label for="positionNumber" th:text="#{label.positionOptional}">
                             Position Number (optional)
                         </label>
                         <input type="text" id="positionNumber"
+                               th:placeholder="#{label.positionPlaceholder2}"
                                placeholder="e.g., 10, 20, 30">
                     </div>
 
@@ -440,29 +451,27 @@
                         <label for="referenceDesignator">
                             Reference Designator
                             <span style="font-weight:normal;
-                                         color:#6c757d; font-size:0.85rem;">
-                                (Teil-BMK, z.B.&nbsp;
-                                <code>=102</code>,&nbsp;
-                                <code>+M</code>,&nbsp;
-                                <code>-B301A</code>)
+                                         color:#6c757d; font-size:0.85rem;" th:text="#{sview.refDesHint}">
+                                (Teil-BMK, z.B. =102, +M, -B301A)
                             </span>
                         </label>
                         <input type="text" id="referenceDesignator"
                                maxlength="50"
+                               th:placeholder="#{sview.refDesPlaceholder}"
                                placeholder="z.B. =102 oder +M oder -B301A"
                                style="font-family: monospace;">
-                        <small style="color:#6c757d;">
+                        <small style="color:#6c757d;" th:text="#{sview.refDesHelpText}">
                             Optional. Der BMK-Agent setzt den vollständigen
                             Pfad aus den übergeordneten Werten zusammen.
                         </small>
                     </div>
 
                     <button type="submit" class="btn btn-success"
-                            id="submitBtn">
+                            id="submitBtn" th:text="#{button.addToStructure}">
                         Add to Structure
                     </button>
                     <small id="revisionWarningSubmit"
-                           style="display:none; color:#dc3545;">
+                           style="display:none; color:#dc3545;" th:text="#{sview.noRevisionSelected}">
                         ⚠ Selected component has no revision.
                     </small>
                 </form>
@@ -471,38 +480,38 @@
 
         <!-- ══ Structure Rules ════════════════════════════════ -->
         <div class="card" style="margin-top: 2rem;">
-            <h3>Structure Rules</h3>
+            <h3 th:text="#{sview.structureRules}">Structure Rules</h3>
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                     <tr style="background:#f8f9fa;">
-                        <th style="padding:0.5rem; text-align:left;">
+                        <th style="padding:0.5rem; text-align:left;" th:text="#{label.parentType}">
                             Parent Type</th>
-                        <th style="padding:0.5rem; text-align:left;">
+                        <th style="padding:0.5rem; text-align:left;" th:text="#{label.canContain}">
                             Can Contain</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td style="padding:0.5rem;">Machine (MA)</td>
-                        <td style="padding:0.5rem;">
-                            System, Part, Auxiliary, Drawing</td></tr>
+                    <tr><td style="padding:0.5rem;" th:text="#{entity.machine} + ' (MA)'">Machine (MA)</td>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList1}">
+                            System, Part, Auxiliary, Drawing, Document</td></tr>
                     <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;">System (SY)</td>
-                        <td style="padding:0.5rem;">
-                            Subsystem, Part, Auxiliary, Drawing</td></tr>
-                    <tr><td style="padding:0.5rem;">Subsystem (SU)</td>
-                        <td style="padding:0.5rem;">
-                            Module, Part, Auxiliary, Drawing</td></tr>
+                        <td style="padding:0.5rem;" th:text="#{entity.system} + ' (SY)'">System (SY)</td>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList2}">
+                            Subsystem, Part, Auxiliary, Drawing, Document</td></tr>
+                    <tr><td style="padding:0.5rem;" th:text="#{entity.subsystem} + ' (SU)'">Subsystem (SU)</td>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList3}">
+                            Module, Part, Auxiliary, Drawing, Document</td></tr>
                     <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;">Module (MO)</td>
-                        <td style="padding:0.5rem;">
-                            Submodule, Part, Auxiliary, Drawing</td></tr>
-                    <tr><td style="padding:0.5rem;">Submodule (MU)</td>
-                        <td style="padding:0.5rem;">
-                            Part, Auxiliary, Drawing</td></tr>
+                        <td style="padding:0.5rem;" th:text="#{entity.module} + ' (MO)'">Module (MO)</td>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList4}">
+                            Submodule, Part, Auxiliary, Drawing, Document</td></tr>
+                    <tr><td style="padding:0.5rem;" th:text="#{entity.submodule} + ' (MU)'">Submodule (MU)</td>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList5}">
+                            Part, Auxiliary, Drawing, Document</td></tr>
                     <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;">
+                        <td style="padding:0.5rem;" th:text="#{label.partAuxSlash}">
                             Part / Auxiliary (PT/AX)</td>
-                        <td style="padding:0.5rem;">Drawing only</td></tr>
+                        <td style="padding:0.5rem;" th:text="#{sview.canContainList6}">Drawing, Document</td></tr>
                 </tbody>
             </table>
         </div>
@@ -510,16 +519,16 @@
         <!-- ══ Export ════════════════════════════════════════ -->
         <div class="card" style="margin-top:2rem;"
              sec:authorize="hasAuthority('READ')">
-            <h3>Export Structure</h3>
+            <h3 th:text="#{sview.exportStructure}">Export Structure</h3>
             <div style="display:flex; gap:1rem; margin-top:1rem;">
                 <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(
                                id=${objectId},revId=${revisionId})}"
-                   class="btn btn-primary" download>
+                   class="btn btn-primary" download th:text="#{button.xmlSimple}">
                     📄 XML (Simple)
                 </a>
                 <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(
                                id=${objectId},revId=${revisionId})}"
-                   class="btn btn-success" download>
+                   class="btn btn-success" download th:text="#{button.xmlDetailed}">
                     📋 XML (Detailed)
                 </a>
             </div>
@@ -527,6 +536,69 @@
 
     </div><!-- /revisionId != null -->
 </div><!-- /card -->
+
+<!-- ══ Create New Document ═══════════════════════════════════ -->
+<div class="card" style="margin-top: 2rem;"
+     th:if="${isEbomObject}"
+     sec:authorize="hasAuthority('WRITE')">
+    <h3 th:text="#{sview.createNewDocument}">📄 Neues Dokument erstellen</h3>
+
+    <div th:if="${releasedTemplates.empty}" class="alert-warning">
+        <span th:text="#{document.noReleasedTemplates}">⚠ Keine freigegebenen Templates verfügbar.</span>
+        <a th:href="@{/document-templates}" th:text="#{document.pleaseReleaseFirst}">Bitte zuerst ein Template freigeben.</a>
+    </div>
+
+    <form th:unless="${releasedTemplates.empty}"
+          th:action="@{/structure/{id}/create-document(id=${objectId})}"
+          method="post" class="add-child-form">
+
+        <input type="hidden" name="parentRevisionId" th:value="${revisionId}">
+
+        <div class="form-group">
+            <label for="docTemplateId" th:text="#{document.selectTemplateLabel}">Template (freigegeben) *</label>
+            <select id="docTemplateId" name="templateId" required
+                    style="width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:4px;">
+                <option value="" th:text="#{document.selectTemplatePlaceholder}">-- Template auswählen --</option>
+                <option th:each="tmpl : ${releasedTemplates}"
+                        th:value="${tmpl.id}"
+                        th:text="${tmpl.id + ' – ' + tmpl.name}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="docName" th:text="#{label.documentName}">Dokumentname *</label>
+            <input type="text" id="docName" name="name" required maxlength="255"
+                   th:placeholder="#{document.namePlaceholder}" placeholder="Dokumentname eingeben">
+        </div>
+
+        <div class="form-group">
+            <label for="docDepartment" th:text="#{label.department}">Department</label>
+            <input type="text" id="docDepartment" name="department" maxlength="100"
+                   th:placeholder="#{docTemplate.departmentPlaceholder}" placeholder="Abteilung (optional)">
+        </div>
+
+        <div class="form-group">
+            <label for="docDescription" th:text="#{label.description}">Beschreibung</label>
+            <textarea id="docDescription" name="description" maxlength="1000" rows="2"
+                      th:placeholder="#{document.descriptionPlaceholder}" placeholder="Beschreibung (optional)"
+                      style="width:100%; box-sizing:border-box; padding:.5rem; border:1px solid #ced4da; border-radius:4px;"></textarea>
+        </div>
+
+        <div style="background:#e8f4fd; border:1px solid #bee5eb; padding:.75rem 1rem;
+                    border-radius:4px; margin-bottom:1rem; font-size:.9rem;">
+            <span th:text="#{sview.attrAutoNoteLead}">🔒 Attribute werden automatisch aus</span>
+            <strong th:text="${objectId}"></strong> <span th:text="#{sview.attrAutoNoteTrail}">übernommen und sind nicht editierbar:</span>
+            <br><span th:text="#{sview.attr1Material}">Attribute 1 (Material):</span> <strong th:text="${ebomMaterial ?: '–'}"></strong>
+            <br><span th:text="#{sview.attr2Mass}">Attribute 2 (Mass, kg):</span> <strong th:text="${ebomMass ?: '–'}"></strong>
+        </div>
+
+        <button type="submit" class="btn btn-success" th:text="#{button.createLinkDocument}">
+            Dokument erstellen &amp; verlinken
+        </button>
+    </form>
+</div>
+
 </div><!-- /container -->
 
 <!-- ══════════════════════════════════════════════════════════
@@ -538,21 +610,21 @@
     <div style="background:#fff; border-radius:8px; padding:2rem;
                 min-width:400px; max-width:560px; width:90%;
                 box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-        <h3 style="margin-top:0;">✏️ BMK bearbeiten</h3>
+        <h3 style="margin-top:0;" th:text="#{sview.editBmkTitle}">✏️ BMK bearbeiten</h3>
         <input type="hidden" id="editRelationId">
         <div class="form-group">
             <label>Reference Designator
-                <small style="color:#6c757d;">
-                    (Teil-BMK, z.B. <code>=102</code>)
+                <small style="color:#6c757d;" th:text="#{sview.refDesHintShort}">
+                    (Teil-BMK, z.B. =102)
                 </small>
             </label>
             <input type="text" id="editRefDes"
                    maxlength="50" style="font-family:monospace; width:100%;">
         </div>
         <div class="form-group">
-            <label>BMK (manuell korrigierbar)
-                <small style="color:#6c757d;">
-                    (vollständig, z.B. <code>=102+M-B301A</code>)
+            <label th:text="#{sview.bmkManualLabel}">BMK (manuell korrigierbar)
+                <small style="color:#6c757d;" th:text="#{sview.bmkFullExample}">
+                    (vollständig, z.B. =102+M-B301A)
                 </small>
             </label>
             <input type="text" id="editBmk"
@@ -560,9 +632,9 @@
         </div>
         <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
             <button class="btn btn-success" onclick="saveEdit()">
-                💾 Speichern
+                💾 <span th:text="#{button.save}">Speichern</span>
             </button>
-            <button class="btn btn-secondary" onclick="closeModal()">
+            <button class="btn btn-secondary" onclick="closeModal()" th:text="#{button.cancel}">
                 Abbrechen
             </button>
         </div>
@@ -586,6 +658,40 @@ const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')
 // relationId, bmk, referenceDesignator.
 const ROOT_OBJECT_ID  = /*[[${objectId}]]*/ 'UNKNOWN';
 const ROOT_REVISION_ID = /*[[${revisionId}]]*/ null;
+
+// ── i18n strings (localized, injected server-side) ─────────────
+const svI18n = {
+    notSet:               /*[[#{sview.notSet}]]*/ 'nicht gesetzt',
+    noRelationTitle:       /*[[#{sview.noRelationTitle}]]*/ 'Keine Relation-ID verfügbar',
+    clickToEdit:           /*[[#{sview.clickToEdit}]]*/ 'Klicken zum Bearbeiten',
+    refDesAriaLabel:       /*[[#{sview.refDesAriaLabel}]]*/ 'Reference Designator bearbeiten',
+    refDesPlaceholder:     /*[[#{sview.refDesPlaceholder}]]*/ 'z.B. =102 oder +M oder -B301A',
+    saveEnterTitle:        /*[[#{sview.saveEnterTitle}]]*/ 'Speichern (Enter)',
+    cancelEscTitle:        /*[[#{sview.cancelEscTitle}]]*/ 'Abbrechen (Escape)',
+    notYetGenerated:       /*[[#{sview.notYetGenerated}]]*/ 'noch nicht generiert',
+    editBmkFullTitle:      /*[[#{sview.editBmkFullTitle}]]*/ 'BMK vollständig bearbeiten',
+    saveError:             /*[[#{sview.saveError}]]*/ 'Fehler beim Speichern:',
+    errorGeneric:          /*[[#{sview.errorGeneric}]]*/ 'Fehler:',
+    aiAgentGemini:         /*[[#{sview.aiAgentGemini}]]*/ 'KI-Agent (Gemini)',
+    inProcessLogic:        /*[[#{sview.inProcessLogic}]]*/ 'In-Process Logik',
+    confirmBmkGeneration:  /*[[#{sview.confirmBmkGeneration}]]*/ 'BMK-Generierung für "{0}" starten?\n\nModus: {1}\nAlle vorhandenen BMKs im Baum werden neu generiert.',
+    modeRunning:           /*[[#{sview.modeRunning}]]*/ '{0} läuft…',
+    relationsUpdated:      /*[[#{sview.relationsUpdated}]]*/ '📊 {0} Relation(en) aktualisiert.',
+    warningsCount:         /*[[#{sview.warningsCount}]]*/ '⚠ {0} Warnung(en):',
+    andMoreWarnings:       /*[[#{sview.andMoreWarnings}]]*/ '... und {0} weitere.',
+    errorPrefix2:          /*[[#{sview.errorPrefix2}]]*/ '❌ Fehler:',
+    bmkGenErrorAlert:      /*[[#{sview.bmkGenErrorAlert}]]*/ 'BMK-Generierung ({0}) Fehler:',
+    selectTypeFirst:       /*[[#{option.selectTypeFirst}]]*/ '-- Zuerst Typ auswählen --',
+    selectComponent:       /*[[#{option.selectComponent}]]*/ '-- Komponente auswählen --',
+    noRevisionSuffix:      /*[[#{sview.noRevisionSuffix}]]*/ '(KEINE REVISION)',
+    failedToLoadComponents:/*[[#{sview.failedToLoadComponents}]]*/ 'Komponenten konnten nicht geladen werden',
+    pleaseSelectComponent: /*[[#{sview.pleaseSelectComponent}]]*/ 'Bitte eine Komponente auswählen',
+    noRevisionCreateFirst: /*[[#{sview.noRevisionCreateFirst}]]*/ 'Keine Revision – zuerst eine Revision erstellen.'
+};
+
+function fmt(template, ...values) {
+    return values.reduce((s, v, i) => s.replace('{' + i + '}', v), template);
+}
 
 // ─────────────────────────────────────────────────────────────
 // BMK TABLE RENDERING
@@ -626,8 +732,9 @@ function renderBmkRow(tbody, node, depth, isRoot) {
     // Drawings (DR*) bekommen in der Praxis keine BMK → aus Tabelle ausblenden.
     // Root-Node wird nie gefiltert (kann theoretisch kein DR sein bei MA-View,
     // aber sicherheitshalber nur Kinder filtern).
-    if (!isRoot && node.objectId && node.objectId.startsWith('DR')) {
-        // Kinder von Drawings ebenfalls nicht rendern
+    if (!isRoot && node.objectId &&
+        (node.objectId.startsWith('DR') || node.objectId.startsWith('DC'))) {
+        // Kinder ebenfalls nicht rendern
         return;
     }
 
@@ -682,7 +789,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
         tdRefDes.innerHTML = refDesVal
             ? `<span class="badge badge-refdes">${escHtml(refDesVal)}</span>`
             : `<span class="badge badge-empty"
-                     title="Keine Relation-ID verfügbar">nicht gesetzt</span>`;
+                     title="${svI18n.noRelationTitle}">${svI18n.notSet}</span>`;
 
     } else {
         // Normalfall: Click-to-Edit aktiv
@@ -691,11 +798,11 @@ function renderBmkRow(tbody, node, depth, isRoot) {
 
         const displayHtml = refDesVal
             ? `<span class="badge badge-refdes">${escHtml(refDesVal)}</span>`
-            : `<span class="badge badge-empty">nicht gesetzt</span>`;
+            : `<span class="badge badge-empty">${svI18n.notSet}</span>`;
 
         tdRefDes.innerHTML = `
             <div class="refdes-display"
-                 title="Klicken zum Bearbeiten"
+                 title="${svI18n.clickToEdit}"
                  onclick="startRefDesEdit(this, ${relationId},
                           '${escJs(refDesVal)}')">
                 ${displayHtml}
@@ -704,15 +811,15 @@ function renderBmkRow(tbody, node, depth, isRoot) {
                  data-relation-id="${relationId}">
                 <input type="text"
                        maxlength="50"
-                       placeholder="z.B. =102 oder -B301A"
+                       placeholder="${svI18n.refDesPlaceholder}"
                        value="${escHtml(refDesVal)}"
                        onkeydown="handleRefDesKey(event, this)"
-                       aria-label="Reference Designator bearbeiten">
+                       aria-label="${svI18n.refDesAriaLabel}">
                 <button class="refdes-save-btn"
-                        title="Speichern (Enter)"
+                        title="${svI18n.saveEnterTitle}"
                         onclick="saveRefDes(this)">✓</button>
                 <button class="refdes-cancel-btn"
-                        title="Abbrechen (Escape)"
+                        title="${svI18n.cancelEscTitle}"
                         onclick="cancelRefDesEdit(this)">✕</button>
                 <span class="refdes-saving">⏳</span>
             </div>`;
@@ -729,7 +836,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
             `<span class="badge badge-bmk">${escHtml(bmkVal)}</span>`;
     } else {
         tdBmk.innerHTML =
-            `<span class="badge badge-empty">noch nicht generiert</span>`;
+            `<span class="badge badge-empty">${svI18n.notYetGenerated}</span>`;
     }
     tr.appendChild(tdBmk);
 
@@ -740,7 +847,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
         const bmkVal2   = node.bmk ?? '';
         tdAct.innerHTML =
             `<button class="btn btn-primary btn-xs"
-                     title="BMK vollständig bearbeiten"
+                     title="${svI18n.editBmkFullTitle}"
                      onclick="openEditModal(
                          ${node.relationId},
                          '${escJs(refDesVal)}',
@@ -846,7 +953,7 @@ function saveRefDes(saveBtn) {
                 `<span class="badge badge-refdes">${escHtml(savedVal)}</span>`;
         } else {
             displayDiv.innerHTML =
-                `<span class="badge badge-empty">nicht gesetzt</span>`;
+                `<span class="badge badge-empty">${svI18n.notSet}</span>`;
         }
 
         // onclick-Attribut aktualisieren damit der nächste Edit-Klick
@@ -868,7 +975,7 @@ function saveRefDes(saveBtn) {
         spinner.style.display = 'none';
         saveBtn.disabled       = false;
         cancelBtn.disabled     = false;
-        alert('Fehler beim Speichern: ' + err.message);
+        alert(svI18n.saveError + ' ' + err.message);
     });
 }
 
@@ -938,7 +1045,7 @@ function saveEdit() {
         closeModal();
         window.location.reload();
     })
-    .catch(err => alert('Fehler: ' + err.message));
+    .catch(err => alert(svI18n.errorGeneric + ' ' + err.message));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -955,15 +1062,11 @@ function triggerBmkAgent(btn, useAiAgent) {
  const rootId  = btn.getAttribute('data-root-id');
  const rootRev = btn.getAttribute('data-root-rev');
 
- const modusText = useAiAgent
-     ? 'KI-Agent (Gemini)'
-     : 'In-Process Logik';
+const modusText = useAiAgent
+     ? svI18n.aiAgentGemini
+     : svI18n.inProcessLogic;
 
- if (!confirm(
-     `BMK-Generierung für "${rootId}" starten?\n\n` +
-     `Modus: ${modusText}\n` +
-     `Alle vorhandenen BMKs im Baum werden neu generiert.`
- )) return;
+ if (!confirm(fmt(svI18n.confirmBmkGeneration, rootId, modusText))) return;
 
  // UI: Beide Buttons sperren
  const btn1      = document.getElementById('triggerAgentBtn');
@@ -977,7 +1080,7 @@ function triggerBmkAgent(btn, useAiAgent) {
  if (btn2) btn2.disabled = true;
  spinnerEl.style.display = 'inline';
  badgeEl.style.display   = 'none';
- statusEl.textContent    = `${modusText} läuft…`;
+ statusEl.textContent    = fmt(svI18n.modeRunning, modusText);
 
  // Endpoint wählen
  const endpoint = useAiAgent
@@ -1017,13 +1120,13 @@ function triggerBmkAgent(btn, useAiAgent) {
 
      // Status-Meldung
      let msg = data.message + '\n';
-     msg += `📊 ${data.updatedRelations} Relation(en) aktualisiert.`;
+     msg += fmt(svI18n.relationsUpdated, data.updatedRelations);
 
      if (data.warnings && data.warnings.length > 0) {
-         msg += `\n⚠ ${data.warnings.length} Warnung(en):\n`;
+         msg += '\n' + fmt(svI18n.warningsCount, data.warnings.length) + '\n';
          msg += data.warnings.slice(0, 5).join('\n');
          if (data.warnings.length > 5) {
-             msg += `\n... und ${data.warnings.length - 5} weitere.`;
+             msg += '\n' + fmt(svI18n.andMoreWarnings, data.warnings.length - 5);
          }
      }
 
@@ -1036,8 +1139,8 @@ function triggerBmkAgent(btn, useAiAgent) {
      spinnerEl.style.display = 'none';
      if (btn1) btn1.disabled = false;
      if (btn2) btn2.disabled = false;
-     statusEl.textContent    = '❌ Fehler: ' + err.message;
-     alert(`BMK-Generierung (${modusText}) Fehler:\n` + err.message);
+     statusEl.textContent    = svI18n.errorPrefix2 + ' ' + err.message;
+     alert(fmt(svI18n.bmkGenErrorAlert, modusText) + '\n' + err.message);
  });
 }
 
@@ -1061,7 +1164,7 @@ function initAddForm() {
         const selectedType = this.value;
         if (!selectedType) {
             childSelect.disabled = true;
-            childSelect.innerHTML = '<option value="">-- Select type first --</option>';
+            childSelect.innerHTML = '<option value="" th:text="#{option.selectTypeFirst}">-- Select type first --</option>';
             return;
         }
         fetch(`/api/structure/${objectId}/children?type=${selectedType}`)
@@ -1070,7 +1173,7 @@ function initAddForm() {
                 selectedComponents   = data;
                 childSelect.disabled = false;
                 childSelect.innerHTML =
-                    '<option value="">-- Select component --</option>';
+                    '<option value="">' + svI18n.selectComponent + '</option>';
                 data.forEach((item, idx) => {
                     const opt = document.createElement('option');
                     opt.value = idx;
@@ -1079,7 +1182,7 @@ function initAddForm() {
                             `${item.id} - ${item.name} (Rev: ${item.revision})`;
                     } else {
                         opt.textContent =
-                            `${item.id} - ${item.name} (NO REVISION)`;
+                            `${item.id} - ${item.name} ${svI18n.noRevisionSuffix}`;
                         opt.disabled  = true;
                         opt.className = 'component-option no-revision';
                     }
@@ -1088,7 +1191,7 @@ function initAddForm() {
             })
             .catch(err => {
                 console.error(err);
-                alert('Failed to load components');
+                alert(svI18n.failedToLoadComponents);
             });
     });
 
@@ -1109,10 +1212,10 @@ function initAddForm() {
     addChildForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const idx = childSelect.value;
-        if (!idx) { alert('Please select a component'); return; }
+        if (!idx) { alert(svI18n.pleaseSelectComponent); return; }
         const comp = selectedComponents[idx];
         if (!comp.revisionId) {
-            alert('No revision – create a revision first.');
+            alert(svI18n.noRevisionCreateFirst);
             return;
         }
 
@@ -1140,7 +1243,7 @@ function initAddForm() {
             if (r.ok) { window.location.reload(); }
             else return r.text().then(t => { throw new Error(t); });
         })
-        .catch(err => alert('Error: ' + err.message));
+        .catch(err => alert(svI18n.errorGeneric + ' ' + err.message));
     });
 }
 

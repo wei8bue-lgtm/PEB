@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>eBOM - PEB</title>
+    <title th:text="#{ebom.title}">eBOM - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -10,13 +10,13 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>eBOM</h1>
+        <h1 th:text="#{ebom.heading}">eBOM</h1>
     </div>
     <div class="container">
         <div class="card">
-            <h2>eBOM Management</h2>
-            <p>eBOM objects will be displayed here.</p>
-            <a th:href="@{/}" class="btn btn-primary">Back to Home</a>
+            <h2 th:text="#{ebom.management}">eBOM Management</h2>
+            <p th:text="#{ebom.placeholderText}">eBOM objects will be displayed here.</p>
+            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.backToHome}">Back to Home</a>
         </div>
     </div>
 </body>

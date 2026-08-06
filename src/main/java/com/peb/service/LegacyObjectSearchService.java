@@ -16,10 +16,16 @@ import java.util.stream.Collectors;
 /**
  * Service for searching objects.
  * Supports wildcard searches across all attributes and ECLASS-based search.
+ *
+ * HINWEIS (umbenannt von "SearchService"): siehe LegacySearchController für
+ * den Hintergrund. Die ECLASS-Suche (searchByEclassCode/searchByEclassTerm)
+ * bleibt hier bewusst unverändert bestehen (siehe Absprache: erstmal nicht
+ * anfassen) - die neue zentrale Suche deckt aktuell nur strukturierte
+ * Attributsuche ab, keine ECLASS-Klassifizierung.
  */
 @Service
 @RequiredArgsConstructor
-public class SearchService {
+public class LegacyObjectSearchService {
 
     private final DesignRepository designRepository;
     private final ObjectClassificationRepository objectClassificationRepository;

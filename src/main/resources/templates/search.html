@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>Search - PEB</title>
+    <title th:text="#{search.title}">Search - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -10,12 +10,13 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Search</h1>
+        <h1 th:text="#{search.heading}">Search</h1>
     </div>
     <div class="container">
         <div class="card">
-            <h2>Search Objects</h2>
+            <h2 th:text="#{search.objectsHeading}">Search Objects</h2>
             <input type="text" id="searchBox" class="search-box" 
+                   th:placeholder="#{search.byIdNamePlaceholder}"
                    placeholder="Search by ID, Name, Department...">
             <div id="searchResults"></div>
         </div>

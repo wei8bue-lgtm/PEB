@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>Viewer - Fehler - PEB</title>
+    <title th:text="#{viewer.errorTitle}">Viewer - Fehler - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>3D Viewer</h1>
+    <h1 th:text="#{viewer.heading}">3D Viewer</h1>
     <div style="margin-left:auto;">
-        <button onclick="history.back()" class="btn btn-primary">← Zurück</button>
+        <button onclick="history.back()" class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></button>
     </div>
 </div>
 <div class="container">
     <div class="card" style="text-align:center; padding:3rem;">
         <div style="font-size:4rem;">⚠️</div>
-        <h2>Viewer nicht verfügbar</h2>
+        <h2 th:text="#{viewer.notAvailable}">Viewer nicht verfügbar</h2>
         <p th:text="${error}">Fehler</p>
-        <p>Objekt-ID: <strong th:text="${objectId}">—</strong></p>
-        <button onclick="history.back()" class="btn btn-primary">Zurück</button>
+        <p><span th:text="#{label.objectId}">Objekt-ID:</span> <strong th:text="${objectId}">—</strong></p>
+        <button onclick="history.back()" class="btn btn-primary" th:text="#{button.back}">Zurück</button>
     </div>
 </div>
 </body>

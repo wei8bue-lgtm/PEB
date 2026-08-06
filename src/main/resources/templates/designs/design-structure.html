@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,12 +109,12 @@
 <!-- ══ Header ════════════════════════════════════════════════ -->
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>Design Structure</h1>
+    <h1 th:text="#{design.structureHeading}">Design Structure</h1>
     <div style="margin-left:auto; display:flex; gap:0.5rem;">
         <a th:href="@{/designs/{id}(id=${design.id})}"
-           class="btn btn-primary">← Back to Design</a>
+           class="btn btn-primary" th:text="#{button.backToDesignArrow}">← Back to Design</a>
         <a th:href="@{/designs}"
-           class="btn btn-primary">All Designs</a>
+           class="btn btn-primary" th:text="#{button.allDesigns}">All Designs</a>
     </div>
 </div>
 
@@ -132,7 +133,7 @@
                     &nbsp;·&nbsp;
                     <span th:text="${design.department}">Engineering</span>
                     <th:block th:if="${design.latestRevision != null}">
-                        &nbsp;·&nbsp; Revision
+                        &nbsp;·&nbsp; <span th:text="#{label.revision}">Revision</span>
                         <strong th:text="${design.latestRevision.revision}">
                             01
                         </strong>
@@ -150,15 +151,15 @@
         </div>
 
         <div th:if="${revisionId == null}" class="alert-warning">
-            <strong>⚠ No revision found.</strong>
-            Please create a revision for this Design before
-            building a structure.
+            <strong th:text="'⚠ ' + #{design.noRevisionWarning}">⚠ No revision found.</strong>
+            <span th:text="#{design.noRevisionWarningText}">Please create a revision for this Design before
+            building a structure.</span>
         </div>
     </div>
 
     <!-- ══ Tree Card ═════════════════════════════════════════ -->
     <div class="card" th:if="${revisionId != null}">
-        <h3 style="margin-top:0;">Current Structure</h3>
+        <h3 style="margin-top:0;" th:text="#{design.currentStructure}">Current Structure</h3>
 
         <!--
             Flat list – each row carries its own padding-left (from
@@ -216,13 +217,13 @@
                     <!-- Open Design -->
                     <a th:href="@{/designs/{id}(id=${node.id})}"
                        class="btn btn-primary btn-sm"
-                       title="Open Design">🔗</a>
+                       th:title="#{design.openDesignTitle}" title="Open Design">🔗</a>
 
                     <!-- Sub-structure (only for non-root nodes) -->
                     <a th:if="${node.depth > 0}"
                        th:href="@{/designs/structure/{id}(id=${node.id})}"
                        class="btn btn-primary btn-sm"
-                       title="View Sub-Structure">🗂️</a>
+                       th:title="#{design.viewSubStructureTitle}" title="View Sub-Structure">🗂️</a>
 
                     <!-- Remove link (only non-root, WRITE authority) -->
                     <button th:if="${node.depth > 0}"
@@ -234,13 +235,13 @@
                                 this.dataset.structureId,
                                 this.dataset.childName,
                                 this)"
-                            title="Remove from structure">✕</button>
+                            th:title="#{design.removeFromStructureTitle}" title="Remove from structure">✕</button>
                 </div>
             </div>
         </div>
 
         <p th:if="${flatList == null or flatList.isEmpty()}"
-           style="color:#6c757d; font-style:italic; margin:0;">
+           style="color:#6c757d; font-style:italic; margin:0;" th:text="#{design.noStructureYet}">
             No structure defined yet. Add child designs below.
         </p>
     </div>
@@ -248,7 +249,7 @@
     <!-- ══ Add Child Card ════════════════════════════════════ -->
     <div class="card" th:if="${revisionId != null}"
          sec:authorize="hasAuthority('WRITE')">
-        <h3 style="margin-top:0;">➕ Add Child Design</h3>
+        <h3 style="margin-top:0;" th:text="#{design.addChildHeading}">➕ Add Child Design</h3>
         <div class="add-child-panel">
             <form id="addChildForm" novalidate>
                 <input type="hidden" id="parentId"
@@ -260,14 +261,14 @@
 
                     <!-- Design picker -->
                     <div class="form-group" style="flex:3;">
-                        <label for="childSelect">Child Design</label>
+                        <label for="childSelect" th:text="#{label.childDesign}">Child Design</label>
                         <select id="childSelect"
                                 class="form-control" required>
-                            <option value="">⏳ Loading…</option>
+                            <option value="" th:text="#{option.loadingEllipsis}">⏳ Loading…</option>
                         </select>
                         <small id="revisionWarning"
                                style="display:none; color:#dc3545;
-                                      margin-top:0.25rem;">
+                                      margin-top:0.25rem;" th:text="'⚠ ' + #{design.revisionWarningText}">
                             ⚠ This design has no revision and cannot
                             be added to the structure.
                         </small>
@@ -275,7 +276,7 @@
 
                     <!-- Quantity -->
                     <div class="form-group" style="flex:0 0 90px;">
-                        <label for="quantity">Qty</label>
+                        <label for="quantity" th:text="#{label.quantity}">Qty</label>
                         <input type="number" id="quantity"
                                class="form-control"
                                value="1" min="1" max="9999" required/>
@@ -283,9 +284,10 @@
 
                     <!-- Position -->
                     <div class="form-group" style="flex:0 0 120px;">
-                        <label for="positionNumber">Position</label>
+                        <label for="positionNumber" th:text="#{label.position}">Position</label>
                         <input type="text" id="positionNumber"
                                class="form-control"
+                               th:placeholder="#{design.positionPlaceholder}"
                                placeholder="10, 20 …"
                                maxlength="50"/>
                     </div>
@@ -295,7 +297,7 @@
                          style="flex:0; display:flex;
                                 align-items:flex-end;">
                         <button type="submit" id="submitBtn"
-                                class="btn btn-success">
+                                class="btn btn-success" th:text="#{button.add}">
                             ➕ Add
                         </button>
                     </div>
@@ -306,28 +308,39 @@
 
     <!-- ══ Rules Info Card ═══════════════════════════════════ -->
     <div class="card" th:if="${revisionId != null}">
-        <h3 style="margin-top:0;">ℹ️ Design Structure Rules</h3>
+        <h3 style="margin-top:0;" th:text="#{design.rulesHeading}">ℹ️ Design Structure Rules</h3>
         <ul style="margin:0; padding-left:1.5rem;
                    color:#6c757d; font-size:0.9rem; line-height:1.8;">
-            <li>A Design can contain <strong>any number</strong>
-                of child Designs.</li>
-            <li>Child Designs can themselves have children
-                (unlimited depth).</li>
-            <li>Circular references are
-                <strong>automatically prevented</strong>.</li>
-            <li>Only Designs <strong>with at least one revision</strong>
-                can be used as children.</li>
-            <li>Removing a child link does <strong>not</strong>
-                delete the child Design itself.</li>
+            <li th:text="#{design.rule1}">A Design can contain any number of child Designs.</li>
+            <li th:text="#{design.rule2}">Child Designs can themselves have children (unlimited depth).</li>
+            <li th:text="#{design.rule3}">Circular references are automatically prevented.</li>
+            <li th:text="#{design.rule4}">Only Designs with at least one revision can be used as children.</li>
+            <li th:text="#{design.rule5}">Removing a child link does not delete the child Design itself.</li>
         </ul>
     </div>
 
 </div><!-- /container -->
 
 <!-- ══ Scripts ═══════════════════════════════════════════════ -->
-<script>
+<script th:inline="javascript">
 (function () {
     'use strict';
+
+    const i18n = {
+        loadingEllipsis:    /*[[#{option.loadingEllipsis}]]*/ '⏳ Loading…',
+        loadingAvailable:   /*[[#{design.loadingAvailable}]]*/ '⏳ Loading available designs…',
+        selectADesign:      /*[[#{design.selectADesign}]]*/ '— Select a Design —',
+        noEligibleDesigns:  /*[[#{design.noEligibleDesigns}]]*/ 'No eligible designs available',
+        noRevisionShort:    /*[[#{design.noRevisionShort}]]*/ 'no revision',
+        failedToLoad:       /*[[#{design.failedToLoad}]]*/ '⚠ Failed to load',
+        pleaseSelectDesign: /*[[#{design.pleaseSelectDesign}]]*/ 'Please select a Design.',
+        selectedNoRevision: /*[[#{design.selectedNoRevision}]]*/ 'Selected design has no revision.',
+        addingEllipsis:     /*[[#{design.addingEllipsis}]]*/ '⏳ Adding…',
+        add:                /*[[#{button.add}]]*/ '➕ Add',
+        failedToAdd:        /*[[#{design.failedToAdd}]]*/ 'Failed to add:',
+        confirmRemoveChild: /*[[#{design.confirmRemoveChild}]]*/ 'Remove "{0}" from this structure? The Design itself will NOT be deleted.',
+        failedToRemove:     /*[[#{design.failedToRemove}]]*/ 'Failed to remove:'
+    };
 
     const csrfToken  = document.querySelector('meta[name="_csrf"]')
                                .getAttribute('content');
@@ -353,7 +366,7 @@
 
     function loadAvailableDesigns() {
         childSelect.innerHTML =
-            '<option value="">⏳ Loading available designs…</option>';
+            '<option value="">' + i18n.loadingAvailable + '</option>';
         childSelect.disabled = true;
 
         fetch(`/designs/structure/${designId}/available-children`)
@@ -365,12 +378,12 @@
                 availableDesigns     = data;
                 childSelect.disabled = false;
                 childSelect.innerHTML =
-                    '<option value="">— Select a Design —</option>';
+                    '<option value="">' + i18n.selectADesign + '</option>';
 
                 if (data.length === 0) {
                     childSelect.innerHTML +=
                         '<option disabled>'
-                        + 'No eligible designs available</option>';
+                        + i18n.noEligibleDesigns + '</option>';
                     return;
                 }
 
@@ -379,14 +392,14 @@
                     opt.value       = String(idx);
                     opt.textContent = d.revisionId
                         ? `${d.id} – ${d.name} (Rev ${d.revision})`
-                        : `${d.id} – ${d.name}  ⚠ no revision`;
+                        : `${d.id} – ${d.name}  ⚠ ${i18n.noRevisionShort}`;
                     if (!d.revisionId) opt.disabled = true;
                     childSelect.appendChild(opt);
                 });
             })
             .catch(err => {
                 childSelect.innerHTML =
-                    '<option disabled>⚠ Failed to load</option>';
+                    '<option disabled>' + i18n.failedToLoad + '</option>';
                 console.error('loadAvailableDesigns:', err);
             });
     }
@@ -414,11 +427,11 @@
         e.preventDefault();
 
         const idx = childSelect.value;
-        if (!idx) { alert('Please select a Design.'); return; }
+        if (!idx) { alert(i18n.pleaseSelectDesign); return; }
 
         const d = availableDesigns[parseInt(idx, 10)];
         if (!d || !d.revisionId) {
-            alert('Selected design has no revision.');
+            alert(i18n.selectedNoRevision);
             return;
         }
 
@@ -435,7 +448,7 @@
         };
 
         submitBtn.disabled    = true;
-        submitBtn.textContent = '⏳ Adding…';
+        submitBtn.textContent = i18n.addingEllipsis;
 
         fetch('/designs/structure/add', {
             method:  'POST',
@@ -452,18 +465,16 @@
         })
         .then(() => window.location.reload())
         .catch(err => {
-            alert('Failed to add:\n' + err.message);
+            alert(i18n.failedToAdd + '\n' + err.message);
             submitBtn.disabled    = false;
-            submitBtn.textContent = '➕ Add';
+            submitBtn.textContent = i18n.add;
         });
     });
 
     /* ── Remove structure link ────────────────────────────── */
     window.removeStructureLink = function (structureId,
                                            childName, btn) {
-        if (!confirm(
-            `Remove "${childName}" from this structure?\n\n`
-            + `The Design itself will NOT be deleted.`)) return;
+        if (!confirm(i18n.confirmRemoveChild.replace('{0}', childName))) return;
 
         btn.disabled    = true;
         btn.textContent = '⏳';
@@ -478,7 +489,7 @@
             window.location.reload();
         })
         .catch(err => {
-            alert('Failed to remove:\n' + err.message);
+            alert(i18n.failedToRemove + '\n' + err.message);
             btn.disabled    = false;
             btn.textContent = '✕';
         });

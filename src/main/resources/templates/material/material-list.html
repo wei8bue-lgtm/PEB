@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{material.title}">Materialstammdaten - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .status-badge { padding:.15rem .5rem; border-radius:4px; font-size:.78rem; font-weight:600; }
+        .status-ACTIVE       { background:#e6f4ea; color:#137333; }
+        .status-UNDER_REVIEW { background:#fef7e0; color:#b06000; }
+        .status-OBSOLETE     { background:#f1f3f4; color:#5f6368; }
+        .status-BLOCKED      { background:#fce8e6; color:#c5221f; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="#{material.title}">Materialstammdaten</h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/}" class="btn btn-secondary">← <span th:text="#{button.back}">Zurück</span></a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <h3 style="margin:0"><span th:text="#{material.heading}">Materialien</span> (<span th:text="${materials.size()}"></span>)</h3>
+            <a sec:authorize="hasAuthority('WRITE')" th:href="@{/materials/new}" class="btn btn-primary" th:text="#{button.newMaterial}">+ Neues Material</a>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th th:text="#{label.id}">ID</th>
+                <th th:text="#{label.name}">Bezeichnung</th>
+                <th th:text="#{label.materialGroup}">Werkstoffgruppe</th>
+                <th th:text="#{label.specification}">Spezifikation</th>
+                <th th:text="#{common.status}">Status</th>
+                <th th:text="#{label.releasedRevision}">Freigeg. Rev.</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${materials}">
+                <td th:text="${m.id}"></td>
+                <td><a th:href="@{'/materials/' + ${m.id}}" th:text="${m.name}"></a></td>
+                <td th:text="${m.materialGroup}"></td>
+                <td th:text="${m.specification}"></td>
+                <td>
+                    <span class="status-badge" th:classappend="'status-' + ${m.status}" th:text="${m.status}"></span>
+                </td>
+                <td th:text="${m.releasedRevision ?: '–'}"></td>
+                <td><a th:href="@{'/materials/' + ${m.id}}" class="btn btn-secondary" th:text="#{button.details}">Details</a></td>
+            </tr>
+            <tr th:if="${materials.isEmpty()}">
+                <td colspan="7" style="text-align:center;color:#888" th:text="#{material.noneYet}">Noch keine Materialien angelegt.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

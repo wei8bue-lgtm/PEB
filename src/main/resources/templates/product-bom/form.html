@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${isEdit} ? 'Product BOM bearbeiten – PEB'
-                              : 'Neue Product BOM – PEB'">
+    <title th:text="${isEdit} ? #{pBom.editTitle} : #{pBom.newTitle}">
         Product BOM – PEB
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -12,15 +11,14 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1 th:text="${isEdit} ? '✏️ Product BOM bearbeiten'
-                           : '➕ Neue Product BOM'">
+    <h1 th:text="${isEdit} ? #{pBom.editHeading} : #{pBom.newHeading}">
         Product BOM
     </h1>
     <div style="margin-left:auto;">
         <a th:href="${isEdit}
                     ? @{/product-bom/{id}(id=${bom.id})}
                     : @{/product-bom}"
-           class="btn btn-primary">← Zurück</a>
+           class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
     </div>
 </div>
 
@@ -33,10 +31,10 @@
                     #0056b3;padding:.75rem 1rem;
                     border-radius:4px;margin-bottom:1.5rem;
                     font-size:.9rem;">
-            <strong>✏️ Bearbeitungsmodus</strong> –
-            Product BOM ID:
+            <strong>✏️ <span th:text="#{mfgBom.editModeLabel}">Bearbeitungsmodus</span></strong> –
+            <span th:text="#{pBom.idLabel}">Product BOM ID:</span>
             <code th:text="${bom.id}"></code>
-            &nbsp;|&nbsp; Erstellt am:
+            &nbsp;|&nbsp; <span th:text="#{label.createdDate} + ':'">Erstellt am:</span>
             <span th:text="${bom.createdDate != null
                 ? #temporals.format(bom.createdDate,
                     'dd.MM.yyyy')
@@ -64,7 +62,7 @@
 
             <!-- Name -->
             <div class="form-group">
-                <label>Name *</label>
+                <label th:text="#{label.name} + ' *'">Name *</label>
                 <input type="text"
                        name="name"
                        th:value="${bom.name}"
@@ -74,7 +72,7 @@
 
             <!-- Version -->
             <div class="form-group">
-                <label>Version</label>
+                <label th:text="#{label.version}">Version</label>
                 <input type="text"
                        name="bomVersion"
                        th:value="${bom.bomVersion ?: '01'}"
@@ -83,7 +81,7 @@
 
             <!-- Beschreibung -->
             <div class="form-group">
-                <label>Beschreibung</label>
+                <label th:text="#{label.description}">Beschreibung</label>
                 <textarea name="description"
                           rows="3"
                           placeholder="Kurze Beschreibung…"
@@ -101,8 +99,8 @@
             <div class="form-group"
                  th:unless="${isEdit}">
                 <label>
-                    ProductData zuweisen
-                    <span style="color:#6c757d;font-weight:400;">
+                    <span th:text="#{label.assignProductData}">ProductData zuweisen</span>
+                    <span style="color:#6c757d;font-weight:400;" th:text="#{pBom.cardinalityHint}">
                         (Kardinalität 1:1 – optional)
                     </span>
                 </label>
@@ -110,7 +108,7 @@
                         style="width:100%;padding:.5rem;
                                border:1px solid #ddd;
                                border-radius:4px;">
-                    <option value="">
+                    <option value="" th:text="#{option.noneAssignableLater}">
                         — Keine (später zuweisbar) —
                     </option>
                     <option th:each="pd : ${availableProductData}"
@@ -125,7 +123,7 @@
                                          : '')}">
                     </option>
                 </select>
-                <small style="color:#6c757d;font-size:.82rem;">
+                <small style="color:#6c757d;font-size:.82rem;" th:text="#{pBom.onlyUnassignedProductData}">
                     Es werden nur ProductData ohne bestehende
                     BOM angezeigt.
                 </small>
@@ -137,12 +135,12 @@
                         #ffc107;padding:.75rem 1rem;
                         border-radius:4px;margin-bottom:1rem;
                         font-size:.85rem;color:#856404;">
-                💡 ProductData kann auf der
+                💡 <span th:text="#{pBom.editHintLead}">ProductData kann auf der</span>
                 <a th:href="@{/product-bom/{id}(id=${bom.id})}"
-                   style="color:#856404;font-weight:600;">
+                   style="color:#856404;font-weight:600;" th:text="#{label.detailPage}">
                     Detail-Seite
                 </a>
-                zugewiesen oder geändert werden.
+                <span th:text="#{pBom.editHintTrail}">zugewiesen oder geändert werden.</span>
             </div>
 
             <!-- Buttons -->
@@ -150,9 +148,7 @@
                         margin-top:1.5rem;">
                 <button type="submit"
                         class="btn btn-primary">
-                    <span th:text="${isEdit}
-                                   ? '💾 Änderungen speichern'
-                                   : '💾 Speichern'">
+                    <span th:text="${isEdit} ? #{button.saveChangesIcon} : #{button.saveIcon}">
                     </span>
                 </button>
                 <a th:href="${isEdit}
@@ -160,7 +156,7 @@
                                  id=${bom.id})}
                              : @{/product-bom}"
                    class="btn btn-primary"
-                   style="background:#6c757d;">
+                   style="background:#6c757d;" th:text="#{button.cancelX}">
                     ✖ Abbrechen
                 </a>
             </div>

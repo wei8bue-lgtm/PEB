@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="${mfgBOM.name} + ' – Mfg BOM – PEB'">
+    <title th:text="${mfgBOM.name} + ' ' + #{mfgBom.titleSuffix}">
         Manufacturing BOM
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -134,17 +135,17 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>🔧 Manufacturing BOM</h1>
+    <h1 th:text="#{mfgBom.heading}">🔧 Manufacturing BOM</h1>
     <div style="margin-left:auto;display:flex;gap:.5rem;">
         <a th:href="@{/manufacturing-bom/{id}/work-instruction(
                         id=${mfgBOM.id})}"
            class="btn btn-primary"
            target="_blank"
-           title="Arbeitsanweisung öffnen">
+           th:title="#{title.openWorkInstruction}" title="Arbeitsanweisung öffnen" th:text="#{button.workInstructionShort}">
             📄 Arbeitsanweisung
         </a>
         <a th:href="@{/manufacturing-bom}"
-           class="btn btn-primary">← Zurück</a>
+           class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
     </div>
 </div>
 
@@ -166,7 +167,7 @@
             <div style="display:flex;gap:.5rem;align-items:center;">
                 <span style="background:#e9ecef;padding:3px 12px;
                              border-radius:12px;font-size:.85rem;"
-                      th:text="'Version: ' + ${mfgBOM.bomVersion}">
+                      th:text="#{label.versionPrefix(${mfgBOM.bomVersion})}">
                 </span>
             </div>
         </div>
@@ -174,26 +175,26 @@
         <table style="width:100%;border-collapse:collapse;">
             <tr>
                 <th style="width:180px;padding:.5rem;text-align:left;
-                           background:#f8f9fa;">ID</th>
+                           background:#f8f9fa;" th:text="#{label.id}">ID</th>
                 <td style="padding:.5rem;font-family:monospace;
                            font-weight:600;"
                     th:text="${mfgBOM.id}">1</td>
             </tr>
             <tr>
                 <th style="padding:.5rem;text-align:left;
-                           background:#f8f9fa;">Beschreibung</th>
+                           background:#f8f9fa;" th:text="#{label.description}">Beschreibung</th>
                 <td style="padding:.5rem;"
                     th:text="${mfgBOM.description ?: '—'}">—</td>
             </tr>
             <tr>
                 <th style="padding:.5rem;text-align:left;
-                           background:#f8f9fa;">Erstellt von</th>
+                           background:#f8f9fa;" th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
                 <td style="padding:.5rem;"
                     th:text="${mfgBOM.createdBy ?: '—'}">—</td>
             </tr>
             <tr>
                 <th style="padding:.5rem;text-align:left;
-                           background:#f8f9fa;">Erstellt am</th>
+                           background:#f8f9fa;" th:text="#{label.createdDate}">Erstellt am</th>
                 <td style="padding:.5rem;"
                     th:text="${mfgBOM.createdDate != null
                         ? #temporals.format(mfgBOM.createdDate,
@@ -207,7 +208,7 @@
     <!-- ── Zusammenfassung Zeiten ─────────────────────────────── -->
     <div class="card"
          th:if="${!#lists.isEmpty(mfgBOM.operations)}">
-        <h3 style="margin-top:0;">⏱️ Zeitübersicht</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.timeOverview}">⏱️ Zeitübersicht</h3>
         <div class="summary-grid">
             <div class="summary-card">
                 <div class="summary-val"
@@ -216,7 +217,7 @@
                              ? cycleTimeTarget : 0])} + 's'">
                     0s
                 </div>
-                <div class="summary-lbl">Sollzeit gesamt</div>
+                <div class="summary-lbl" th:text="#{mfgBom.totalTargetTime}">Sollzeit gesamt</div>
             </div>
             <div class="summary-card">
                 <div class="summary-val"
@@ -225,21 +226,21 @@
                              ? cycleTimeActual : 0])} + 's'">
                     0s
                 </div>
-                <div class="summary-lbl">Istzeit gesamt</div>
+                <div class="summary-lbl" th:text="#{mfgBom.totalActualTime}">Istzeit gesamt</div>
             </div>
             <div class="summary-card">
                 <div class="summary-val"
                      th:text="${#lists.size(mfgBOM.operations)}">
                     0
                 </div>
-                <div class="summary-lbl">Operationen</div>
+                <div class="summary-lbl" th:text="#{mfgBom.operationsCount}">Operationen</div>
             </div>
             <div class="summary-card">
                 <div class="summary-val"
                      th:text="${#lists.size(mfgBOM.productBOMs)}">
                     0
                 </div>
-                <div class="summary-lbl">Product BOMs</div>
+                <div class="summary-lbl" th:text="#{label.productBoms}">Product BOMs</div>
             </div>
         </div>
     </div>
@@ -248,7 +249,7 @@
     <div class="card">
         <div style="display:flex;justify-content:space-between;
                     align-items:center;margin-bottom:1rem;">
-            <h3 style="margin:0;">🌳 Struktur (Product BOMs)</h3>
+            <h3 style="margin:0;" th:text="#{mfgBom.structureHeading}">🌳 Struktur (Product BOMs)</h3>
 
             <!-- ProductBOM hinzufügen -->
             <form th:action="@{/manufacturing-bom/{id}/product-boms/add(
@@ -262,7 +263,7 @@
                                border-radius:4px;
                                font-size:.87rem;
                                min-width:220px;">
-                    <option value="">— ProductBOM auswählen —</option>
+                    <option value="" th:text="#{option.selectProductBom}">— ProductBOM auswählen —</option>
                     <option th:each="pb : ${availableProductBOMs}"
                             th:value="${pb.id}"
                             th:text="${pb.name
@@ -274,7 +275,7 @@
                     </option>
                 </select>
                 <button type="submit"
-                        class="btn btn-primary btn-sm">
+                        class="btn btn-primary btn-sm" th:text="#{button.addShort}">
                     ➕ Hinzufügen
                 </button>
             </form>
@@ -294,7 +295,7 @@
             <!-- Ebene 1: ProductBOMs -->
             <div th:if="${#lists.isEmpty(mfgBOM.productBOMs)}"
                  style="margin-left:1.5rem;color:#6c757d;
-                        padding:.5rem;">
+                        padding:.5rem;" th:text="#{mfgBom.noProductBomsYet}">
                 Noch keine ProductBOMs zugewiesen.
             </div>
 
@@ -317,8 +318,7 @@
                                         pbId=${pb.id})}"
                           method="post"
                           style="margin-left:auto;"
-                          onsubmit="return confirm(
-                              'ProductBOM entfernen?');"
+                          th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmRemoveProductBom'))}');|"
                           sec:authorize="hasAuthority('DELETE')">
                         <button type="submit"
                                 class="btn btn-danger"
@@ -350,39 +350,39 @@
 
     <!-- ── Operationen Tabelle ─────────────────────────────────── -->
     <div class="card">
-        <h3 style="margin-top:0;">⚙️ Operationen &amp; Prozesse</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.operationsHeading}">⚙️ Operationen &amp; Prozesse</h3>
 
         <!-- Tabelle -->
         <div style="overflow-x:auto;">
             <table class="ops-table">
                 <thead>
                     <tr>
-                        <th>Nr.</th>
-                        <th>Typ</th>
-                        <th>Name</th>
-                        <th>Workstation</th>
-                        <th>MA</th>
-                        <th title="Sollzeit (Sekunden)">
-                            <span class="tbadge tbadge-target">
+                        <th th:text="#{label.no}">Nr.</th>
+                        <th th:text="#{label.type}">Typ</th>
+                        <th th:text="#{label.name}">Name</th>
+                        <th th:text="#{label.workstation}">Workstation</th>
+                        <th th:text="#{label.workersUnit}">MA</th>
+                        <th th:title="#{title.targetTimeSeconds}" title="Sollzeit (Sekunden)">
+                            <span class="tbadge tbadge-target" th:text="#{label.targetTimeS}">
                                 Sollzeit (s)
                             </span>
                         </th>
-                        <th title="Istzeit (Sekunden)">
-                            <span class="tbadge tbadge-actual">
+                        <th th:title="#{title.actualTimeSeconds}" title="Istzeit (Sekunden)">
+                            <span class="tbadge tbadge-actual" th:text="#{label.actualTimeS}">
                                 Istzeit (s)
                             </span>
                         </th>
-                        <th title="Linientaktzeit (Sekunden)">
-                            <span class="tbadge tbadge-takt">
+                        <th th:title="#{title.lineTaktSeconds}" title="Linientaktzeit (Sekunden)">
+                            <span class="tbadge tbadge-takt" th:text="#{label.taktTimeS}">
                                 Taktzeit (s)
                             </span>
                         </th>
-                        <th title="Wartezeit (Sekunden)">
-                            <span class="tbadge tbadge-wait">
+                        <th th:title="#{title.waitTimeSeconds}" title="Wartezeit (Sekunden)">
+                            <span class="tbadge tbadge-wait" th:text="#{label.waitTimeS}">
                                 Wartezeit (s)
                             </span>
                         </th>
-						<th sec:authorize="hasAnyAuthority('WRITE','DELETE')">
+						<th sec:authorize="hasAnyAuthority('WRITE','DELETE')" th:text="#{label.actions}">
 							Aktionen
 						</th>
                     </tr>
@@ -391,7 +391,7 @@
                     <tr th:if="${#lists.isEmpty(mfgBOM.operations)}">
                         <td colspan="10"
                             style="padding:1.5rem;text-align:center;
-                                   color:#6c757d;">
+                                   color:#6c757d;" th:text="#{mfgBom.noOperationsYet}">
                             Noch keine Operationen vorhanden.
                         </td>
                     </tr>
@@ -467,8 +467,7 @@
                                                 id=${mfgBOM.id},
                                                 opId=${op.id})}"
                                   method="post"
-                                  onsubmit="return confirm(
-                                      'Operation löschen?');">
+                                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmDeleteOperation'))}');|">
                                 <button type="submit"
                                         class="btn btn-danger"
                                         style="padding:2px 8px;
@@ -486,7 +485,7 @@
         <div class="op-form"
              style="margin-top:1.5rem;"
              sec:authorize="hasAuthority('WRITE')">
-            <h4 style="margin:0 0 1rem;">
+            <h4 style="margin:0 0 1rem;" th:text="#{mfgBom.addOperationHeading}">
                 ➕ Operation / Prozess hinzufügen
             </h4>
 
@@ -498,7 +497,7 @@
                 <div class="form-grid-4"
                      style="margin-bottom:.75rem;">
                     <div class="fg">
-                        <label>Typ *</label>
+                        <label th:text="#{label.type} + ' *'">Typ *</label>
                         <select name="operationType" required>
                             <option th:each="t : ${operationTypes}"
                                     th:value="${t.name()}"
@@ -509,26 +508,26 @@
                         </select>
                     </div>
                     <div class="fg">
-                        <label>Nummer</label>
+                        <label th:text="#{label.number}">Nummer</label>
                         <input type="text"
                                name="operationNumber"
                                placeholder="OP010">
                     </div>
                     <div class="fg" style="grid-column:span 2;">
-                        <label>Name *</label>
+                        <label th:text="#{label.name} + ' *'">Name *</label>
                         <input type="text"
                                name="name"
                                required
                                placeholder="z.B. Schraube M6 eindrehen">
                     </div>
                     <div class="fg">
-                        <label>Workstation</label>
+                        <label th:text="#{label.workstation}">Workstation</label>
                         <input type="text"
                                name="workstation"
                                placeholder="WS-01">
                     </div>
                     <div class="fg">
-                        <label>Mitarbeiter</label>
+                        <label th:text="#{label.workerCount}">Mitarbeiter</label>
                         <input type="number"
                                name="workerCount"
                                value="1"
@@ -536,7 +535,7 @@
                                max="99">
                     </div>
                     <div class="fg">
-                        <label>Sequenz</label>
+                        <label th:text="#{label.sequence}">Sequenz</label>
                         <input type="number"
                                name="sequenceNumber"
                                placeholder="Auto">
@@ -548,12 +547,12 @@
                             border-radius:6px;padding:1rem;
                             margin-bottom:.75rem;">
                     <div style="font-size:.82rem;font-weight:700;
-                                color:#495057;margin-bottom:.75rem;">
+                                color:#495057;margin-bottom:.75rem;" th:text="#{operation.timeFields}">
                         ⏱️ Zeitfelder (Sekunden)
                     </div>
                     <div class="form-grid-4">
                         <div class="fg">
-                            <label style="color:#004085;">
+                            <label style="color:#004085;" th:text="#{label.targetTime}">
                                 Sollzeit (s)
                             </label>
                             <input type="number"
@@ -563,7 +562,7 @@
                                    placeholder="z.B. 30.000">
                         </div>
                         <div class="fg">
-                            <label style="color:#155724;">
+                            <label style="color:#155724;" th:text="#{label.actualTime}">
                                 Istzeit (s)
                             </label>
                             <input type="number"
@@ -573,7 +572,7 @@
                                    placeholder="z.B. 28.500">
                         </div>
                         <div class="fg">
-                            <label style="color:#856404;">
+                            <label style="color:#856404;" th:text="#{label.lineTaktTime}">
                                 Linientaktzeit (s)
                             </label>
                             <input type="number"
@@ -583,7 +582,7 @@
                                    placeholder="z.B. 60.000">
                         </div>
                         <div class="fg">
-                            <label style="color:#721c24;">
+                            <label style="color:#721c24;" th:text="#{label.waitTime}">
                                 Wartezeit (s)
                             </label>
                             <input type="number"
@@ -600,13 +599,13 @@
                             grid-template-columns:1fr 1fr;
                             gap:.75rem;margin-bottom:.75rem;">
                     <div class="fg">
-                        <label>🔧 Benötigte Werkzeuge</label>
+                        <label th:text="#{label.toolsRequired}">🔧 Benötigte Werkzeuge</label>
                         <input type="text"
                                name="toolsRequired"
                                placeholder="Akkuschrauber, Drehmomentschlüssel">
                     </div>
                     <div class="fg">
-                        <label>📋 Arbeitsschritte</label>
+                        <label th:text="#{label.workInstructions}">📋 Arbeitsschritte</label>
                         <textarea name="workInstructions"
                                   rows="2"
                                   placeholder="Schritt 1: …&#10;Schritt 2: …"
@@ -614,7 +613,7 @@
                         </textarea>
                     </div>
                     <div class="fg" style="grid-column:span 2;">
-                        <label>⚠️ Sicherheitshinweise</label>
+                        <label th:text="#{label.safetyNotes}">⚠️ Sicherheitshinweise</label>
                         <textarea name="safetyNotes"
                                   rows="2"
                                   placeholder="PSA tragen, Schutzbrille erforderlich …"
@@ -624,7 +623,7 @@
                 </div>
 
                 <button type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary" th:text="#{button.saveOperation}">
                     ➕ Operation speichern
                 </button>
             </form>
@@ -638,12 +637,12 @@
          LIFECYCLE-AKTIONEN  (Fragment entfernt – inline!)
          ══════════════════════════════════════════════════════════ -->
     <div class="card">
-        <h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
+        <h3 style="margin-top:0;" th:text="'⚡ ' + #{lifecycle.title}">⚡ Lifecycle-Aktionen</h3>
 
         <!-- Debug – nach Test entfernen -->
         <p style="font-size:.8rem; color:#6c757d;
                   margin-bottom:1rem;">
-            Aktueller Status:
+            <span th:text="#{mfgBom.currentStatusLabel}">Aktueller Status:</span>
             <strong th:text="${statusName}">—</strong>
         </p>
 
@@ -657,7 +656,7 @@
                    class="btn btn-primary"
                    style="background:#0066cc;
                           border-color:#0066cc;">
-                    ✏️ Bearbeiten
+                    ✏️ <span th:text="#{button.edit}">Bearbeiten</span>
                 </a>
             </div>
 
@@ -673,7 +672,7 @@
                             class="btn btn-primary"
                             style="background:#28a745;
                                    border-color:#28a745;"
-                            onclick="return confirm('Manufacturing BOM freigeben?\nStatus wechselt zu RELEASED.');">
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmRelease'))}');|" th:text="#{mfgBom.releaseButton}">
                         ✅ Freigeben (Release)
                     </button>
                 </form>
@@ -691,7 +690,7 @@
                             class="btn btn-primary"
                             style="background:#fd7e14;
                                    border-color:#fd7e14;"
-                            onclick="return confirm('Neue Revision erstellen?\nEine neue WORKING-Revision wird angelegt.');">
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmRevise'))}');|" th:text="#{mfgBom.reviseButton}">
                         📝 Revidieren (Revise)
                     </button>
                 </form>
@@ -703,7 +702,7 @@
                         class="btn btn-primary"
                         style="background:#6f42c1;
                                border-color:#6f42c1;"
-                        onclick="openSaveAsDialog()">
+                        onclick="openSaveAsDialog()" th:text="#{mfgBom.saveAsButton}">
                     💾 Save As…
                 </button>
             </div>
@@ -720,8 +719,8 @@
                            th:value="${_csrf.token}"/>
                     <button type="submit"
                             class="btn btn-danger"
-                            onclick="return confirm('Manufacturing BOM wirklich löschen?');">
-                        🗑️ Löschen
+                            th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('mfgBom.confirmDeleteFull'))}');|">
+                        🗑️ <span th:text="#{button.delete}">Löschen</span>
                     </button>
                 </form>
 
@@ -731,9 +730,7 @@
                         style="background:#e9ecef; color:#6c757d;
                                cursor:not-allowed;
                                border:1px solid #dee2e6;"
-                        th:title="${'Löschen nicht möglich: '
-                            + #lists.size(mfgBOM.productBOMs)
-                            + ' Product BOM(s) verknüpft'}">
+                        th:title="#{mfgBom.deleteBlockedLinked(${#lists.size(mfgBOM.productBOMs)})}" th:text="#{mfgBom.deleteLockedButton}">
                     🔒 Löschen gesperrt
                 </button>
             </div>
@@ -742,22 +739,22 @@
             <span th:if="${statusName == 'OBSOLETE'}"
                   style="color:#6c757d; font-size:.9rem;
                          font-style:italic;">
-                🔒 Obsolete Revision –
-                keine Lifecycle-Aktionen verfügbar.
+                <span th:text="#{mfgBom.obsoleteNotice}">🔒 Obsolete Revision –
+                keine Lifecycle-Aktionen verfügbar.</span>
             </span>
             <span th:if="${statusName == 'KEINE_REVISION'}"
                   style="color:#dc3545; font-size:.9rem;">
-                ⚠️ Keine Revision vorhanden.
+                <span th:text="#{mfgBom.noRevisionNotice}">⚠️ Keine Revision vorhanden.</span>
             </span>
         </div>
     </div>
 
     <!-- ── Revisionsverlauf ───────────────────────────────────── -->
     <div class="card">
-        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.revisionHistory}">📜 Revisionsverlauf</h3>
 
         <div th:if="${#lists.isEmpty(revisionChain)}"
-             style="color:#6c757d; padding:1rem 0;">
+             style="color:#6c757d; padding:1rem 0;" th:text="#{docTemplate.noRevisions}">
             Keine Revisionen vorhanden.
         </div>
 
@@ -768,13 +765,13 @@
                 <tr style="background:#f8f9fa;
                            border-bottom:2px solid #ddd;">
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Revision</th>
+                               text-align:left;" th:text="#{label.revision}">Revision</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Status</th>
+                               text-align:left;" th:text="#{common.status}">Status</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Erstellt von</th>
+                               text-align:left;" th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">Erstellt am</th>
+                               text-align:left;" th:text="#{label.createdDate}">Erstellt am</th>
                 </tr>
             </thead>
             <tbody>
@@ -850,14 +847,15 @@
     <div style="background:#fff; border-radius:8px;
                 padding:2rem; min-width:380px;
                 box-shadow:0 4px 20px rgba(0,0,0,.3);">
-        <h3 style="margin-top:0;">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.saveAsTitle}">
             💾 Save As – Kopie erstellen
         </h3>
         <p style="color:#6c757d; font-size:.9rem;">
-            Neuer Name für die Kopie von
+            <span th:text="#{mfgBom.saveAsPromptLabel}">Neuer Name für die Kopie von</span>
             <strong th:text="${mfgBOM.name}">—</strong>:
         </p>
         <input id="saveAsName" type="text"
+               th:placeholder="#{mfgBom.newNamePlaceholder}"
                placeholder="Neuer Name…"
                style="width:100%; padding:.5rem;
                       border:1px solid #ced4da;
@@ -871,13 +869,13 @@
                     style="background:#6c757d;
                            border-color:#6c757d;"
                     onclick="closeSaveAsDialog()">
-                ✖ Abbrechen
+                ✖ <span th:text="#{button.cancel}">Abbrechen</span>
             </button>
             <button type="button"
                     class="btn btn-primary"
                     style="background:#6f42c1;
                            border-color:#6f42c1;"
-                    onclick="executeSaveAs()">
+                    onclick="executeSaveAs()" th:text="#{button.createCopy}">
                 💾 Kopie erstellen
             </button>
         </div>
@@ -894,6 +892,13 @@
                            'meta[name="_csrf_header"]')
                                .getAttribute('content');
     const mfgBomId = /*[[${mfgBOM.id}]]*/ '';
+
+    const detailI18n = {
+        pleaseEnterName: /*[[#{mfgBom.pleaseEnterName}]]*/ '⚠️ Bitte einen Namen eingeben.',
+        errorPrefix: /*[[#{eclass.errorPrefix}]]*/ 'Fehler:',
+        copyCreatedAlert: /*[[#{mfgBom.copyCreatedAlert}]]*/ 'Kopie erstellt: {0} (ID: {1})',
+        networkError: /*[[#{mfgBom.networkError}]]*/ 'Netzwerkfehler:'
+    };
 
     function openSaveAsDialog() {
         const overlay = document.getElementById('saveAsOverlay');
@@ -912,7 +917,7 @@
         const newName = document.getElementById('saveAsName')
                                 .value.trim();
         if (!newName) {
-            alert('⚠️ Bitte einen Namen eingeben.');
+            alert(detailI18n.pleaseEnterName);
             return;
         }
         fetch('/api/manufacturing/manufacturing-bom/'
@@ -924,18 +929,18 @@
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                alert('❌ Fehler: ' + data.error);
+                alert('❌ ' + detailI18n.errorPrefix + ' ' + data.error);
             } else {
                 closeSaveAsDialog();
-                alert('✅ Kopie erstellt: '
-                      + data.name
-                      + ' (ID: ' + data.id + ')');
+                alert('✅ ' + detailI18n.copyCreatedAlert
+                      .replace('{0}', data.name)
+                      .replace('{1}', data.id));
                 window.location.href =
                     '/manufacturing-bom/' + data.id;
             }
         })
         .catch(err => {
-            alert('❌ Netzwerkfehler: ' + err.message);
+            alert('❌ ' + detailI18n.networkError + ' ' + err.message);
         });
     }
 

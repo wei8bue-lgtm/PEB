@@ -1,7 +1,8 @@
 <!-- src/main/resources/templates/layout.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,24 +20,27 @@
 
         <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
 
+            <!-- Zentrale Suche -->
+            <div th:replace="~{fragments/navbar-search :: navbar-search}"></div>
+
             <!-- Angemeldeter Benutzer -->
             <div class="user-info">
                 <span class="user-icon">👤</span>
                 <span sec:authentication="name">Benutzer</span>
                 <!-- Rolle anzeigen -->
                 <span sec:authorize="hasRole('ADMIN')"
-                      class="role-badge role-admin">Admin</span>
+                      class="role-badge role-admin" th:text="#{role.admin}">Admin</span>
                 <span sec:authorize="hasRole('USER') and !hasRole('ADMIN')"
-                      class="role-badge role-user">User</span>
+                      class="role-badge role-user" th:text="#{role.user}">User</span>
                 <span sec:authorize="hasRole('VIEWER') and !hasRole('USER')"
-                      class="role-badge role-viewer">Viewer</span>
+                      class="role-badge role-viewer" th:text="#{role.viewer}">Viewer</span>
             </div>
 
 
 
             <!-- Logout -->
             <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger">Logout</button>
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
             </form>
         </div>
     </div>
@@ -49,51 +53,81 @@
              id="pendingAlert"
              class="alert alert-warning"
              style="display:none">
-            ⚠️ Benutzer warten auf Freischaltung –
+            ⚠️ <span th:text="#{index.pendingUsers}">Benutzer warten auf Freischaltung –</span>
             <a th:href="@{/admin/users(status='PENDING')}">
-                Jetzt freischalten
+                <span th:text="#{index.activateNow}">Jetzt freischalten</span>
             </a>
         </div>
 
         <div class="card">
-            <h2>Welcome to PEB</h2>
-            <p>Production Engineering Backbone - PLM System</p>
-        </div>
+            <h2 th:text="#{index.welcomeTitle}">Welcome to PEB</h2>
+            <p th:text="#{index.welcomeSubtitle}">Production Engineering Backbone - PLM System</p>
+<!--         </div>
 
         <div class="card">
-            <h3>Quick Actions</h3>
+            <h3>Quick Actions</h3> -->
 
-            <!-- Standard-Aktionen (für alle authentifizierten User) -->
-            <a th:href="@{/designs}"
-               class="btn btn-primary"
-               th:text="#{menu.designs}">Designs</a>
-            <a th:href="@{/drawings}"
-               class="btn btn-primary"
-               th:text="#{menu.drawings}">Drawings</a>
-            <a th:href="@{/ebom}"
-               class="btn btn-primary"
-               th:text="#{menu.ebom}">MAE BOM</a>
-
-            <a th:href="@{/eclass}"
-               class="btn btn-primary"
-               th:text="#{menu.eclass}">ECLASS</a>
+            <!-- Zentrale Suche -->
+            <a th:href="@{/search}" class="btn btn-primary">
+                🔍 <span th:text="#{menu.search}">Suche</span>
+            </a>
 
             <hr style="margin:.75rem 0; border-color:#dee2e6;">
 
+            <!-- Standard-Aktionen (für alle authentifizierten User) -->
+			<a th:href="@{/designs}" class="btn btn-primary">
+				📐 <span th:text="#{menu.designs}">Designs</span>
+			</a>
+			<a th:href="@{/drawings}" class="btn btn-primary">
+				📏 <span th:text="#{menu.drawings}">Drawings</span>
+			</a>
+			<a th:href="@{/ebom}" class="btn btn-primary">
+				🧾 <span th:text="#{menu.ebom}">MAE BOM</span>
+			</a>
+			
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+
             <a th:href="@{/product-data}"      class="btn btn-primary">
-                📦 Product Data
+                📦 <span th:text="#{menu.productData}">Product Data</span>
             </a>
             <a th:href="@{/product-bom}"       class="btn btn-primary">
-                📋 Product BOM
+                📋 <span th:text="#{menu.productBom}">Product BOM</span>
             </a>
             <a th:href="@{/manufacturing-bom}" class="btn btn-primary">
-                🔧 Manufacturing BOM
+                🔧 <span th:text="#{menu.manufacturingBom}">Manufacturing BOM</span>
             </a>
             <a th:href="@{/product-bop}"       class="btn btn-primary">
-                ⚙️ Product BOP
+                ⚙️ <span th:text="#{menu.productBop}">Product BOP</span>
             </a>
             <a th:href="@{/plant-bop}"         class="btn btn-primary">
-                🏭 Plant BOP
+                🏭 <span th:text="#{menu.plantBop}">Plant BOP</span>
+            </a>
+
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+			
+						<a th:href="@{/eclass}" class="btn btn-primary">
+				🏷️ <span th:text="#{menu.eclass}">ECLASS</span>
+			</a>
+
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+
+            <a th:href="@{/document-templates}" class="btn btn-primary">
+                📄 <span th:text="#{menu.documentTemplates}">Document Templates</span>
+            </a>
+            <a th:href="@{/documents}" class="btn btn-primary">
+                📝 <span th:text="#{menu.documents}">Dokumente</span>
+            </a>
+
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+
+            <a th:href="@{/materials}" class="btn btn-primary">
+                🧪 <span th:text="#{menu.materials}">Materialmanagement</span>
+            </a>
+			
+            <hr style="margin:.75rem 0; border-color:#dee2e6;">
+
+            <a th:href="@{/suppliers}" class="btn btn-primary">
+                🚚 <span th:text="#{menu.suppliers}">Lieferantenmanagement</span>
             </a>
 
             <!-- Admin-Aktionen - nur für ROLE_ADMIN -->
@@ -101,8 +135,12 @@
                 <hr style="margin:.75rem 0; border-color:#dee2e6;">
                 <a th:href="@{/admin/users}"
                    class="btn btn-admin-action">
-                    👥 Benutzerverwaltung
+                    👥 <span th:text="#{menu.userManagement}">Benutzerverwaltung</span>
                 </a>
+                <button type="button" id="reindexSearchBtn" class="btn btn-admin-action">
+                    🔄 <span th:text="#{menu.reindexSearch}">Suchindex neu aufbauen</span>
+                </button>
+                <span id="reindexStatus" style="margin-left:8px; font-size:0.9em;"></span>
             </sec:authorize>
 
         </div>
@@ -110,8 +148,63 @@
 
     <script th:src="@{/js/main.js}"></script>
 
+    <!-- Reindex-Button: löst POST /api/search/admin/reindex aus -->
+    <script sec:authorize="hasRole('ADMIN')" th:inline="javascript">
+        (function () {
+            const btn = document.getElementById('reindexSearchBtn');
+            const status = document.getElementById('reindexStatus');
+            if (!btn) return;
+
+            const i18n = {
+                confirm: /*[[#{index.reindexConfirm}]]*/ 'Kompletten Suchindex neu aufbauen? Das kann je nach Datenmenge etwas dauern.',
+                running: /*[[#{index.reindexRunning}]]*/ 'Reindex läuft...',
+                error:   /*[[#{index.reindexError}]]*/ 'Fehler beim Reindex:'
+            };
+
+            btn.addEventListener('click', function () {
+                if (!confirm(i18n.confirm)) {
+                    return;
+                }
+
+                const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+                btn.disabled = true;
+                status.textContent = i18n.running;
+                status.style.color = '#555';
+
+                fetch('/api/search/admin/reindex', {
+                    method: 'POST',
+                    headers: { [csrfHeader]: csrfToken }
+                })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error('HTTP ' + res.status);
+                        }
+                        return res.text();
+                    })
+                    .then(text => {
+                        status.textContent = '✅ ' + text;
+                        status.style.color = 'green';
+                    })
+                    .catch(err => {
+                        status.textContent = '❌ ' + i18n.error + ' ' + err.message;
+                        status.style.color = 'red';
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                    });
+            });
+        })();
+    </script>
+
     <!-- Pending-Badge für Admins via API laden -->
-    <script sec:authorize="hasRole('ADMIN')">
+    <script sec:authorize="hasRole('ADMIN')" th:inline="javascript">
+        const pendingI18n = {
+            usersWaiting: /*[[#{index.pendingUsers}]]*/ 'Benutzer warten auf Freischaltung –',
+            activateNow:  /*[[#{index.activateNow}]]*/ 'Jetzt freischalten'
+        };
+
         fetch('/api/admin/users/pending-count')
             .then(r => r.json())
             .then(data => {
@@ -127,9 +220,9 @@
                     if (alert) {
                         alert.style.display = 'block';
                         alert.innerHTML = `⚠️ <strong>${data.count}</strong>
-                            Benutzer warten auf Freischaltung –
+                            ${pendingI18n.usersWaiting}
                             <a href="/admin/users?status=PENDING">
-                                Jetzt freischalten
+                                ${pendingI18n.activateNow}
                             </a>`;
                     }
                 }

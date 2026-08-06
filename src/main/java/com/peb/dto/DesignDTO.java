@@ -9,4 +9,5 @@ public class DesignDTO {
     private String mass;
     private String material;
     private String childView;
+	private String materialId;
 }

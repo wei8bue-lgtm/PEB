@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLASS XML Import - PEB</title>
+    <title th:text="#{eclass.importTitle}">ECLASS XML Import - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -48,10 +49,10 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>ECLASS XML Import</h1>
+    <h1 th:text="#{eclass.importHeading}">ECLASS XML Import</h1>
     <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
         <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/eclass}" class="btn btn-secondary">← Katalog</a>
+        <a th:href="@{/eclass}" class="btn btn-secondary">← <span th:text="#{button.catalog}">Katalog</span></a>
     </div>
 </div>
 
@@ -64,11 +65,11 @@
 
     <!-- Aktuelle Katalog-Statistik -->
     <div class="card">
-        <h3>Aktueller Katalog</h3>
+        <h3 th:text="#{eclass.currentCatalog}">Aktueller Katalog</h3>
         <div class="stat-row">
             <div class="stat-item">
                 <div class="num" th:text="${commodityCount}">0</div>
-                <div class="label">Commodities (Ebene 4)</div>
+                <div class="label" th:text="#{eclass.commoditiesLevel4}">Commodities (Ebene 4)</div>
             </div>
             <div class="stat-item">
                 <div class="num">
@@ -76,32 +77,32 @@
                           th:text="${versions[0]}">–</span>
                     <span th:unless="${versions != null and !versions.empty}">–</span>
                 </div>
-                <div class="label">Aktuelle Version</div>
+                <div class="label" th:text="#{eclass.currentVersion}">Aktuelle Version</div>
             </div>
             <div class="stat-item" th:if="${versions != null and versions.size() > 1}">
                 <div class="num" th:text="${versions.size()}"></div>
-                <div class="label">Versionen</div>
+                <div class="label" th:text="#{eclass.versionsCount}">Versionen</div>
             </div>
         </div>
     </div>
 
     <!-- Import-Anleitung -->
     <div class="card">
-        <h3>Hinweise zum Import</h3>
+        <h3 th:text="#{eclass.importNotesHeading}">Hinweise zum Import</h3>
         <div class="info-box">
-            <strong>Unterstützte Formate:</strong>
-            ECLASS Advanced XML (ZIP oder Einzel-XML), alle Versionen ab 10.x.<br>
-            Die Datei kann direkt von <strong>eclass.eu</strong> heruntergeladen werden
-            (Mitgliedschaft erforderlich).<br><br>
-            <strong>Verhalten beim Re-Import:</strong>
-            Bestehende Klassen werden aktualisiert, neue hinzugefügt.
-            Bereits zugewiesene Klassifizierungen bleiben erhalten.
+            <strong th:text="#{eclass.supportedFormats}">Unterstützte Formate:</strong>
+            <span th:text="#{eclass.supportedFormatsText}">ECLASS Advanced XML (ZIP oder Einzel-XML), alle Versionen ab 10.x.</span><br>
+            <span th:text="#{eclass.downloadFromEu}">Die Datei kann direkt von eclass.eu heruntergeladen werden
+            (Mitgliedschaft erforderlich).</span><br><br>
+            <strong th:text="#{eclass.reimportBehavior}">Verhalten beim Re-Import:</strong>
+            <span th:text="#{eclass.reimportText}">Bestehende Klassen werden aktualisiert, neue hinzugefügt.
+            Bereits zugewiesene Klassifizierungen bleiben erhalten.</span>
         </div>
     </div>
 
     <!-- Upload-Formular -->
     <div class="card">
-        <h3>Datei importieren</h3>
+        <h3 th:text="#{eclass.importFile}">Datei importieren</h3>
 
         <form th:action="@{/eclass/import}" method="post"
               enctype="multipart/form-data" id="importForm">
@@ -111,52 +112,57 @@
             <div class="upload-zone" id="dropZone"
                  onclick="document.getElementById('importFile').click()">
                 <div class="icon">&#128196;</div>
-                <p><strong>XML- oder ZIP-Datei auswaehlen</strong> oder hier ablegen</p>
-                <p id="fileNameDisplay" style="color:#888">Noch keine Datei ausgewaehlt</p>
+                <p><strong th:text="#{eclass.selectXmlZip}">XML- oder ZIP-Datei auswählen</strong> <span th:text="#{eclass.orDropHere}">oder hier ablegen</span></p>
+                <p id="fileNameDisplay" style="color:#888" th:text="#{eclass.noFileSelected}">Noch keine Datei ausgewählt</p>
             </div>
             <input type="file" name="file" id="importFile" accept=".xml,.zip"
                    style="display:none" onchange="onFileSelected(this)">
 
             <!-- Optionale Versions-Angabe -->
             <div class="form-group" style="margin-top:1rem">
-                <label>Version (optional, wird automatisch erkannt):</label>
+                <label th:text="#{eclass.versionOptional}">Version (optional, wird automatisch erkannt):</label>
                 <input type="text" name="forceVersion" placeholder="z.B. 16.0"
                        style="max-width:200px;padding:.4rem .6rem;border:1px solid #ced4da;border-radius:4px">
             </div>
 
             <!-- Fortschrittsanzeige -->
             <div class="progress-bar-wrap" id="progressWrap" style="margin-top:1rem">
-                <div class="progress-bar" id="progressBar">Importiere&#x2026;</div>
+                <div class="progress-bar" id="progressBar" th:text="#{eclass.importingProgress}">Importiere&#x2026;</div>
             </div>
 
             <div style="margin-top:1.5rem;display:flex;gap:.75rem">
                 <button type="submit" class="btn btn-primary" id="importBtn" disabled
-                        onclick="startImport()">
+                        onclick="startImport()" th:text="#{button.startImport}">
                     Import starten
                 </button>
-                <a th:href="@{/eclass}" class="btn btn-secondary">Abbrechen</a>
+                <a th:href="@{/eclass}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
             </div>
         </form>
     </div>
 
     <!-- Admin: Hierarchie reparieren -->
     <div class="card">
-        <h3>Hierarchie reparieren</h3>
+        <h3 th:text="#{eclass.repairHierarchyHeading}">Hierarchie reparieren</h3>
         <div class="warn-box" style="margin-bottom:1rem">
-            <strong>Einmalig nach Erstimport ausfuehren</strong> – korrigiert Segment, Hauptgruppe,
+            <strong th:text="#{eclass.runOnceAfterImport}">Einmalig nach Erstimport ausführen –</strong>
+            <span th:text="#{eclass.repairHierarchyText}">korrigiert Segment, Hauptgruppe,
             Gruppe und Ebene (1–4) aller importierten Klassen aus dem ECLASS-Code.
-            Danach ist der Hierarchie-Browser im Katalog verfuegbar.
+            Danach ist der Hierarchie-Browser im Katalog verfügbar.</span>
         </div>
         <form th:action="@{/eclass/admin/fix-hierarchy}" method="post"
-              onsubmit="return confirm('Hierarchie-Felder fuer alle ECLASS-Klassen neu berechnen?')">
+              th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('eclass.confirmRepairHierarchy'))}');|">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-            <button type="submit" class="btn btn-warning">Hierarchie jetzt reparieren</button>
+            <button type="submit" class="btn btn-warning" th:text="#{button.repairHierarchyNow}">Hierarchie jetzt reparieren</button>
         </form>
     </div>
 
 </div>
 
-<script>
+<script th:inline="javascript">
+const importI18n = {
+    importingLong: /*[[#{eclass.importingLong}]]*/ 'Importiere… (kann mehrere Minuten dauern)'
+};
+
 const dropZone  = document.getElementById('dropZone');
 const fileInput = document.getElementById('importFile');
 const importBtn = document.getElementById('importBtn');
@@ -190,7 +196,7 @@ function startImport() {
     const progressBar  = document.getElementById('progressBar');
     progressWrap.style.display = 'block';
     importBtn.disabled = true;
-    importBtn.textContent = 'Importiere… (kann mehrere Minuten dauern)';
+    importBtn.textContent = importI18n.importingLong;
 
     let w = 0;
     const interval = setInterval(() => {

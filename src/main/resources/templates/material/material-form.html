@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isNew} ? #{material.newTitle} : #{material.editTitle}"></title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.5rem; }
+        .form-grid .full { grid-column: 1 / -1; }
+        .form-group label { font-size:.85rem; color:#555; margin-bottom:.25rem; display:block; font-weight:600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width:100%; padding:.5rem .7rem; border:1px solid #ced4da; border-radius:4px; font-size:.9rem;
+        }
+        .section-title { margin-top:1.5rem; margin-bottom:.5rem; font-size:1rem; color:#333; border-bottom:1px solid #eee; padding-bottom:.3rem; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="${isNew} ? #{material.newHeading} : #{material.editHeading} + ' ' + ${material.id}"></h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/materials}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <form th:action="${isNew} ? @{/materials} : @{'/materials/' + ${material.id}}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+            <div class="section-title" th:text="#{material.masterData}">Stammdaten</div>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label th:text="#{label.name} + ' *'">Bezeichnung *</label>
+                    <input type="text" name="name" th:value="${material.name}" required>
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.department}">Abteilung</label>
+                    <input type="text" name="department" th:value="${material.department}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{common.status}">Status</label>
+                    <select name="status">
+                        <option value="ACTIVE"       th:selected="${material.status == null || material.status.name() == 'ACTIVE'}" th:text="#{material.status.active}">Aktiv</option>
+                        <option value="UNDER_REVIEW"  th:selected="${material.status != null and material.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}">In Prüfung</option>
+                        <option value="OBSOLETE"      th:selected="${material.status != null and material.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}">Ausgelaufen</option>
+                        <option value="BLOCKED"       th:selected="${material.status != null and material.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}">Gesperrt</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.materialGroup}">Werkstoffgruppe</label>
+                    <input type="text" name="materialGroup" th:value="${material.materialGroup}" placeholder="z.B. Stahl, Aluminium, PA6">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.specification} + ' / Norm'">Spezifikation / Norm</label>
+                    <input type="text" name="specification" th:value="${material.specification}" placeholder="z.B. EN 10025-2 S355">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.unitOfMeasure}">Mengeneinheit</label>
+                    <input type="text" name="unitOfMeasure" th:value="${material.unitOfMeasure}" placeholder="kg, m, m², m³, Stk">
+                </div>
+            </div>
+
+            <div class="section-title" th:text="#{material.physicalProperties}">Physikalische Kennwerte</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label th:text="#{label.density} + ' [kg/m³]'">Dichte [kg/m³]</label>
+                    <input type="number" step="0.01" name="densityKgM3" th:value="${material.densityKgM3}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.tensileStrength} + ' [MPa]'">Zugfestigkeit [MPa]</label>
+                    <input type="number" step="0.01" name="tensileStrengthMpa" th:value="${material.tensileStrengthMpa}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.elasticModulus} + ' [GPa]'">E-Modul [GPa]</label>
+                    <input type="number" step="0.01" name="elasticModulusGpa" th:value="${material.elasticModulusGpa}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.meltingPoint} + ' [°C]'">Schmelzpunkt [°C]</label>
+                    <input type="number" step="0.01" name="meltingPointC" th:value="${material.meltingPointC}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.thermalConductivity}">Wärmeleitfähigkeit [W/(m·K)]</label>
+                    <input type="number" step="0.01" name="thermalConductivityWMk" th:value="${material.thermalConductivityWMk}">
+                </div>
+            </div>
+
+            <div class="section-title" th:text="#{label.description}">Beschreibung</div>
+            <div class="form-group full">
+                <textarea name="description" rows="4" th:text="${material.description}"></textarea>
+            </div>
+
+            <div style="margin-top:1.5rem;display:flex;gap:.75rem">
+                <button type="submit" class="btn btn-primary" th:text="${isNew} ? #{button.createMaterial} : #{button.saveChanges}"></button>
+                <a th:href="${isNew} ? @{/materials} : @{'/materials/' + ${material.id}}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

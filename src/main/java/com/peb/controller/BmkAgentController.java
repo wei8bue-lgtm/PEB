@@ -3,12 +3,15 @@ package com.peb.controller;
 
 import com.peb.dto.BmkAgentRequestDTO;
 import com.peb.dto.BmkAgentResponseDTO;
+import com.peb.dto.BmkExportDTO;
 import com.peb.dto.BmkUpdateDTO;
 import com.peb.dto.RefDesUpdateDTO;
 import com.peb.model.structure.StructureRelation;
 import com.peb.service.BmkAgentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -80,6 +83,40 @@ public class BmkAgentController {
              username);
 
      return ResponseEntity.ok(response);
+ }
+
+ // ─────────────────────────────────────────────────────────
+ // GET /api/bmk/export/{rootObjectId}
+ // ─────────────────────────────────────────────────────────
+
+ /**
+  * Exportiert die BMK-Konfiguration eines Strukturbaums als flache
+  * JSON-Liste (Datei-Download). Read-only.
+  *
+  * @param rootObjectId   Object-ID des Root-Knotens
+  * @param revisionId     Revision-ID des Root-Knotens
+  */
+ @GetMapping("/export/{rootObjectId}")
+ @PreAuthorize("hasAuthority('READ')")
+ public ResponseEntity<BmkExportDTO> exportBmk(
+         @PathVariable String rootObjectId,
+         @RequestParam Long   revisionId,
+         @AuthenticationPrincipal UserDetails user) {
+
+     String username = user != null ? user.getUsername() : "system";
+     log.info("BMK-Export angefordert von [{}] für Root [{}/rev{}]",
+              username, rootObjectId, revisionId);
+
+     BmkExportDTO export =
+             bmkAgentService.exportBmkConfiguration(rootObjectId, revisionId);
+
+     String filename = "bmk-export_" + rootObjectId + "_rev" + revisionId + ".json";
+
+     return ResponseEntity.ok()
+             .header(HttpHeaders.CONTENT_DISPOSITION,
+                     "attachment; filename=\"" + filename + "\"")
+             .contentType(MediaType.APPLICATION_JSON)
+             .body(export);
  }
 
  // ─────────────────────────────────────────────────────────

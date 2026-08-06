@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create eBOM Object - PEB</title>
+    <title th:text="#{ebom.createTitle}">Create eBOM Object - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -11,15 +11,15 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Create New eBOM Object</h1>
+        <h1 th:text="#{ebom.createHeading}">Create New eBOM Object</h1>
         <div style="margin-left: auto;">
-            <a th:href="@{/ebom}" class="btn btn-primary">Back to List</a>
+            <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>eBOM Object Information</h2>
+            <h2 th:text="#{ebom.objectInfo}">eBOM Object Information</h2>
 
             <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 Error message
@@ -27,9 +27,9 @@
 
             <form th:action="@{/ebom}" th:object="${ebomObject}" method="post">
                 <div class="form-group">
-                    <label for="objectType">Object Type *</label>
+                    <label for="objectType" th:text="#{label.objectType}">Object Type *</label>
                     <select id="objectType" th:field="*{objectType}" required>
-                        <option value="">-- Select Type --</option>
+                        <option value="" th:text="#{common.selectType}">-- Select Type --</option>
                         <option th:each="type : ${objectTypes}" 
                                 th:value="${type}" 
                                 th:text="${type.displayName + ' (' + type.prefix + ')'}">
@@ -39,108 +39,116 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="name">Name *</label>
+                    <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256" 
+                           th:placeholder="#{ebom.namePlaceholder}"
                            placeholder="Enter object name">
                 </div>
 
                 <div class="form-group">
-                    <label for="linkedDesignId">Linked Design Object</label>
+                    <label for="linkedDesignId" th:text="#{label.linkedDesign}">Linked Design Object</label>
                     <select id="linkedDesignId" th:field="*{linkedDesignId}">
-                        <option value="">-- No Design Link (Optional) --</option>
+                        <option value="" th:text="#{common.noDesignLink}">-- No Design Link (Optional) --</option>
                         <option th:each="design : ${designs}" 
                                 th:value="${design.id}" 
                                 th:text="${design.id + ' - ' + design.name}">
                             Design
                         </option>
                     </select>
-                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;" th:text="#{ebom.designSyncHint}">
                         Selecting a design will automatically synchronize mass and material attributes
                     </small>
                 </div>
 
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128" 
+                           th:placeholder="#{ebom.departmentPlaceholder}"
                            placeholder="Enter department (optional)">
                 </div>
 
                 <div class="form-group">
-                    <label for="mass">Mass (kg)</label>
+                    <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
                     <input type="text" id="mass" th:field="*{mass}" maxlength="8" 
                            placeholder="e.g., 100.5">
-                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;" th:text="#{ebom.massHint}">
                         Will be synced from linked Design if available
                     </small>
                 </div>
 
                 <div class="form-group">
-                    <label for="material">Material</label>
+                    <label for="material" th:text="#{label.material}">Material</label>
                     <input type="text" id="material" th:field="*{material}" maxlength="256" 
                            placeholder="e.g., Steel, Aluminum">
-                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;" th:text="#{ebom.materialHint}">
                         Changes here will sync back to linked Design
                     </small>
                 </div>
 
                 <div class="form-group">
-                    <label for="supplier">Supplier (External System)</label>
-                    <input type="text" id="supplier" th:field="*{supplier}" maxlength="256" 
-                           placeholder="Enter supplier name">
+                    <label for="supplier" th:text="#{label.supplier}">Lieferant</label>
+                    <select id="supplier" th:field="*{supplier}">
+                        <option value="" th:text="#{common.noSupplier}">-- Kein Lieferant --</option>
+                        <option th:each="s : ${suppliers}"
+                                th:value="${s.id}"
+                                th:text="${s.id + ' - ' + s.name}">
+                            Lieferant
+                        </option>
+                    </select>
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success">Create eBOM Object</button>
-                    <a th:href="@{/ebom}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success" th:text="#{button.createEbomObject}">Create eBOM Object</button>
+                    <a th:href="@{/ebom}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
                 </div>
             </form>
         </div>
 
         <div class="card">
-            <h3>eBOM Object Types</h3>
+            <h3 th:text="#{ebom.objectTypes}">eBOM Object Types</h3>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background-color: #f8f9fa;">
-                        <th style="padding: 0.5rem; text-align: left;">Type</th>
-                        <th style="padding: 0.5rem; text-align: left;">Prefix</th>
-                        <th style="padding: 0.5rem; text-align: left;">Can Contain</th>
+                        <th style="padding: 0.5rem; text-align: left;" th:text="#{label.type}">Type</th>
+                        <th style="padding: 0.5rem; text-align: left;" th:text="#{label.prefix}">Prefix</th>
+                        <th style="padding: 0.5rem; text-align: left;" th:text="#{label.canContain}">Can Contain</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="padding: 0.5rem;">Machine</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.machine}">Machine</td>
                         <td style="padding: 0.5rem;">MA</td>
-                        <td style="padding: 0.5rem;">System, Part, Auxiliary</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.machine}">System, Part, Auxiliary</td>
                     </tr>
                     <tr style="background-color: #f8f9fa;">
-                        <td style="padding: 0.5rem;">System</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.system}">System</td>
                         <td style="padding: 0.5rem;">SY</td>
-                        <td style="padding: 0.5rem;">Subsystem, Part, Auxiliary</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.system}">Subsystem, Part, Auxiliary</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0.5rem;">Subsystem</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.subsystem}">Subsystem</td>
                         <td style="padding: 0.5rem;">SU</td>
-                        <td style="padding: 0.5rem;">Module, Part, Auxiliary</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.subsystem}">Module, Part, Auxiliary</td>
                     </tr>
                     <tr style="background-color: #f8f9fa;">
-                        <td style="padding: 0.5rem;">Module</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.module}">Module</td>
                         <td style="padding: 0.5rem;">MO</td>
-                        <td style="padding: 0.5rem;">Submodule, Part, Auxiliary</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.module}">Submodule, Part, Auxiliary</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0.5rem;">Submodule</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.submodule}">Submodule</td>
                         <td style="padding: 0.5rem;">MU</td>
-                        <td style="padding: 0.5rem;">Leaf level component</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.submodule}">Leaf level component</td>
                     </tr>
                     <tr style="background-color: #f8f9fa;">
-                        <td style="padding: 0.5rem;">Part</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.part}">Part</td>
                         <td style="padding: 0.5rem;">PT</td>
-                        <td style="padding: 0.5rem;">Can be used at any level</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.anyLevel}">Can be used at any level</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0.5rem;">Auxiliary</td>
+                        <td style="padding: 0.5rem;" th:text="#{entity.auxiliary}">Auxiliary</td>
                         <td style="padding: 0.5rem;">AX</td>
-                        <td style="padding: 0.5rem;">Can be used at any level</td>
+                        <td style="padding: 0.5rem;" th:text="#{ebom.canContain.anyLevel}">Can be used at any level</td>
                     </tr>
                 </tbody>
             </table>

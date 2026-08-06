@@ -1,11 +1,12 @@
 <!-- src/main/resources/templates/admin/users.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benutzerverwaltung - PEB</title>
+    <title th:text="#{admin.users.title}">Benutzerverwaltung - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -15,22 +16,22 @@
     <!-- ── Header (identisch zu layout.html) ──────────────────── -->
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>PEB - Production Engineering Backbone</h1>
+        <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
 
         <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
 
             <div class="user-info">
                 <span class="user-icon">👤</span>
                 <span sec:authentication="name">Benutzer</span>
-                <span class="role-badge role-admin">Admin</span>
+                <span class="role-badge role-admin" th:text="#{role.admin}">Admin</span>
             </div>
 
             <a th:href="@{/}" class="btn btn-secondary">
-                🏠 Zurück zur Startseite
+                🏠 <span th:text="#{button.backHome}">Zurück zur Startseite</span>
             </a>
 
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-danger">Logout</button>
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
             </form>
         </div>
     </div>
@@ -39,8 +40,8 @@
     <div class="container">
 
         <div class="page-header">
-            <h2>👥 Benutzerverwaltung</h2>
-            <a th:href="@{/admin/users/new}" class="btn btn-primary">
+            <h2 th:text="'👥 ' + #{menu.userManagement}">👥 Benutzerverwaltung</h2>
+            <a th:href="@{/admin/users/new}" class="btn btn-primary" th:text="#{button.createUser}">
                 + Benutzer anlegen
             </a>
         </div>
@@ -49,24 +50,24 @@
         <div class="stats-row">
             <div class="stat-card stat-active">
                 <div class="stat-number" th:text="${activeCount}">0</div>
-                <div class="stat-label">Aktiv</div>
+                <div class="stat-label" th:text="#{material.status.active}">Aktiv</div>
             </div>
             <div class="stat-card stat-pending">
                 <div class="stat-number" th:text="${pendingCount}">0</div>
-                <div class="stat-label">Ausstehend</div>
+                <div class="stat-label" th:text="#{admin.stat.pending}">Ausstehend</div>
             </div>
             <div class="stat-card stat-inactive">
                 <div class="stat-number" th:text="${inactiveCount}">0</div>
-                <div class="stat-label">Inaktiv</div>
+                <div class="stat-label" th:text="#{admin.stat.inactive}">Inaktiv</div>
             </div>
         </div>
 
         <!-- Pending-Hinweis -->
         <div th:if="${pendingCount > 0}" class="alert alert-warning">
             ⚠️ <strong th:text="${pendingCount}">0</strong>
-            Benutzer warten auf Freischaltung.
+            <span th:text="#{admin.users.pendingText}">Benutzer warten auf Freischaltung.</span>
             <a th:href="@{/admin/users(status='PENDING')}">
-                Jetzt freischalten
+                <span th:text="#{index.activateNow}">Jetzt freischalten</span>
             </a>
         </div>
 
@@ -86,28 +87,29 @@
                 <input type="text"
                        name="search"
                        th:value="${search}"
+                       th:placeholder="#{search.placeholderUsers}"
                        placeholder="Suche nach Benutzer, Name, E-Mail..."
                        class="search-input">
-                <button type="submit" class="btn btn-secondary">
+                <button type="submit" class="btn btn-secondary" th:text="#{button.search}">
                     🔍 Suchen
                 </button>
-                <a th:href="@{/admin/users}" class="btn btn-link">
+                <a th:href="@{/admin/users}" class="btn btn-link" th:text="#{button.reset}">
                     Zurücksetzen
                 </a>
 
                 <div class="filter-pills">
                     <a th:href="@{/admin/users}"
                        th:classappend="${filterStatus == null} ? 'active' : ''"
-                       class="filter-pill">Alle</a>
+                       class="filter-pill" th:text="#{filter.all}">Alle</a>
                     <a th:href="@{/admin/users(status='PENDING')}"
                        th:classappend="${filterStatus == 'PENDING'} ? 'active' : ''"
-                       class="filter-pill pill-pending">Ausstehend</a>
+                       class="filter-pill pill-pending" th:text="#{admin.stat.pending}">Ausstehend</a>
                     <a th:href="@{/admin/users(status='ACTIVE')}"
                        th:classappend="${filterStatus == 'ACTIVE'} ? 'active' : ''"
-                       class="filter-pill pill-active">Aktiv</a>
+                       class="filter-pill pill-active" th:text="#{material.status.active}">Aktiv</a>
                     <a th:href="@{/admin/users(status='INACTIVE')}"
                        th:classappend="${filterStatus == 'INACTIVE'} ? 'active' : ''"
-                       class="filter-pill pill-inactive">Inaktiv</a>
+                       class="filter-pill pill-inactive" th:text="#{admin.stat.inactive}">Inaktiv</a>
                 </div>
             </form>
         </div>
@@ -118,18 +120,18 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Benutzername</th>
-                            <th>Anzeigename</th>
-                            <th>E-Mail</th>
-                            <th>Rolle</th>
-                            <th>Status</th>
-                            <th>Letzter Login</th>
-                            <th>Aktionen</th>
+                            <th th:text="#{label.username}">Benutzername</th>
+                            <th th:text="#{label.displayName}">Anzeigename</th>
+                            <th th:text="#{label.email}">E-Mail</th>
+                            <th th:text="#{label.role}">Rolle</th>
+                            <th th:text="#{common.status}">Status</th>
+                            <th th:text="#{label.lastLogin}">Letzter Login</th>
+                            <th th:text="#{label.actions}">Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(users)}">
-                            <td colspan="7" class="no-data">
+                            <td colspan="7" class="no-data" th:text="#{admin.noUsersFound}">
                                 Keine Benutzer gefunden.
                             </td>
                         </tr>
@@ -171,7 +173,7 @@
                             <td th:text="${user.lastLogin != null}
                                           ? ${#temporals.format(
                                               user.lastLogin, 'dd.MM.yyyy HH:mm')}
-                                          : 'Noch nie'">
+                                          : #{common.never}">
                             </td>
                             <td class="actions">
 
@@ -188,8 +190,7 @@
                                       style="display:inline">
                                     <button type="submit"
                                             class="btn btn-sm btn-success"
-                                            onclick="return confirm(
-                                                'Benutzer aktivieren?')">
+                                            th:onclick="'return confirm(\'' + #{admin.confirmActivate} + '\');'">
                                         ✅
                                     </button>
                                 </form>
@@ -201,8 +202,7 @@
                                       style="display:inline">
                                     <button type="submit"
                                             class="btn btn-sm btn-warning"
-                                            onclick="return confirm(
-                                                'Benutzer deaktivieren?')">
+                                            th:onclick="'return confirm(\'' + #{admin.confirmDeactivate} + '\');'">
                                         🚫
                                     </button>
                                 </form>
@@ -213,8 +213,7 @@
                                       style="display:inline">
                                     <button type="submit"
                                             class="btn btn-sm btn-danger"
-                                            onclick="return confirm(
-                                                'Benutzer wirklich löschen?')">
+                                            th:onclick="'return confirm(\'' + #{admin.confirmDelete} + '\');'">
                                         🗑️
                                     </button>
                                 </form>

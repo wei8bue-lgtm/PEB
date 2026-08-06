@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>Operation bearbeiten – PEB</title>
+    <title th:text="#{operation.editTitle}">Operation bearbeiten – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .form-grid-4 {
@@ -49,7 +49,7 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>✏️ Operation bearbeiten</h1>
+    <h1 th:text="'✏️ ' + #{operation.editHeading}">✏️ Operation bearbeiten</h1>
     <div style="margin-left:auto;">
         <a th:href="@{/manufacturing-bom/{id}(id=${mfgBOM.id})}"
            class="btn btn-primary">← Zurück</a>
@@ -66,9 +66,9 @@
             </h2>
             <div style="font-size:.85rem;color:#6c757d;
                         margin-top:.3rem;">
-                MfgBOM:
+                <span th:text="#{operation.mfgBomLabel}">MfgBOM:</span>
                 <strong th:text="${mfgBOM.name}"></strong>
-                &nbsp;|&nbsp; Operation ID:
+                &nbsp;|&nbsp; <span th:text="#{operation.idLabel}">Operation ID:</span>
                 <code th:text="${op.id}"></code>
             </div>
         </div>
@@ -80,11 +80,11 @@
 
             <!-- ── Abschnitt 1: Allgemein ── -->
             <div class="section-box">
-                <div class="section-title">📋 Allgemein</div>
+                <div class="section-title" th:text="#{operation.general}">📋 Allgemein</div>
                 <div class="form-grid-4">
 
                     <div class="fg">
-                        <label>Typ *</label>
+                        <label th:text="#{label.type2} + ' *'">Typ *</label>
                         <select name="operationType" required>
                             <option
                                 th:each="t : ${operationTypes}"
@@ -97,7 +97,7 @@
                     </div>
 
                     <div class="fg">
-                        <label>Nummer</label>
+                        <label th:text="#{label.number}">Nummer</label>
                         <input type="text"
                                name="operationNumber"
                                th:value="${op.operationNumber}"
@@ -106,7 +106,7 @@
 
                     <div class="fg"
                          style="grid-column:span 2;">
-                        <label>Name *</label>
+                        <label th:text="#{label.name} + ' *'">Name *</label>
                         <input type="text"
                                name="name"
                                th:value="${op.name}"
@@ -115,7 +115,7 @@
                     </div>
 
                     <div class="fg">
-                        <label>Workstation</label>
+                        <label th:text="#{label.workstation}">Workstation</label>
                         <input type="text"
                                name="workstation"
                                th:value="${op.workstation}"
@@ -123,7 +123,7 @@
                     </div>
 
                     <div class="fg">
-                        <label>Mitarbeiter</label>
+                        <label th:text="#{label.workerCount}">Mitarbeiter</label>
                         <input type="number"
                                name="workerCount"
                                th:value="${op.workerCount ?: 1}"
@@ -132,7 +132,7 @@
                     </div>
 
                     <div class="fg">
-                        <label>Sequenz</label>
+                        <label th:text="#{label.sequence}">Sequenz</label>
                         <input type="number"
                                name="sequenceNumber"
                                th:value="${op.sequenceNumber}"
@@ -144,13 +144,13 @@
 
             <!-- ── Abschnitt 2: Zeitfelder ── -->
             <div class="section-box">
-                <div class="section-title">
+                <div class="section-title" th:text="#{operation.timeFields}">
                     ⏱️ Zeitfelder (Sekunden)
                 </div>
                 <div class="form-grid-4">
 
                     <div class="fg">
-                        <label style="color:#004085;">
+                        <label style="color:#004085;" th:text="#{label.targetTime}">
                             Sollzeit (s)
                         </label>
                         <input type="number"
@@ -162,7 +162,7 @@
                     </div>
 
                     <div class="fg">
-                        <label style="color:#155724;">
+                        <label style="color:#155724;" th:text="#{label.actualTime}">
                             Istzeit (s)
                         </label>
                         <input type="number"
@@ -174,7 +174,7 @@
                     </div>
 
                     <div class="fg">
-                        <label style="color:#856404;">
+                        <label style="color:#856404;" th:text="#{label.lineTaktTime}">
                             Linientaktzeit (s)
                         </label>
                         <input type="number"
@@ -186,7 +186,7 @@
                     </div>
 
                     <div class="fg">
-                        <label style="color:#721c24;">
+                        <label style="color:#721c24;" th:text="#{label.waitTime}">
                             Wartezeit (s)
                         </label>
                         <input type="number"
@@ -202,13 +202,13 @@
 
             <!-- ── Abschnitt 3: Texte ── -->
             <div class="section-box">
-                <div class="section-title">📝 Beschreibungen</div>
+                <div class="section-title" th:text="#{operation.descriptions}">📝 Beschreibungen</div>
                 <div style="display:grid;
                             grid-template-columns:1fr 1fr;
                             gap:.75rem;">
 
                     <div class="fg">
-                        <label>🔧 Benötigte Werkzeuge</label>
+                        <label th:text="#{label.toolsRequired}">🔧 Benötigte Werkzeuge</label>
                         <input type="text"
                                name="toolsRequired"
                                th:value="${op.toolsRequired}"
@@ -216,7 +216,7 @@
                     </div>
 
                     <div class="fg">
-                        <label>📋 Arbeitsschritte</label>
+                        <label th:text="#{label.workInstructions}">📋 Arbeitsschritte</label>
                         <textarea name="workInstructions"
                                   rows="3"
                                   style="resize:vertical;"
@@ -226,7 +226,7 @@
 
                     <div class="fg"
                          style="grid-column:span 2;">
-                        <label>⚠️ Sicherheitshinweise</label>
+                        <label th:text="#{label.safetyNotes}">⚠️ Sicherheitshinweise</label>
                         <textarea name="safetyNotes"
                                   rows="2"
                                   style="resize:vertical;"
@@ -241,13 +241,13 @@
             <div style="display:flex;gap:.5rem;">
                 <button type="submit"
                         class="btn btn-primary">
-                    💾 Änderungen speichern
+                    💾 <span th:text="#{button.saveChanges}">Änderungen speichern</span>
                 </button>
                 <a th:href="@{/manufacturing-bom/{id}(
                                id=${mfgBOM.id})}"
                    class="btn btn-primary"
                    style="background:#6c757d;">
-                    ✖ Abbrechen
+                    ✖ <span th:text="#{button.cancel}">Abbrechen</span>
                 </a>
             </div>
 

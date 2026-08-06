@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${template.name} + ' - PEB'">Template - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{docTemplate.viewHeading}">Document Template</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
+            <a th:href="@{/documents}" class="btn btn-primary" th:text="#{menu.documents}">Dokumente</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Statusmeldungen -->
+        <div th:if="${param.released}" class="alert alert-success" th:text="#{docTemplate.releasedAlert}">
+            ✅ Template-Revision wurde erfolgreich freigegeben.
+        </div>
+        <div th:if="${param.revised}" class="alert alert-success" th:text="#{docTemplate.revisedAlert}">
+            ✅ Neue Revision wurde erfolgreich angelegt.
+        </div>
+        <div th:if="${param.updated}" class="alert alert-success" th:text="#{docTemplate.updatedAlert}">
+            ✅ Template wurde erfolgreich aktualisiert.
+        </div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Template-Stammdaten -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h2 th:text="${template.name}">Template Name</h2>
+                    <p style="color:#6c757d; margin:.25rem 0;">
+                        ID: <strong th:text="${template.id}">DT00000001</strong>
+                    </p>
+                </div>
+                <div>
+                    <!-- Revise nur wenn aktuellste Revision RELEASED ist -->
+                    <form th:if="${template.latestRevision != null
+                                   and template.latestRevision.releaseStatus.name() == 'RELEASED'}"
+                          th:action="@{/document-templates/{id}/revise(id=${template.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-warning"
+                                sec:authorize="hasAuthority('WRITE')" th:text="#{button.createNewRevision}">
+                            Neue Revision anlegen
+                        </button>
+                    </form>
+                    <a th:href="@{/document-templates/{id}/edit(id=${template.id})}"
+                       class="btn btn-secondary"
+                       sec:authorize="hasAuthority('WRITE')">
+                        ✏ <span th:text="#{button.edit}">Bearbeiten</span>
+                    </a>
+                    <a th:href="@{/documents/new}" class="btn btn-success"
+                       th:if="${template.releasedRevision != null}"
+                       sec:authorize="hasAuthority('WRITE')" th:text="#{button.createDocument}">
+                        + Dokument erstellen
+                    </a>
+                    <form th:action="@{/document-templates/{id}/delete(id=${template.id})}"
+                          method="post" style="display:inline;"
+                          sec:authorize="hasAuthority('DELETE')"
+                          th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('docTemplate.confirmDeleteFull'))}');|">
+                        <button type="submit" class="btn btn-danger">🗑 <span th:text="#{button.delete}">Löschen</span></button>
+                    </form>
+                </div>
+            </div>
+
+            <table style="margin-top:1rem; border-collapse:collapse; width:100%;">
+                <tr style="border-bottom:1px solid #dee2e6;">
+                    <td style="padding:.5rem 1rem .5rem 0; font-weight:600; width:180px;" th:text="#{label.department}">Department</td>
+                    <td style="padding:.5rem 0;" th:text="${template.department ?: '-'}"></td>
+                </tr>
+                <tr style="border-bottom:1px solid #dee2e6;">
+                    <td style="padding:.5rem 1rem .5rem 0; font-weight:600;" th:text="#{label.description}">Beschreibung</td>
+                    <td style="padding:.5rem 0;" th:text="${template.description ?: '-'}"></td>
+                </tr>
+                <tr style="border-bottom:1px solid #dee2e6;">
+                    <td style="padding:.5rem 1rem .5rem 0; font-weight:600;" th:text="#{label.attribute1}">Attribute 1</td>
+                    <td style="padding:.5rem 0;" th:text="${template.attribute1 ?: '-'}"></td>
+                </tr>
+                <tr style="border-bottom:1px solid #dee2e6;">
+                    <td style="padding:.5rem 1rem .5rem 0; font-weight:600;" th:text="#{label.attribute2}">Attribute 2</td>
+                    <td style="padding:.5rem 0;" th:text="${template.attribute2 ?: '-'}"></td>
+                </tr>
+                <tr>
+                    <td style="padding:.5rem 1rem .5rem 0; font-weight:600;" th:text="#{lifecycle.history.createdBy}">Erstellt von</td>
+                    <td style="padding:.5rem 0;"
+                        th:text="#{material.createdByOn(${template.createdBy}, ${template.createdDate != null ? #temporals.format(template.createdDate, 'dd.MM.yyyy HH:mm') : '-'})}">
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Revisions-Tabelle -->
+        <div class="card">
+            <h3 th:text="#{material.revisions}">Revisionen</h3>
+
+            <div th:if="${revisions.empty}" class="alert alert-info" th:text="#{docTemplate.noRevisions}">
+                Keine Revisionen vorhanden.
+            </div>
+
+            <table th:unless="${revisions.empty}" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.rev}">Rev.</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{common.status}">Status</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute1}">Attribute 1</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute2}">Attribute 2</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.fileNoColon}">Datei</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.created}">Erstellt</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.actions}">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rev : ${revisions}" style="border-bottom:1px solid #ddd;">
+                        <td style="padding:.75rem; font-weight:600;" th:text="${rev.revision}">01</td>
+                        <td style="padding:.75rem;">
+                            <span th:text="${rev.releaseStatus.displayName}"
+                                  th:class="${'badge badge-' + rev.releaseStatus.name().toLowerCase()}">
+                            </span>
+                        </td>
+                        <td style="padding:.75rem;" th:text="${rev.attribute1 ?: '-'}"></td>
+                        <td style="padding:.75rem;" th:text="${rev.attribute2 ?: '-'}"></td>
+                        <td style="padding:.75rem;">
+                            <span th:if="${rev.docFileName != null}" th:text="${rev.docFileName}"
+                                  style="font-size:.85rem; color:#495057;"></span>
+                            <span th:if="${rev.docFileName == null}" style="color:#adb5bd;">–</span>
+                        </td>
+                        <td style="padding:.75rem; font-size:.85rem; color:#6c757d;"
+                            th:text="${rev.createdDate != null ? #temporals.format(rev.createdDate, 'dd.MM.yyyy HH:mm') : '-'}">
+                        </td>
+                        <td style="padding:.75rem;">
+                            <!-- Download -->
+                            <a th:if="${rev.docFilePath != null}"
+                               th:href="@{/document-templates/{id}/revisions/{revId}/download(id=${template.id},revId=${rev.revisionId})}"
+                               class="btn btn-sm" th:text="#{button.download}">⬇ Download</a>
+
+                            <!-- Release (nur WORKING) -->
+                            <form th:if="${rev.releaseStatus.name() == 'WORKING'}"
+                                  th:action="@{/document-templates/{id}/revisions/{revId}/release(id=${template.id},revId=${rev.revisionId})}"
+                                  method="post" style="display:inline;"
+                                  sec:authorize="hasAuthority('WRITE')">
+                                <button type="submit" class="btn btn-sm btn-release"
+                                        th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('docTemplate.confirmReleaseRevision'))}');|">
+                                    ✅ <span th:text="#{button.release}">Freigeben</span>
+                                </button>
+                            </form>
+
+                            <!-- Update Datei (nur WORKING) -->
+                            <button th:if="${rev.releaseStatus.name() == 'WORKING'}"
+                                    class="btn btn-sm btn-secondary"
+                                    onclick="toggleUpdateForm(this)"
+                                    sec:authorize="hasAuthority('WRITE')" th:text="#{button.updateFile}">
+                                ✏ Datei aktualisieren
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Update-Formular (inline, initial versteckt) -->
+                    <tr th:each="rev : ${revisions}"
+                        th:if="${rev.releaseStatus.name() == 'WORKING'}"
+                        class="update-form-row" style="display:none; background:#f0f7ff;">
+                        <td colspan="7" style="padding:1rem;">
+                            <form th:action="@{/document-templates/{id}/revisions/{revId}/update(id=${template.id},revId=${rev.revisionId})}"
+                                  method="post" enctype="multipart/form-data">
+                                <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:1rem; align-items:end;">
+                                    <div>
+                                        <label th:text="#{label.attribute1}">Attribute 1</label>
+                                        <input type="text" name="attribute1" th:value="${rev.attribute1}"
+                                               maxlength="500" class="form-control">
+                                    </div>
+                                    <div>
+                                        <label th:text="#{label.attribute2}">Attribute 2</label>
+                                        <input type="text" name="attribute2" th:value="${rev.attribute2}"
+                                               maxlength="500" class="form-control">
+                                    </div>
+                                </div>
+                                <div style="margin-top:.75rem;">
+                                    <label th:text="#{docTemplate.newFilePlaceholder}">Neue .doc-Datei (optional)</label>
+                                    <input type="file" name="docFile" accept=".doc">
+                                </div>
+                                <div style="margin-top:.75rem;">
+                                    <button type="submit" class="btn btn-success btn-sm" th:text="#{button.save}">Speichern</button>
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                            onclick="this.closest('tr').style.display='none'" th:text="#{button.cancel}">
+                                        Abbrechen
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleUpdateForm(btn) {
+            const row = btn.closest('tr');
+            let next = row.nextElementSibling;
+            if (next && next.classList.contains('update-form-row')) {
+                next.style.display = next.style.display === 'none' ? 'table-row' : 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
+        .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
+        .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; padding:1rem; border-radius:4px; }
+        .badge { display:inline-block; padding:.2rem .5rem; border-radius:3px; font-size:.8rem; font-weight:600; }
+        .badge-working  { background:#fff3cd; color:#856404; }
+        .badge-released { background:#d4edda; color:#155724; }
+        .badge-obsolete { background:#f8d7da; color:#721c24; }
+        .btn-sm { font-size:.8rem; padding:.2rem .5rem; margin:.1rem; }
+        .btn-release { background:#28a745; color:white; }
+        .btn-release:hover { background:#218838; }
+        .btn-secondary { background:#6c757d; color:white; }
+        .btn-secondary:hover { background:#5a6268; }
+        .btn-warning { background:#ffc107; color:#212529; }
+        .btn-warning:hover { background:#e0a800; }
+        .btn-danger { background:#dc3545; color:white; }
+        .btn-danger:hover { background:#c82333; }
+        .form-control { width:100%; padding:.4rem .6rem; border:1px solid #ced4da; border-radius:4px; box-sizing:border-box; }
+        tbody tr:hover { background:#f8f9fa; }
+    </style>
+</body>
+</html>

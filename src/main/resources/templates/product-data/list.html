@@ -3,16 +3,16 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Product Data – PEB</title>
+    <title th:text="#{pData.title}">Product Data – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>📦 Product Data</h1>
+    <h1 th:text="#{pData.heading}">📦 Product Data</h1>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
-        <a th:href="@{/}" class="btn btn-primary">🏠 Home</a>
+        <a th:href="@{/}" class="btn btn-primary">🏠 <span th:text="#{button.home}">Home</span></a>
     </div>
 </div>
 
@@ -35,10 +35,10 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
-            <h2 style="margin:0;">Product Data Liste</h2>
+            <h2 style="margin:0;" th:text="#{pData.listHeading}">Product Data Liste</h2>
             <a th:href="@{/product-data/new}"
                class="btn btn-primary"
-               sec:authorize="hasAuthority('WRITE')">
+               sec:authorize="hasAuthority('WRITE')" th:text="#{button.newProductData}">
                 ➕ Neue ProductData
             </a>
         </div>
@@ -50,14 +50,14 @@
             <input type="text"
                    name="search"
                    th:value="${search}"
-                   placeholder="Name / ID / Abteilung suchen…"
+                   th:placeholder="#{pData.searchPlaceholder}" placeholder="Name / ID / Abteilung suchen…"
                    class="search-box"
                    style="flex:1; max-width:400px;">
             <button type="submit" class="btn btn-primary">
-                🔍 Suchen
+                🔍 <span th:text="#{button.searchPlain}">Suchen</span>
             </button>
             <a th:href="@{/product-data}" class="btn btn-primary">
-                ✖ Reset
+                ✖ <span th:text="#{button.reset}">Reset</span>
             </a>
         </form>
 
@@ -98,7 +98,7 @@
                 <tr th:if="${#lists.isEmpty(productDataList)}">
                     <td colspan="8"
                         style="padding:2rem; text-align:center;
-                               color:#6c757d;">
+                               color:#6c757d;" th:text="#{pData.noneFound}">
                         Keine ProductData gefunden.
                     </td>
                 </tr>
@@ -171,7 +171,7 @@
                                          background:#f8f9fa;
                                          color:#6c757d;
                                          border:1px solid #dee2e6;">
-                                — Keine Revision
+                                <span th:text="#{status.noRevision}">— Keine Revision</span>
                             </span>
                         </th:block>
                     </td>
@@ -183,10 +183,10 @@
                                         id=${pd.productBOM.id})}"
                            style="color:#28a745;
                                   text-decoration:none;">
-                            ✅ BOM vorhanden
+                            <span th:text="#{pData.bomExists}">✅ BOM vorhanden</span>
                         </a>
                         <span th:if="${pd.productBOM == null}"
-                              style="color:#6c757d;">
+                              style="color:#6c757d;" th:text="#{pData.noBom}">
                             — Keine BOM
                         </span>
                     </td>
@@ -209,14 +209,14 @@
                             <!-- View -->
                             <a th:href="@{/product-data/{id}(id=${pd.id})}"
                                class="btn btn-primary btn-sm"
-                               title="Anzeigen">👁️</a>
+                               th:title="#{button.view}" title="Anzeigen">👁️</a>
 
                             <!-- Edit – nur bei WORKING -->
                             <a th:if="${pd.latestStatusName == 'WORKING'}"
                                th:href="@{/product-data/{id}/edit(id=${pd.id})}"
                                class="btn btn-primary btn-sm"
                                sec:authorize="hasAuthority('WRITE')"
-                               title="Bearbeiten">✏️</a>
+                               th:title="#{button.edit}" title="Bearbeiten">✏️</a>
 
                             <!-- Delete -->
                             <div sec:authorize="hasAuthority('DELETE')">
@@ -225,16 +225,13 @@
                                 <form th:if="${pd.productBOM == null}"
                                       th:action="@{/product-data/{id}/delete(id=${pd.id})}"
                                       method="post"
-                                      onsubmit="return confirm(
-                                          'ProductData \''
-                                          + /*[[${pd.name}]]*/ ''
-                                          + '\' wirklich löschen?');">
+                                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('pData.confirmDeleteFull', pd.name))}');|">
                                     <input type="hidden"
                                            th:name="${_csrf.parameterName}"
                                            th:value="${_csrf.token}"/>
                                     <button type="submit"
                                             class="btn btn-danger btn-sm"
-                                            title="Löschen">🗑️</button>
+                                            th:title="#{button.delete}" title="Löschen">🗑️</button>
                                 </form>
 
                                 <!-- Löschen gesperrt – BOM verknüpft -->
@@ -246,9 +243,7 @@
                                                color:#6c757d;
                                                cursor:not-allowed;
                                                border:1px solid #dee2e6;"
-                                        th:title="${'Löschen nicht möglich: BOM '
-                                                   + pd.productBOM.name
-                                                   + ' verknüpft'}">
+                                        th:title="#{pData.deleteBlockedBom(${pd.productBOM.name})}">
                                     🔒
                                 </button>
 
@@ -262,9 +257,9 @@
         <!-- Statistik -->
         <div style="margin-top:1rem; font-size:.85rem;
                     color:#6c757d;">
-            Gesamt:
+            <span th:text="#{mfgBom.total}">Gesamt:</span>
             <strong th:text="${#lists.size(productDataList)}">0</strong>
-            Einträge
+            <span th:text="#{mfgBom.entries}">Einträge</span>
         </div>
     </div>
 </div>

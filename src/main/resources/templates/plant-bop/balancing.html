@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>Line Balancing – PEB</title>
+    <title th:text="#{plantBop.balancingTitle}">Line Balancing – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .kpi-grid {
@@ -148,9 +148,9 @@
     <h1>⚖️ Line Balancing</h1>
     <div style="margin-left:auto;display:flex;gap:.5rem;">
         <a th:href="@{/plant-bop/{id}(id=${plantBOP.id})}"
-           class="btn btn-primary">← Plant BOP</a>
+           class="btn btn-primary">← <span th:text="#{plantBop.heading}">Plant BOP</span></a>
         <a th:href="@{/plant-bop}" class="btn btn-primary">
-            🏭 Alle Plant BOPs
+            🏭 <span th:text="#{button.allPlantBops}">Alle Plant BOPs</span>
         </a>
     </div>
 </div>
@@ -162,7 +162,7 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <div class="card">
         <h2 style="margin-top:0;">
-            ⚖️ Line Balancing –
+            ⚖️ <span th:text="#{plantBop.lineBalancingFor}">Line Balancing –</span>
             <span th:text="${result.plantBOPName()}">Name</span>
         </h2>
 
@@ -186,13 +186,13 @@
                 <div class="kpi-value"
                      th:text="${result.bottleneck()} + 's'">
                 </div>
-                <div class="kpi-label">Bottleneck (Istzeit)</div>
+                <div class="kpi-label" th:text="#{kpi.bottleneckActual}">Bottleneck (Istzeit)</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
                      th:text="${result.totalWork()} + 's'">
                 </div>
-                <div class="kpi-label">Gesamter Arbeitsinhalt</div>
+                <div class="kpi-label" th:text="#{kpi.totalWorkContent}">Gesamter Arbeitsinhalt</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-value"
@@ -203,13 +203,13 @@
         </div>
 
         <!-- ── Workstation Cards ────────────────────────────────── -->
-        <h3>Workstation-Auslastung</h3>
+        <h3 th:text="#{plantBop.workstationUtilization}">Workstation-Auslastung</h3>
 
         <div th:if="${#lists.isEmpty(result.stations())}"
              style="text-align:center;color:#6c757d;padding:2rem;
                     border:2px dashed #dee2e6;border-radius:6px;">
-            Keine Workstation-Daten.<br>
-            Weise den Operationen Workstations zu.
+            <span th:text="#{plantBop.noWorkstationData}">Keine Workstation-Daten.</span><br>
+            <span th:text="#{plantBop.assignWorkstations}">Weise den Operationen Workstations zu.</span>
         </div>
 
         <div class="station-grid"
@@ -248,7 +248,7 @@
 
                     <!-- Sollzeit -->
                     <div class="kv">
-                        <span class="k">Sollzeit</span>
+                        <span class="k" th:text="#{label.targetTimeShort}">Sollzeit</span>
                         <span class="v"
                               th:text="${ws.totalTarget()} + 's'">
                         </span>
@@ -256,7 +256,7 @@
 
                     <!-- Istzeit -->
                     <div class="kv">
-                        <span class="k">Istzeit</span>
+                        <span class="k" th:text="#{label.actualTimeShort}">Istzeit</span>
                         <span class="v"
                               th:classappend="${ws.isOverloaded(
                                               result.bottleneck())}
@@ -273,9 +273,9 @@
                                           result.bottleneck())
                                           .compareTo(
                                             T(java.math.BigDecimal)
-                                            .ZERO) < 0}
-                                        ? 'Überlast'
-                                        : 'Leerlauf'">
+                                            .ZERO) < 0
+                                        ? #messages.msg('plantBop.overload')
+                                        : #messages.msg('plantBop.idle')}">
                         </span>
                         <span class="v"
                               th:classappend="${ws.idleTime(
@@ -293,7 +293,7 @@
 
                     <!-- Auslastung: rot wenn > 100% -->
                     <div class="kv">
-                        <span class="k">Auslastung</span>
+                        <span class="k" th:text="#{plantBop.utilization}">Auslastung</span>
                         <span class="v"
                               th:classappend="${ws.isOverloaded(
                                               result.bottleneck())}
@@ -325,7 +325,7 @@
     <div th:if="${report != null}"
          class="card" style="margin-top:1rem;">
 
-        <h3 style="margin-top:0;">
+        <h3 style="margin-top:0;" th:text="#{plantBop.bottleneckAnalysis}">
             🔍 Bottleneck-Analyse &amp; Optimierungsvorschläge
         </h3>
 
@@ -335,7 +335,7 @@
              style="margin-bottom:1rem;padding:.75rem;
                     background:#fff5f5;border:1px solid #f5c6cb;
                     border-radius:6px;">
-            <strong style="color:#dc3545;">
+            <strong style="color:#dc3545;" th:text="#{plantBop.overloadedStations}">
                 🔴 Überlastete Stationen (Istzeit &gt; Sollzeit):
             </strong>
             <span th:each="ws,iter :
@@ -354,13 +354,13 @@
              style="margin-bottom:1rem;padding:.75rem;
                     background:#f0fff4;border:1px solid #b2dfdb;
                     border-radius:6px;">
-            ✅ Alle Stationen im Soll – keine Überlastung erkannt.
+            <span th:text="#{plantBop.noOverload}">✅ Alle Stationen im Soll – keine Überlastung erkannt.</span>
         </div>
 
         <!-- ── Simulation ───────────────────────────────────── -->
         <div th:if="${not #lists.isEmpty(report.suggestions())}"
              class="simulation-box">
-            <h4>📊 Simulation – Bester Vorschlag</h4>
+            <h4 th:text="#{plantBop.simulationBest}">📊 Simulation – Bester Vorschlag</h4>
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-value"
@@ -368,7 +368,7 @@
                                           .currentBottleneck()}
                                    + 's'">
                     </div>
-                    <div class="kpi-label">
+                    <div class="kpi-label" th:text="#{plantBop.currentBottleneck}">
                         Aktueller Bottleneck
                     </div>
                 </div>
@@ -378,7 +378,7 @@
                                           .simulatedBottleneck()}
                                    + 's'">
                     </div>
-                    <div class="kpi-label">
+                    <div class="kpi-label" th:text="#{plantBop.simulatedBottleneck}">
                         Simulierter Bottleneck
                     </div>
                 </div>
@@ -389,7 +389,7 @@
                                            .newEfficiency(),
                                      1,1)} + '%'">
                     </div>
-                    <div class="kpi-label">Neue Efficiency</div>
+                    <div class="kpi-label" th:text="#{plantBop.newEfficiency}">Neue Efficiency</div>
                 </div>
                 <div class="kpi-card kpi-green">
                     <div class="kpi-value"
@@ -397,7 +397,7 @@
                                           .bottleneckReduction()}
                                    + 's'">
                     </div>
-                    <div class="kpi-label">Entlastung</div>
+                    <div class="kpi-label" th:text="#{plantBop.relief}">Entlastung</div>
                 </div>
             </div>
         </div>
@@ -405,8 +405,8 @@
         <!-- ── Vorschlagsliste ──────────────────────────────── -->
         <div th:if="${#lists.isEmpty(report.suggestions())}"
              class="no-suggestions">
-            ✅ Keine Optimierungsvorschläge –
-            alle Stationen innerhalb der Schwellenwerte.
+            <span th:text="#{plantBop.noSuggestions}">✅ Keine Optimierungsvorschläge –
+            alle Stationen innerhalb der Schwellenwerte.</span>
         </div>
 
         <table th:unless="${#lists.isEmpty(report.suggestions())}"
@@ -414,12 +414,12 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Typ</th>
-                    <th>Von</th>
-                    <th>Nach</th>
+                    <th th:text="#{label.type}">Typ</th>
+                    <th th:text="#{label.from}">Von</th>
+                    <th th:text="#{label.to}">Nach</th>
                     <th>Operation</th>
-                    <th>Beschreibung</th>
-                    <th style="text-align:right;">Entlastung</th>
+                    <th th:text="#{label.description}">Beschreibung</th>
+                    <th style="text-align:right;" th:text="#{plantBop.relief}">Entlastung</th>
                 </tr>
             </thead>
             <tbody>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isNew} ? #{supplier.newTitle} : #{supplier.editTitle}"></title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.5rem; }
+        .form-grid .full { grid-column: 1 / -1; }
+        .form-group label { font-size:.85rem; color:#555; margin-bottom:.25rem; display:block; font-weight:600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width:100%; padding:.5rem .7rem; border:1px solid #ced4da; border-radius:4px; font-size:.9rem;
+        }
+        .section-title { margin-top:1.5rem; margin-bottom:.5rem; font-size:1rem; color:#333; border-bottom:1px solid #eee; padding-bottom:.3rem; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="${isNew} ? #{supplier.newHeading} : #{supplier.editHeading} + ' ' + ${supplier.id}"></h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/suppliers}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <form th:action="${isNew} ? @{/suppliers} : @{'/suppliers/' + ${supplier.id}}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+            <div class="section-title" th:text="#{material.masterData}">Stammdaten</div>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label th:text="#{label.name} + ' *'">Name *</label>
+                    <input type="text" name="name" th:value="${supplier.name}" required>
+                </div>
+                <div class="form-group">
+                    <label th:text="#{common.status}">Status</label>
+                    <select name="status">
+                        <option value="ACTIVE"       th:selected="${supplier.status == null || supplier.status.name() == 'ACTIVE'}" th:text="#{material.status.active}">Aktiv</option>
+                        <option value="UNDER_REVIEW" th:selected="${supplier.status != null and supplier.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}">In Prüfung</option>
+                        <option value="OBSOLETE"     th:selected="${supplier.status != null and supplier.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}">Ausgelaufen</option>
+                        <option value="BLOCKED"      th:selected="${supplier.status != null and supplier.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}">Gesperrt</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.street}">Straße / Hausnummer</label>
+                    <input type="text" name="street" th:value="${supplier.street}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.zipCode}">PLZ</label>
+                    <input type="text" name="zipCode" th:value="${supplier.zipCode}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.city}">Ort</label>
+                    <input type="text" name="city" th:value="${supplier.city}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.country}">Land</label>
+                    <input type="text" name="country" th:value="${supplier.country}" placeholder="z.B. Deutschland">
+                </div>
+            </div>
+
+            <div class="section-title" th:text="#{supplier.contact}">Kontakt</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label th:text="#{label.contactPerson}">Ansprechpartner</label>
+                    <input type="text" name="contactPerson" th:value="${supplier.contactPerson}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.email}">E-Mail</label>
+                    <input type="email" name="contactEmail" th:value="${supplier.contactEmail}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.phone}">Telefon</label>
+                    <input type="text" name="contactPhone" th:value="${supplier.contactPhone}">
+                </div>
+                <div class="form-group">
+                    <label th:text="#{label.website}">Website</label>
+                    <input type="text" name="website" th:value="${supplier.website}" placeholder="https://…">
+                </div>
+            </div>
+
+            <div class="section-title" th:text="#{compliance.notes}">Notizen</div>
+            <div class="form-group full">
+                <textarea name="notes" rows="4" th:text="${supplier.notes}"></textarea>
+            </div>
+
+            <div style="margin-top:1.5rem;display:flex;gap:.75rem">
+                <button type="submit" class="btn btn-primary" th:text="${isNew} ? #{button.createSupplier} : #{button.saveChanges}"></button>
+                <a th:href="${isNew} ? @{/suppliers} : @{'/suppliers/' + ${supplier.id}}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

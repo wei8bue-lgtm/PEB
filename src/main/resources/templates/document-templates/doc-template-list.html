@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{docTemplate.title}">Document Templates - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{docTemplate.heading}">Document Template Management</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 th:text="#{docTemplate.allTemplates}">Alle Document Templates</h2>
+                <div style="display:flex; gap:.5rem; align-items:center;">
+                    <div th:if="${param.deleted}" class="alert alert-success" style="margin:0; padding:.4rem .8rem;" th:text="#{docTemplate.deletedAlert}">
+                        ✅ Template gelöscht.
+                    </div>
+                    <a th:href="@{/document-templates/new}" class="btn btn-success"
+                       sec:authorize="hasAuthority('WRITE')" th:text="#{button.newTemplate}">
+                        + Neues Template
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${templates.empty}" class="alert alert-info" th:text="#{docTemplate.noneFound}">
+                Keine Templates vorhanden. Erstellen Sie das erste Document Template!
+            </div>
+
+            <table th:unless="${templates.empty}" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.id}">ID</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.name}">Name</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.department}">Department</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute1}">Attribute 1</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute2}">Attribute 2</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.currentStatus}">Aktueller Status</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.actions}">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="tmpl : ${templates}" style="border-bottom:1px solid #ddd;">
+                        <td style="padding:.75rem;" th:text="${tmpl.id}">DT00000001</td>
+                        <td style="padding:.75rem;" th:text="${tmpl.name}">Template Name</td>
+                        <td style="padding:.75rem;" th:text="${tmpl.department}">Engineering</td>
+                        <td style="padding:.75rem;" th:text="${tmpl.attribute1}"></td>
+                        <td style="padding:.75rem;" th:text="${tmpl.attribute2}"></td>
+                        <td style="padding:.75rem;">
+                            <span th:if="${tmpl.latestRevision != null}"
+                                  th:text="${tmpl.latestRevision.releaseStatus.displayName}"
+                                  th:class="${'badge badge-' + tmpl.latestRevision.releaseStatus.name().toLowerCase()}">
+                            </span>
+                            <span th:if="${tmpl.latestRevision == null}" class="badge">-</span>
+                        </td>
+                        <td style="padding:.75rem;">
+                            <a th:href="@{/document-templates/{id}(id=${tmpl.id})}"
+                               class="btn btn-primary" style="font-size:.875rem; padding:.25rem .5rem;" th:text="#{button.details}">
+                                Details
+                            </a>
+                            <a th:href="@{/document-templates/{id}/edit(id=${tmpl.id})}"
+                               class="btn btn-secondary" style="font-size:.875rem; padding:.25rem .5rem;"
+                               sec:authorize="hasAuthority('WRITE')" th:text="#{button.edit}">
+                                Bearbeiten
+                            </a>
+                            <form th:action="@{/document-templates/{id}/delete(id=${tmpl.id})}"
+                                  method="post" style="display:inline;"
+                                  sec:authorize="hasAuthority('DELETE')"
+                                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('docTemplate.confirmDelete', tmpl.id))}');|">
+                                <button type="submit" class="btn btn-danger" style="font-size:.875rem; padding:.25rem .5rem;" th:text="#{button.delete}">
+                                    Löschen
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+        .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; padding:1rem; border-radius:4px; }
+        .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:.4rem .8rem; border-radius:4px; }
+        .badge { display:inline-block; padding:.2rem .5rem; border-radius:3px; font-size:.8rem; font-weight:600; }
+        .badge-working  { background:#fff3cd; color:#856404; }
+        .badge-released { background:#d4edda; color:#155724; }
+        .badge-obsolete { background:#f8d7da; color:#721c24; }
+        .btn-secondary { background:#6c757d; color:white; }
+        .btn-secondary:hover { background:#5a6268; }
+        .btn-danger { background:#dc3545; color:white; }
+        .btn-danger:hover { background:#c82333; }
+        tbody tr:hover { background:#f8f9fa; }
+    </style>
+</body>
+</html>

@@ -18,6 +18,8 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -116,6 +118,64 @@ public class DatasetService {
         return datasetRepository
                 .findByRevisionIdAndRevisionTypeAndCategory(
                         revisionId, revisionType, category);
+    }
+
+    // ─────────────────────────────────────────────
+    // NEUESTES DATASET EINER KATEGORIE
+    // Wird beim Revisionieren benötigt (CAD-Dateien
+    // sollen automatisch in die neue Revision übernommen werden)
+    // ─────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public Dataset getLatestDatasetByCategory(Long revisionId,
+                                              String revisionType,
+                                              DatasetCategory category) {
+        return getDatasetsByCategory(revisionId, revisionType, category)
+                .stream()
+                .max(Comparator
+                        .comparing(Dataset::getCreatedDate,
+                                Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .thenComparing(Dataset::getDatasetId,
+                                Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElse(null);
+    }
+
+    // ─────────────────────────────────────────────
+    // DATASET IN NEUE REVISION KOPIEREN
+    // Kopiert die physische Datei und legt einen neuen
+    // Dataset-Datensatz mit dem übergebenen Dateinamen an.
+    // Das Quell-Dataset (alte Revision) bleibt unverändert.
+    // ─────────────────────────────────────────────
+
+    @Transactional
+    public Dataset copyDatasetToRevision(Dataset source,
+                                         Long   newRevisionId,
+                                         String newFileName) throws IOException {
+        Path sourcePath = Paths.get(source.getFilePath());
+        if (!Files.exists(sourcePath)) {
+            throw new ObjectNotFoundException(
+                    "Quelldatei für Dataset-Kopie nicht gefunden: " + source.getFilePath());
+        }
+
+        String uniqueFileName = UUID.randomUUID() + "_" + newFileName;
+        Path   targetPath     = Paths.get(uploadDir, uniqueFileName);
+
+        Files.createDirectories(targetPath.getParent());
+        Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        Dataset copy = new Dataset();
+        copy.setRevisionId(newRevisionId);
+        copy.setRevisionType(source.getRevisionType());
+        copy.setFileName(newFileName);
+        copy.setFilePath(targetPath.toString());
+        copy.setFileSize(Files.size(targetPath));
+        copy.setMimeType(source.getMimeType());
+        copy.setCategory(source.getCategory());
+
+        Dataset saved = datasetRepository.save(copy);
+        log.info("Dataset kopiert: sourceId={} → newId={}, Datei={}, neue RevisionId={}",
+                source.getDatasetId(), saved.getDatasetId(), newFileName, newRevisionId);
+        return saved;
     }
 
     // ─────────────────────────────────────────────

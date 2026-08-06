@@ -22,7 +22,7 @@ public class I18nConfig {
             Locale.GERMAN,
             Locale.ENGLISH
         ));
-        resolver.setDefaultLocale(Locale.GERMAN);
+        resolver.setDefaultLocale(Locale.ENGLISH);
         return resolver;
     }
 }

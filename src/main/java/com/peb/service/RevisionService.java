@@ -2,15 +2,21 @@ package com.peb.service;
 
 import com.peb.exception.ObjectNotFoundException;
 import com.peb.exception.WorkflowException;
+import com.peb.model.base.Dataset;
 import com.peb.model.cad.Design;
 import com.peb.model.cad.DesignRevision;
+import com.peb.model.ebom.DatasetCategory;
 import com.peb.repository.DesignRepository;
 import com.peb.repository.DesignRevisionRepository;
 import com.peb.util.ObjectType;
 import com.peb.util.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Service for managing revisions
@@ -18,12 +24,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RevisionService {
 
     private final DesignRepository designRepository;
     private final DesignRevisionRepository designRevisionRepository;
     private final EmailService emailService;
     private final IDGeneratorService idGeneratorService;
+    private final DatasetService datasetService;
+
+    // CAD-Kategorien, deren neuestes Dataset beim Revisionieren
+    // automatisch in die neue Revision übernommen wird
+    private static final List<DatasetCategory> CAD_DATASET_CATEGORIES = List.of(
+            DatasetCategory.DESIGN_NX,
+            DatasetCategory.DESIGN_INVENTOR,
+            DatasetCategory.DESIGN_SOLIDEDGE
+    );
 
     @Transactional
     public DesignRevision reviseDesign(String designId, String username) {
@@ -51,6 +67,11 @@ public class RevisionService {
 
             DesignRevision savedRevision = designRevisionRepository.save(newRevision);
 
+            // ── NEU: neueste CAD-Datasets (NX/Inventor/SolidEdge) in die
+            //         neue Revision übernehmen, mit fester Namenskonvention ──
+            copyLatestCadDatasets(designId, latestRevision.getRevisionId(),
+                                  savedRevision.getRevisionId(), nextRevision);
+
             emailService.sendRevisionSuccessEmail(username, designId, nextRevision);
 
             return savedRevision;
@@ -58,6 +79,60 @@ public class RevisionService {
             emailService.sendRevisionFailureEmail(username, designId, e.getMessage());
             throw new WorkflowException("Failed to create revision: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Übernimmt für jede CAD-Kategorie (DESIGN_NX, DESIGN_INVENTOR,
+     * DESIGN_SOLIDEDGE) das jeweils neueste Dataset der alten Revision
+     * als Kopie in die neue Revision – sofern in der Kategorie überhaupt
+     * ein Dataset vorhanden ist.
+     *
+     * Der neue Dateiname wird dabei immer fest nach dem Schema
+     * "%DesignId%_%Revision%.%Dateiendung%" vergeben (z. B. DS00000027_02.prt),
+     * unabhängig davon, wie das Quell-Dataset ursprünglich benannt war.
+     *
+     * Ein Fehler beim Kopieren einer einzelnen Kategorie (z. B. fehlende
+     * physische Datei) bricht das Revisionieren selbst NICHT ab – er wird
+     * nur geloggt, damit ein Datenproblem bei einem CAD-Dataset nicht das
+     * gesamte Revise verhindert.
+     */
+    private void copyLatestCadDatasets(String designId,
+                                       Long   oldRevisionId,
+                                       Long   newRevisionId,
+                                       String newRevisionNumber) {
+
+        for (DatasetCategory category : CAD_DATASET_CATEGORIES) {
+            Dataset latest = datasetService.getLatestDatasetByCategory(
+                    oldRevisionId, "DESIGN", category);
+
+            if (latest == null) {
+                continue; // keine Datei in dieser Kategorie vorhanden
+            }
+
+            String newFileName = designId + "_" + newRevisionNumber
+                                  + extractExtension(latest.getFileName());
+
+            try {
+                datasetService.copyDatasetToRevision(latest, newRevisionId, newFileName);
+                log.info("CAD-Dataset für Revise übernommen: Design[{}] Kategorie={} → '{}'",
+                          designId, category, newFileName);
+            } catch (IOException e) {
+                log.error("CAD-Dataset konnte für Design[{}] (Kategorie={}) nicht kopiert "
+                          + "werden: {}", designId, category, e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Liefert die Dateiendung inkl. Punkt (z. B. ".prt"), oder einen leeren
+     * String, falls der Dateiname keine Endung enthält.
+     */
+    private String extractExtension(String fileName) {
+        if (fileName == null) {
+            return "";
+        }
+        int dotIndex = fileName.lastIndexOf('.');
+        return dotIndex >= 0 ? fileName.substring(dotIndex) : "";
     }
 
     private String incrementRevision(String currentRevision) {

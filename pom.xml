@@ -64,6 +64,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
 
         <!-- ══════════════════════════════════════════════════════
              LDAP / ACTIVE DIRECTORY
@@ -181,6 +185,21 @@
             <groupId>com.itextpdf</groupId>
             <artifactId>html2pdf</artifactId>
             <version>5.0.1</version>
+        </dependency>
+
+        <!-- ══════════════════════════════════════════════════════
+             APACHE POI – .docx-Verarbeitung (DMS)
+             poi-ooxml enthält XWPF für Office Open XML (.docx)
+             ══════════════════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
         </dependency>
 
         <!-- ══════════════════════════════════════════════════════

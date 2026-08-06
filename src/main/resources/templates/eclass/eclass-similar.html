@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ähnliche Objekte - PEB</title>
+    <title th:text="#{eclass.similarTitle}">Ähnliche Objekte - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .type-badge {
@@ -26,10 +26,10 @@
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>Ähnliche Objekte (Wiederverwendung)</h1>
+    <h1 th:text="#{eclass.similarHeading}">Ähnliche Objekte (Wiederverwendung)</h1>
     <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
         <span sec:authentication="name" class="user-info"></span>
-        <a th:href="${detailUrl}" class="btn btn-secondary">← Zurück zum Objekt</a>
+        <a th:href="${detailUrl}" class="btn btn-secondary">← <span th:text="#{button.backToObject}">Zurück zum Objekt</span></a>
     </div>
 </div>
 
@@ -37,7 +37,7 @@
 
     <!-- Referenz-Objekt -->
     <div class="card">
-        <h3>Referenz-Objekt</h3>
+        <h3 th:text="#{eclass.referenceObject}">Referenz-Objekt</h3>
         <table class="table">
             <tr>
                 <th>ID</th>
@@ -50,19 +50,19 @@
                 </td>
             </tr>
             <tr th:if="${classification != null}">
-                <th>ECLASS-Klasse</th>
+                <th th:text="#{eclass.eclassClass}">ECLASS-Klasse</th>
                 <td>
                     <strong th:text="${classification.eclassCode}"></strong>
                     – <span th:text="${classification.eclassName}"></span>
                 </td>
-                <th>Version</th>
+                <th th:text="#{label.version}">Version</th>
                 <td th:text="${classification.eclassVersion}"></td>
             </tr>
         </table>
 
         <div th:unless="${classification != null}" class="alert alert-warning">
-            Dieses Objekt hat noch keine ECLASS-Klassifizierung.
-            <a th:href="@{'/eclass/classify/' + ${objectType} + '/' + ${objectId}}">
+            <span th:text="#{eclass.noClassificationYet}">Dieses Objekt hat noch keine ECLASS-Klassifizierung.</span>
+            <a th:href="@{'/eclass/classify/' + ${objectType} + '/' + ${objectId}}" th:text="#{eclass.classifyNow}">
                 Jetzt klassifizieren
             </a>
         </div>
@@ -71,14 +71,14 @@
     <!-- Ähnliche Objekte -->
     <div class="card" th:if="${classification != null}">
         <h3>
-            Objekte mit derselben ECLASS-Klasse
+            <span th:text="#{eclass.sameClassObjects}">Objekte mit derselben ECLASS-Klasse</span>
             <span th:text="'(' + ${similarObjects.size()} + ')'"></span>
         </h3>
 
         <div th:if="${similarObjects.empty}" style="color:#888;padding:1rem 0">
-            Keine ähnlichen Objekte gefunden. Klassifizieren Sie weitere Objekte
-            mit dem Code <strong th:text="${classification.eclassCode}"></strong>,
-            um sie hier zu sehen.
+            <span th:text="#{eclass.noSimilarFound}">Keine ähnlichen Objekte gefunden. Klassifizieren Sie weitere Objekte
+            mit dem Code</span> <strong th:text="${classification.eclassCode}"></strong>,
+            <span th:text="#{eclass.toSeeThemHere}">um sie hier zu sehen.</span>
         </div>
 
         <table class="table" th:unless="${similarObjects.empty}">
@@ -86,10 +86,10 @@
                 <tr>
                     <th>ID</th>
                     <th>Typ</th>
-                    <th>Name</th>
-                    <th>Abteilung</th>
+                    <th th:text="#{label.name}">Name</th>
+                    <th th:text="#{label.department}">Abteilung</th>
                     <th>ECLASS</th>
-                    <th>Aktion</th>
+                    <th th:text="#{label.action}">Aktion</th>
                 </tr>
             </thead>
             <tbody>
@@ -107,7 +107,7 @@
                         <small th:text="${obj.eclassName}" style="color:#666"></small>
                     </td>
                     <td>
-                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary">
+                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary" th:text="#{button.open}">
                             Öffnen
                         </a>
                     </td>
@@ -118,7 +118,8 @@
         <!-- Link zum ECLASS-Code-Browser -->
         <div style="margin-top:1rem">
             <a th:href="@{'/eclass/objects/' + ${classification.eclassCode}}"
-               class="btn btn-secondary">
+               class="btn btn-secondary"
+               th:text="#{eclass.showAllObjectsOfCode2(${classification.eclassCode})}">
                 Alle Objekte von <span th:text="${classification.eclassCode}"></span> anzeigen
             </a>
         </div>

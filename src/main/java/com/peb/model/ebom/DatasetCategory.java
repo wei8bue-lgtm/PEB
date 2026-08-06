@@ -13,11 +13,11 @@ public enum DatasetCategory {
     PDF_DRAWING     ("PDF Drawing",       false, true),
     EXCEL_TABLE     ("Excel Table",       false, true),
     CE_DOCUMENT     ("CE Document",       false, false),
-    DESIGN_NX       ("Design NX",         true,  false),
-    DESIGN_INVENTOR ("Design Inventor",   true,  false),
-    DESIGN_SOLIDEDGE("Design SolidEdge",  true,  false),
+    DESIGN_NX       ("Design NX",         false,  false),
+    DESIGN_INVENTOR ("Design Inventor",   false,  false),
+    DESIGN_SOLIDEDGE("Design SolidEdge",  false,  false),
     DESIGN_RENDERING("Design Rendering",  true,  false),
-	DESIGN_JT		("Design Rendering JT",  true,  false),
+	DESIGN_JT		("Design Rendering JT",  false,  false),
     THUMBNAIL       ("Thumbnail",         false, false),
     OTHER           ("Other",             false, false);
 

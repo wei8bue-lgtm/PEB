@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,7 +55,7 @@
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="${drawing.name}">Drawing Name</h1>
     <div style="margin-left: auto;">
-        <a th:href="@{/drawings}" class="btn btn-primary">Back to List</a>
+        <a th:href="@{/drawings}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
     </div>
 </div>
 
@@ -76,19 +77,18 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
-            <h2>Drawing Details</h2>
+            <h2 th:text="#{drawing.details}">Drawing Details</h2>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
 
                 <a th:href="@{/drawings/{id}/edit(id=${drawing.id})}"
                    class="btn btn-primary"
-                   sec:authorize="hasAuthority('WRITE')">✏️ Edit</a>
+                   sec:authorize="hasAuthority('WRITE')" th:text="'✏️ ' + #{button.edit}">✏️ Edit</a>
 
                 <form th:action="@{/drawings/{id}/delete(id=${drawing.id})}"
                       method="post" style="display:inline;"
-                      onsubmit="return confirm(
-                          'Delete this drawing and all its revisions?');"
+                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmDeleteAll'))}');|"
                       sec:authorize="hasAuthority('DELETE')">
-                    <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                    <button type="submit" class="btn btn-danger" th:text="'🗑️ ' + #{button.delete}">🗑️ Delete</button>
                 </form>
             </div>
         </div>
@@ -96,37 +96,37 @@
         <table style="width:100%; border-collapse:collapse;">
             <tr>
                 <th style="width:200px; padding:0.5rem; text-align:left;
-                           background:#f8f9fa;">ID</th>
+                           background:#f8f9fa;" th:text="#{label.id}">ID</th>
                 <td style="padding:0.5rem;" th:text="${drawing.id}">DW00000001</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Name</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.name}">Name</th>
                 <td style="padding:0.5rem;" th:text="${drawing.name}">Drawing Name</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Department</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.department}">Department</th>
                 <td style="padding:0.5rem;" th:text="${drawing.department}">Engineering</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Created Date</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.createdDate}">Created Date</th>
                 <td style="padding:0.5rem;"
                     th:text="${drawing.createdDate != null
                         ? #temporals.format(drawing.createdDate,'dd.MM.yyyy HH:mm:ss')
-                        : 'N/A'}">01.01.2024</td>
+                        : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Created By</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{lifecycle.history.createdBy}">Created By</th>
                 <td style="padding:0.5rem;" th:text="${drawing.createdBy}">admin</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Last Modified</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.lastModified}">Last Modified</th>
                 <td style="padding:0.5rem;"
                     th:text="${drawing.lastModifiedDate != null
                         ? #temporals.format(drawing.lastModifiedDate,'dd.MM.yyyy HH:mm:ss')
-                        : 'N/A'}">01.01.2024</td>
+                        : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Modified By</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.modifiedBy}">Modified By</th>
                 <td style="padding:0.5rem;" th:text="${drawing.lastModifiedBy}">admin</td>
             </tr>
         </table>
@@ -140,39 +140,40 @@
                 📄
                 <span th:text="${pdfDataset.category.displayName}">PDF Document</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
-                    — Revision
+                    — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${drawing.latestRevision.revision}">01</span>
                 </span>
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
                 <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                   download class="btn btn-primary btn-sm">⬇️ Download</a>
+                   download class="btn btn-primary btn-sm" th:text="#{button.download}">⬇️ Download</a>
                 <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                    target="_blank" rel="noopener noreferrer"
-                   class="btn btn-primary btn-sm">Vollbild ↗</a>
+                   class="btn btn-primary btn-sm" th:text="#{button.fullscreen}">Vollbild ↗</a>
                 <a th:href="@{'/datasets/manage/DRAWING/'
                              + ${drawing.latestRevision.revisionId}
                              + '?objectId=' + ${drawing.id}}"
-                   class="btn btn-primary btn-sm">📎 Dataset</a>
+                   class="btn btn-primary btn-sm" th:text="#{button.datasetShort}">📎 Dataset</a>
             </div>
         </div>
         <div class="embedded-viewer-wrapper">
             <iframe th:src="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                     class="embedded-viewer-frame" title="PDF Viewer">
-                <p>Ihr Browser unterstützt keine eingebetteten PDFs.
+                <p th:text="#{drawing.browserNoPdfSupport}">Ihr Browser unterstützt keine eingebetteten PDFs.</p>
+                <p>
                     <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                       download>PDF herunterladen</a>
+                       download th:text="#{button.downloadPdf}">PDF herunterladen</a>
                 </p>
             </iframe>
         </div>
         <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
                     display:flex; justify-content:space-between;">
-            <span>Kategorie:
+            <span th:text="#{drawing.category}">Kategorie:</span>
                 <code th:text="'DatasetCategory.' + ${pdfDataset.category.name()}">
                     DatasetCategory.PDF_DRAWING
                 </code>
             </span>
-            <span>Datei: <strong th:text="${pdfDataset.fileName}">zeichnung.pdf</strong></span>
+            <span th:text="#{drawing.file}">Datei:</span> <strong th:text="${pdfDataset.fileName}">zeichnung.pdf</strong>
         </div>
     </div>
 
@@ -185,24 +186,24 @@
         <div style="display:flex; align-items:center; gap:1rem; color:#6c757d;">
             <span style="font-size:2rem; opacity:0.5;">📄</span>
             <div>
-                <p style="margin:0; font-weight:500;">Kein Dokument-Dataset vorhanden</p>
+                <p style="margin:0; font-weight:500;" th:text="#{drawing.noDocument}">Kein Dokument-Dataset vorhanden</p>
                 <p style="margin:0.25rem 0 0; font-size:0.85rem;">
-                    Füge ein Dataset der Kategorie
-                    <strong>PDF Drawing</strong> oder
-                    <strong>PDF Document</strong> hinzu.
+                    <span th:text="#{drawing.noDocumentHint}">Füge ein Dataset der Kategorie</span>
+                    <strong th:text="#{drawing.pdfDrawing}">PDF Drawing</strong> <span th:text="#{drawing.noDocumentHintOr}">oder</span>
+                    <strong th:text="#{drawing.pdfDocument}">PDF Document</strong>.
                 </p>
             </div>
             <a th:href="@{'/datasets/manage/DRAWING/'
                          + ${drawing.latestRevision.revisionId}
                          + '?objectId=' + ${drawing.id}}"
                class="btn btn-primary btn-sm"
-               style="margin-left:auto;">📎 Dataset hinzufügen</a>
+               style="margin-left:auto;" th:text="#{button.addDataset}">📎 Dataset hinzufügen</a>
         </div>
     </div>
 
     <!-- ══ Revision Actions ═════════════════════════════════════════════════ -->
     <div class="card" sec:authorize="hasAuthority('EXECUTE')">
-        <h3>Revision Actions</h3>
+        <h3 th:text="#{drawing.revisionActions}">Revision Actions</h3>
 
         <div th:if="${drawing.latestRevision != null}">
 
@@ -215,17 +216,15 @@
                                   + '/release'}"
                       method="post"
                       style="display:inline;"
-                      onsubmit="return confirm(
-                          'Release this revision? '
-                          + 'All older revisions become obsolete.');">
+                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmReleaseRevision'))}');|">
                     <button type="submit" class="btn btn-success">
-                        🏁 Release Revision
+                        🏁 <span th:text="#{button.release}">Release Revision</span>
                     </button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
-                    Revision
+                    <span th:text="#{label.revision}">Revision</span>
                     <strong th:text="${drawing.latestRevision.revision}">01</strong>
-                    ist im Status Working.
+                    <span th:text="#{drawing.workingStatusText}">ist im Status Working.</span>
                 </p>
             </div>
 
@@ -236,14 +235,14 @@
                                   + '/revise'}"
                       method="post"
                       style="display:inline;">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" th:text="#{button.reviseNewRevision}">
                         📝 Revise (New Revision)
                     </button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
-                    Revision
+                    <span th:text="#{label.revision}">Revision</span>
                     <strong th:text="${drawing.latestRevision.revision}">01</strong>
-                    ist Released.
+                    <span th:text="#{drawing.isReleasedShort}">ist Released.</span>
                 </p>
             </div>
         </div>
@@ -252,7 +251,7 @@
         <div th:if="${drawing.latestRevision != null}"
              style="margin-top:1rem; padding-top:1rem;
                     border-top:1px solid #dee2e6;">
-            <button onclick="handleSaveAs()" class="btn btn-primary">
+            <button onclick="handleSaveAs()" class="btn btn-primary" th:text="#{button.saveAsCopy}">
                 💾 Save As (Copy)
             </button>
         </div>
@@ -260,9 +259,9 @@
 
     <!-- ══ Revisions-Tabelle ════════════════════════════════════════════════ -->
     <div class="card">
-        <h3>Revisions</h3>
+        <h3 th:text="#{material.revisions}">Revisions</h3>
 
-        <div th:if="${drawing.revisions.empty}" class="alert-info">
+        <div th:if="${drawing.revisions.empty}" class="alert-info" th:text="#{drawing.noRevisionsFound}">
             No revisions found.
         </div>
 
@@ -270,11 +269,11 @@
                style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                    <th style="padding:0.75rem; text-align:left;">Revision</th>
-                    <th style="padding:0.75rem; text-align:left;">Status</th>
-                    <th style="padding:0.75rem; text-align:left;">Created Date</th>
-                    <th style="padding:0.75rem; text-align:left;">Created By</th>
-                    <th style="padding:0.75rem; text-align:left;">Actions</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.revision}">Revision</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{common.status}">Status</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.createdDate}">Created Date</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{lifecycle.history.createdBy}">Created By</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.actions}">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -308,7 +307,7 @@
                                          + ${revision.revisionId}
                                          + '?objectId=' + ${drawing.id}}"
                                class="btn btn-primary btn-sm"
-                               title="Datasets verwalten">📎 Datasets</a>
+                               th:title="#{drawing.manageDatasetsTitle}" title="Datasets verwalten" th:text="#{button.datasetShort} + 's'">📎 Datasets</a>
 
                         </div>
                     </td>
@@ -319,25 +318,31 @@
 
     <!-- ══ Usage ════════════════════════════════════════════════════════════ -->
     <div class="card">
-        <h3>Usage</h3>
-        <p>This drawing can be linked to any level in the eBOM structure:</p>
+        <h3 th:text="#{drawing.usage}">Usage</h3>
+        <p th:text="#{drawing.usageText}">This drawing can be linked to any level in the eBOM structure:</p>
         <ul>
-            <li>Machine level</li>
-            <li>System level</li>
-            <li>Subsystem level</li>
-            <li>Module level</li>
-            <li>Submodule level</li>
-            <li>Part level</li>
-            <li>Auxiliary level</li>
+            <li th:text="#{level.machine}">Machine level</li>
+            <li th:text="#{level.system}">System level</li>
+            <li th:text="#{level.subsystem}">Subsystem level</li>
+            <li th:text="#{level.module}">Module level</li>
+            <li th:text="#{level.submodule}">Submodule level</li>
+            <li th:text="#{level.part}">Part level</li>
+            <li th:text="#{level.auxiliary}">Auxiliary level</li>
         </ul>
     </div>
 
 </div><!-- /container -->
 
 <!-- ══ Scripts ════════════════════════════════════════════════════════════ -->
-<script>
+<script th:inline="javascript">
+    const drawingViewI18n = {
+        saveAsPrompt: /*[[#{drawing.saveAsPrompt}]]*/ 'Enter name for the new drawing:',
+        copiedAlert:  /*[[#{drawing.copiedAlert}]]*/ 'Copied! New ID:',
+        errorAlert:   /*[[#{drawing.errorAlert}]]*/ 'Error:'
+    };
+
     function handleSaveAs() {
-        const newName = prompt('Enter name for the new drawing:');
+        const newName = prompt(drawingViewI18n.saveAsPrompt);
         if (!newName || !newName.trim()) return;
 
         const drawingId  = '[[${drawing.id}]]';
@@ -356,10 +361,10 @@
             return r.json();
         })
         .then(data => {
-            alert('✅ Kopiert! Neue ID: ' + data.id);
+            alert('✅ ' + drawingViewI18n.copiedAlert + ' ' + data.id);
             window.location.href = '/drawings/' + data.id;
         })
-        .catch(err => alert('❌ Fehler: ' + err.message));
+        .catch(err => alert('❌ ' + drawingViewI18n.errorAlert + ' ' + err.message));
     }
 </script>
 

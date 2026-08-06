@@ -4,6 +4,7 @@ import com.peb.exception.ObjectNotFoundException;
 import com.peb.model.cad.Design;
 import com.peb.model.ebom.*;
 import com.peb.repository.*;
+import com.peb.service.search.SearchIndexService;
 import com.peb.util.ObjectType;
 import com.peb.util.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class EBOMService {
     private final AuxiliaryRepository auxiliaryRepository;
     private final DesignRepository designRepository;
     private final SynchronizationService synchronizationService;
+    private final SearchIndexService searchIndexService; // NEU: zentrale Suche
     
     // Revision repositories
     private final MachineRevisionRepository machineRevisionRepository;
@@ -80,6 +82,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 machineRevisionRepository.save(revision);
+                machine.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield machine;
             }
@@ -101,6 +104,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 systemRevisionRepository.save(revision);
+                system.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield system;
             }
@@ -122,6 +126,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 subsystemRevisionRepository.save(revision);
+                subsystem.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield subsystem;
             }
@@ -143,6 +148,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 ebomModuleRevisionRepository.save(revision);
+                module.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield module;
             }
@@ -164,6 +170,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 submoduleRevisionRepository.save(revision);
+                submodule.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield submodule;
             }
@@ -185,6 +192,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 partRevisionRepository.save(revision);
+                part.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield part;
             }
@@ -206,6 +214,7 @@ public class EBOMService {
                 revision.setReleaseStatus(ReleaseStatus.WORKING);
                 revision.syncFromParent();
                 auxiliaryRevisionRepository.save(revision);
+                auxiliary.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht (fuer sofortige Suchindexierung)
                 
                 yield auxiliary;
             }
@@ -219,10 +228,13 @@ public class EBOMService {
             synchronizationService.performFullSync(linkedDesignId, ebomObject.getId());
         }
 
+        // NEU: zentrale Suche aktualisieren
+        searchIndexService.index(objectType, ebomObject);
+
         return ebomObject;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, noRollbackFor = com.peb.exception.ObjectNotFoundException.class)
     public EBOMObject getEBOMObject(String id) {
         String prefix = id.substring(0, 2);
         
@@ -273,32 +285,34 @@ public EBOMObject updateEBOMObject(String id, String name, String department,
         default -> throw new IllegalArgumentException("Unsupported object type");
     };
 
-    // ── Sync-Logik ────────────────────────────────────────────
-    if (linkedDesignId != null && !linkedDesignId.isBlank()) {
+	// ── Sync-Logik ────────────────────────────────────────────
+	if (linkedDesignId != null && !linkedDesignId.isBlank()) {
 
-        if (!linkedDesignId.equals(oldLinkedDesignId)) {
-            // Link neu gesetzt → vollständige Synchronisation
-            // Design.mass überschreibt manuell gesetzten eBOM-mass Wert
-            log.info("Design-Link geändert → Full Sync: Design[{}] ↔ eBOM[{}]",
-                     linkedDesignId, id);
-            synchronizationService.performFullSync(linkedDesignId, id);
+		if (!linkedDesignId.equals(oldLinkedDesignId)) {
+			log.info("Design-Link geändert → Full Sync: Design[{}] ↔ eBOM[{}]",
+					 linkedDesignId, id);
+			synchronizationService.performFullSync(linkedDesignId, id);
 
-        } else {
-            // Material geändert → eBOM → Design syncen
-            if (material != null && !material.equals(oldMaterial)) {
-                log.info("Material geändert → Sync eBOM[{}] → Design[{}]", id, linkedDesignId);
-                synchronizationService.syncMaterialToDesign(id, linkedDesignId);
-            }
+		} else {
+			// Material manuell am eBOM geändert → Design hat Priorität → zurücksetzen
+			// (Design ist jetzt führend für Material, analog zu Mass)
+			if (material != null && !material.equals(oldMaterial)) {                 // ← geändert
+				log.info("eBOM Material manuell geändert → Design[{}] überschreibt eBOM[{}]",  // ← geändert
+						 linkedDesignId, id);
+				synchronizationService.syncMaterialFromDesign(linkedDesignId, id);   // ← geändert
+			}
 
-            // Mass manuell geändert → Design.mass hat Priorität → zurücksetzen
-            // (Design ist führend für Mass)
-            if (mass != null && !mass.equals(oldMass)) {
-                log.info("eBOM Mass manuell geändert → Design[{}] überschreibt eBOM[{}]",
-                         linkedDesignId, id);
-                synchronizationService.syncMassFromDesign(linkedDesignId, id);
-            }
-        }
-    }
+			// Mass manuell geändert → Design.mass hat Priorität → zurücksetzen
+			if (mass != null && !mass.equals(oldMass)) {
+				log.info("eBOM Mass manuell geändert → Design[{}] überschreibt eBOM[{}]",
+						 linkedDesignId, id);
+				synchronizationService.syncMassFromDesign(linkedDesignId, id);
+			}
+		}
+	}
+
+    // NEU: zentrale Suche aktualisieren
+    searchIndexService.index(savedObject.getObjectType(), savedObject);
 
     return savedObject;
 }
@@ -306,8 +320,9 @@ public EBOMObject updateEBOMObject(String id, String name, String department,
     @Transactional
     public void deleteEBOMObject(String id) {
         EBOMObject ebomObject = getEBOMObject(id);
-        
-        switch (ebomObject.getObjectType()) {
+        ObjectType objectType = ebomObject.getObjectType();
+
+        switch (objectType) {
             case MACHINE -> machineRepository.delete((Machine) ebomObject);
             case SYSTEM -> systemRepository.delete((com.peb.model.ebom.System) ebomObject);
             case SUBSYSTEM -> subsystemRepository.delete((Subsystem) ebomObject);
@@ -316,6 +331,9 @@ public EBOMObject updateEBOMObject(String id, String name, String department,
             case PART -> partRepository.delete((Part) ebomObject);
             case AUXILIARY -> auxiliaryRepository.delete((Auxiliary) ebomObject);
         }
+
+        // NEU: aus zentraler Suche entfernen
+        searchIndexService.remove(objectType, id);
     }
 
     @Transactional(readOnly = true)

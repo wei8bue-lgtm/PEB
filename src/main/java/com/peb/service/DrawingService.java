@@ -5,6 +5,7 @@ import com.peb.model.cad.Drawing;
 import com.peb.model.cad.DrawingRevision;
 import com.peb.repository.DrawingRepository;
 import com.peb.repository.DrawingRevisionRepository;
+import com.peb.service.search.SearchIndexService;
 import com.peb.util.ObjectType;
 import com.peb.util.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class DrawingService {
     private final DrawingRepository drawingRepository;
     private final DrawingRevisionRepository drawingRevisionRepository;
     private final IDGeneratorService idGeneratorService;
+    private final SearchIndexService searchIndexService; // NEU: zentrale Suche
 
     @Transactional
     public Drawing createDrawing(String name, String department) {
@@ -41,11 +43,15 @@ public class DrawingService {
         revision.syncFromParent();
 
         drawingRevisionRepository.save(revision);
+        drawing.getRevisions().add(revision); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort greift
+
+        // NEU: zentrale Suche aktualisieren
+        searchIndexService.index(ObjectType.DRAWING, drawing);
 
         return drawing;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, noRollbackFor = com.peb.exception.ObjectNotFoundException.class)
     public Drawing getDrawing(String id) {
         return drawingRepository.findById(id)
             .orElseThrow(() -> new ObjectNotFoundException("Drawing not found: " + id));
@@ -69,13 +75,21 @@ public class DrawingService {
             drawingRevisionRepository.save(latestRevision);
         }
 
-        return drawingRepository.save(drawing);
+        Drawing saved = drawingRepository.save(drawing);
+
+        // NEU: zentrale Suche aktualisieren
+        searchIndexService.index(ObjectType.DRAWING, saved);
+
+        return saved;
     }
 
     @Transactional
     public void deleteDrawing(String id) {
         Drawing drawing = getDrawing(id);
         drawingRepository.delete(drawing);
+
+        // NEU: aus zentraler Suche entfernen
+        searchIndexService.remove(ObjectType.DRAWING, id);
     }
 
     @Transactional(readOnly = true)

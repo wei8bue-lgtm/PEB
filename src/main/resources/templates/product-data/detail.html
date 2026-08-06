@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="_csrf"
@@ -92,7 +93,7 @@
     <div style="margin-left:auto; display:flex; gap:.5rem;">
         <a th:href="@{/product-data}"
            class="btn btn-primary">
-            ← Zurück zur Liste
+            ← <span th:text="#{button.backToList}">Zurück zur Liste</span>
         </a>
     </div>
 </div>
@@ -115,11 +116,11 @@
 
     <!-- ── Stammdaten ────────────────────────────────────────── -->
     <div class="card">
-        <h2 style="margin-top:0;">📦 Product Data Details</h2>
+        <h2 style="margin-top:0;" th:text="#{pData.detailsHeading}">📦 Product Data Details</h2>
 
         <table class="detail-table">
             <tr>
-                <th>ID</th>
+                <th th:text="#{label.id}">ID</th>
                 <td style="font-family:monospace;
                             font-weight:600; color:#0066cc;"
                     th:text="${productData.id}">
@@ -127,23 +128,23 @@
                 </td>
             </tr>
             <tr>
-                <th>Name</th>
+                <th th:text="#{label.name}">Name</th>
                 <td th:text="${productData.name}">—</td>
             </tr>
             <tr>
-                <th>Produkttyp</th>
+                <th th:text="#{label.productType}">Produkttyp</th>
                 <td th:text="${productData.productType ?: '—'}">
                     —
                 </td>
             </tr>
             <tr>
-                <th>Abteilung</th>
+                <th th:text="#{label.department}">Abteilung</th>
                 <td th:text="${productData.department ?: '—'}">
                     —
                 </td>
             </tr>
             <tr>
-                <th>Beschreibung</th>
+                <th th:text="#{label.description}">Beschreibung</th>
                 <td th:text="${productData.description ?: '—'}">
                     —
                 </td>
@@ -151,7 +152,7 @@
 
             <!-- Status -->
             <tr>
-                <th>Status</th>
+                <th th:text="#{common.status}">Status</th>
                 <td>
                     <span th:if="${statusName == 'WORKING'}"
                           class="status-badge status-working">
@@ -167,33 +168,33 @@
                     </span>
                     <span th:if="${statusName == 'KEINE_REVISION'}"
                           class="status-badge status-none">
-                        — Keine Revision
+                        <span th:text="#{status.noRevision}">— Keine Revision</span>
                     </span>
                 </td>
             </tr>
 
             <!-- Aktuelle Revision -->
             <tr>
-                <th>Aktuelle Revision</th>
+                <th th:text="#{label.currentRevision}">Aktuelle Revision</th>
                 <td th:text="${latestRevision != null
                     ? latestRevision.revision
                     : '—'}">—</td>
             </tr>
             <tr>
-                <th>Erstellt am</th>
+                <th th:text="#{label.createdDate}">Erstellt am</th>
                 <td th:text="${productData.createdDate != null
                     ? #temporals.format(productData.createdDate,
                         'dd.MM.yyyy HH:mm:ss')
                     : '—'}">—</td>
             </tr>
             <tr>
-                <th>Erstellt von</th>
+                <th th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
                 <td th:text="${productData.createdBy ?: '—'}">
                     —
                 </td>
             </tr>
             <tr>
-                <th>Geändert am</th>
+                <th th:text="#{label.modifiedDate}">Geändert am</th>
                 <td th:text="${productData.lastModifiedDate != null
                     ? #temporals.format(
                         productData.lastModifiedDate,
@@ -201,7 +202,7 @@
                     : '—'}">—</td>
             </tr>
             <tr>
-                <th>Geändert von</th>
+                <th th:text="#{label.modifiedBy2}">Geändert von</th>
                 <td th:text="${productData.lastModifiedBy ?: '—'}">
                     —
                 </td>
@@ -216,7 +217,7 @@
          ══════════════════════════════════════════════════════════ -->
 
 		<div class="card">
-			<h3 style="margin-top:0;">⚡ Lifecycle-Aktionen</h3>
+			<h3 style="margin-top:0;" th:text="'⚡ ' + #{lifecycle.title}">⚡ Lifecycle-Aktionen</h3>
 
 			<div class="lifecycle-bar">
 
@@ -226,7 +227,7 @@
 					   th:href="@{/product-data/{id}/edit(id=${productData.id})}"
 					   class="btn btn-primary"
 					   style="background:#0066cc; border-color:#0066cc;">
-						✏️ Bearbeiten
+						✏️ <span th:text="#{button.edit}">Bearbeiten</span>
 					</a>
 				</div>
 
@@ -272,7 +273,7 @@
 							class="btn btn-primary"
 							style="background:#6f42c1;
 								   border-color:#6f42c1;"
-							onclick="openSaveAsDialog()">
+							onclick="openSaveAsDialog()" th:text="#{mfgBom.saveAsButton}">
 						💾 Save As…
 					</button>
 				</div>
@@ -301,9 +302,7 @@
 							style="background:#e9ecef; color:#6c757d;
 								   cursor:not-allowed;
 								   border:1px solid #dee2e6;"
-							th:title="${'Löschen nicht möglich: BOM '
-								+ productData.productBOM.name
-								+ ' verknüpft'}">
+							th:title="#{pData.deleteBlockedBom(${productData.productBOM.name})}" th:text="#{mfgBom.deleteLockedButton}">
 						🔒 Löschen gesperrt
 					</button>
 				</div>
@@ -312,13 +311,13 @@
 				<span th:if="${statusName == 'OBSOLETE'}"
 					  style="color:#6c757d; font-size:.9rem;
 							 font-style:italic;">
-					🔒 Obsolete Revision –
-					keine Lifecycle-Aktionen verfügbar.
+					<span th:text="#{mfgBom.obsoleteNotice}">🔒 Obsolete Revision –
+					keine Lifecycle-Aktionen verfügbar.</span>
 				</span>
 
 				<span th:if="${statusName == 'KEINE_REVISION'}"
 					  style="color:#dc3545; font-size:.9rem;">
-					⚠️ Keine Revision vorhanden.
+					<span th:text="#{mfgBom.noRevisionNotice}">⚠️ Keine Revision vorhanden.</span>
 				</span>
 
 			</div>
@@ -326,7 +325,7 @@
 
     <!-- ── ProductBOM Verknüpfung ────────────────────────────── -->
     <div class="card">
-        <h3 style="margin-top:0;">📋 Zugeordnete Product BOM</h3>
+        <h3 style="margin-top:0;" th:text="#{pData.assignedBom}">📋 Zugeordnete Product BOM</h3>
 
         <div th:if="${productData.productBOM != null}">
             <a th:href="@{/product-bom/{id}(
@@ -344,11 +343,11 @@
             </a>
             <div style="margin-top:1rem; font-size:.85rem;
                         color:#6c757d;">
-                <strong>Version:</strong>
+                <strong th:text="#{label.version} + ':'">Version:</strong>
                 <span th:text="${productData.productBOM.bomVersion
                                  ?: '—'}">01</span>
                 &nbsp;|&nbsp;
-                <strong>Erstellt:</strong>
+                <strong th:text="#{label.created} + ':'">Erstellt:</strong>
                 <span th:text="${productData.productBOM.createdDate
                     != null
                     ? #temporals.format(
@@ -360,13 +359,13 @@
         </div>
 
         <div th:if="${productData.productBOM == null}">
-            <span class="no-bom">
+            <span class="no-bom" th:text="#{pData.noBomAssigned}">
                 ⚠️ Noch keine ProductBOM zugewiesen
             </span>
             <div style="margin-top:1rem;">
                 <a th:href="@{/product-bom/new}"
                    class="btn btn-primary btn-sm"
-                   sec:authorize="hasAuthority('WRITE')">
+                   sec:authorize="hasAuthority('WRITE')" th:text="#{button.createAssignBom}">
                     ➕ ProductBOM erstellen &amp; zuweisen
                 </a>
             </div>
@@ -375,10 +374,10 @@
 
     <!-- ── Revisionsverlauf ───────────────────────────────────── -->
     <div class="card">
-        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.revisionHistory}">📜 Revisionsverlauf</h3>
 
         <div th:if="${#lists.isEmpty(revisionChain)}"
-             style="color:#6c757d; padding:1rem 0;">
+             style="color:#6c757d; padding:1rem 0;" th:text="#{docTemplate.noRevisions}">
             Keine Revisionen vorhanden.
         </div>
 
@@ -386,10 +385,10 @@
                class="rev-table">
             <thead>
                 <tr>
-                    <th>Revision</th>
-                    <th>Status</th>
-                    <th>Erstellt von</th>
-                    <th>Erstellt am</th>
+                    <th th:text="#{label.revision}">Revision</th>
+                    <th th:text="#{common.status}">Status</th>
+                    <th th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
+                    <th th:text="#{label.createdDate}">Erstellt am</th>
                 </tr>
             </thead>
             <tbody>
@@ -445,15 +444,16 @@
     <div style="background:#fff; border-radius:8px;
                 padding:2rem; min-width:380px;
                 box-shadow:0 4px 20px rgba(0,0,0,.3);">
-        <h3 style="margin-top:0;">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.saveAsTitle}">
             💾 Save As – Kopie erstellen
         </h3>
         <p style="color:#6c757d; font-size:.9rem;">
-            Neuer Name für die Kopie von
+            <span th:text="#{mfgBom.saveAsPromptLabel}">Neuer Name für die Kopie von</span>
             <strong th:text="${productData.name}">—</strong>:
         </p>
         <input id="saveAsName"
                type="text"
+               th:placeholder="#{mfgBom.newNamePlaceholder}"
                placeholder="Neuer Name…"
                style="width:100%; padding:.5rem;
                       border:1px solid #ced4da;
@@ -467,13 +467,13 @@
                     style="background:#6c757d;
                            border-color:#6c757d;"
                     onclick="closeSaveAsDialog()">
-                ✖ Abbrechen
+                ✖ <span th:text="#{button.cancel}">Abbrechen</span>
             </button>
             <button type="button"
                     class="btn btn-primary"
                     style="background:#6f42c1;
                            border-color:#6f42c1;"
-                    onclick="executeSaveAs()">
+                    onclick="executeSaveAs()" th:text="#{button.createCopy}">
                 💾 Kopie erstellen
             </button>
         </div>
@@ -491,6 +491,13 @@
                            'meta[name="_csrf_header"]')
                                .getAttribute('content');
     const productDataId = /*[[${productData.id}]]*/ '';
+
+    const detailI18n = {
+        pleaseEnterName: /*[[#{mfgBom.pleaseEnterName}]]*/ '⚠️ Bitte einen Namen eingeben.',
+        errorPrefix: /*[[#{eclass.errorPrefix}]]*/ 'Fehler:',
+        copyCreatedAlert: /*[[#{mfgBom.copyCreatedAlert}]]*/ 'Kopie erstellt: {0} (ID: {1})',
+        networkError: /*[[#{mfgBom.networkError}]]*/ 'Netzwerkfehler:'
+    };
 
     // ── Save-As Dialog ────────────────────────────────────────
     function openSaveAsDialog() {
@@ -510,7 +517,7 @@
         const newName = document.getElementById('saveAsName')
                                 .value.trim();
         if (!newName) {
-            alert('⚠️ Bitte einen Namen eingeben.');
+            alert(detailI18n.pleaseEnterName);
             return;
         }
 
@@ -524,18 +531,18 @@
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                alert('❌ Fehler: ' + data.error);
+                alert('❌ ' + detailI18n.errorPrefix + ' ' + data.error);
             } else {
                 closeSaveAsDialog();
-                alert('✅ Kopie erstellt: '
-                      + data.name
-                      + ' (ID: ' + data.id + ')');
+                alert('✅ ' + detailI18n.copyCreatedAlert
+                      .replace('{0}', data.name)
+                      .replace('{1}', data.id));
                 window.location.href =
                     '/product-data/' + data.id;
             }
         })
         .catch(err => {
-            alert('❌ Netzwerkfehler: ' + err.message);
+            alert('❌ ' + detailI18n.networkError + ' ' + err.message);
         });
     }
 

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Lieferant ' + ${supplier.id} + ' - PEB'"></title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.5rem; font-size:.9rem; }
+        .kv-grid dt { color:#888; }
+        .kv-grid dd { margin:0 0 .5rem 0; font-weight:600; }
+
+        /* Revisions-Status-Badge, analog zur Material-Detailansicht */
+        .rev-table th, .rev-table td { padding:.9rem 1.5rem; }
+        .rev-status {
+            display:inline-flex; align-items:center; gap:.4rem;
+            padding:.3rem .9rem; border-radius:999px; font-weight:600; font-size:.85rem;
+            white-space:nowrap;
+        }
+        .rev-status-WORKING  { background:#f1f3f4; color:#3c4043; }
+        .rev-status-RELEASED { background:#e6f4ea; color:#137333; }
+        .rev-status-OBSOLETE { background:#fce8e6; color:#c5221f; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="'Lieferant ' + ${supplier.id} + ' – ' + ${supplier.name}"></h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/suppliers}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Stammdaten -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 th:text="#{material.masterData}">Stammdaten</h3>
+            <a sec:authorize="hasAuthority('WRITE')" th:href="@{'/suppliers/' + ${supplier.id} + '/edit'}" class="btn btn-secondary" th:text="#{button.edit}">Bearbeiten</a>
+        </div>
+        <dl class="kv-grid">
+            <dt th:text="#{common.status}">Status</dt><dd th:text="${supplier.status}"></dd>
+            <dt th:text="#{label.releasedRevision}">Freigegebene Revision</dt><dd th:text="${supplier.releasedRevision} ?: #{common.none}">keine</dd>
+            <dt th:text="#{label.address}">Adresse</dt>
+            <dd th:text="(${supplier.street} ?: '') + ', ' + (${supplier.zipCode} ?: '') + ' ' + (${supplier.city} ?: '') + ', ' + (${supplier.country} ?: '')"></dd>
+            <dt th:text="#{label.contactPerson}">Ansprechpartner</dt><dd th:text="${supplier.contactPerson} ?: '–'"></dd>
+            <dt th:text="#{label.email}">E-Mail</dt><dd th:text="${supplier.contactEmail} ?: '–'"></dd>
+            <dt th:text="#{label.phone}">Telefon</dt><dd th:text="${supplier.contactPhone} ?: '–'"></dd>
+            <dt th:text="#{label.website}">Website</dt><dd th:text="${supplier.website} ?: '–'"></dd>
+            <dt th:text="#{lifecycle.history.createdBy}">Angelegt von</dt><dd th:text="#{material.createdByOn(${supplier.createdBy}, ${supplier.createdDate})}"></dd>
+        </dl>
+        <p th:if="${supplier.notes}" th:text="${supplier.notes}" style="margin-top:1rem;color:#555"></p>
+    </div>
+
+    <!-- Revisionen -->
+    <div class="card">
+        <h3 th:text="#{material.revisions}">Revisionen</h3>
+        <table class="table rev-table">
+            <thead><tr><th th:text="#{label.rev}">Rev.</th><th th:text="#{common.status}">Status</th><th th:text="#{label.change}">Änderung</th><th th:text="#{lifecycle.history.createdBy}">Erstellt von</th><th th:text="#{label.date}">Datum</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${revisions}">
+                <td th:text="${r.revision}"></td>
+                <td>
+                    <span class="rev-status" th:classappend="'rev-status-' + ${r.releaseStatus.name()}">
+                        <span th:text="${r.releaseStatus.icon}"></span>
+                        <span th:text="${r.releaseStatus.displayName}"></span>
+                    </span>
+                </td>
+                <td th:text="${r.changeDescription}"></td>
+                <td th:text="${r.createdBy}"></td>
+                <td th:text="${r.createdDate}"></td>
+                <td>
+                    <form sec:authorize="hasAuthority('WRITE')"
+                          th:if="${r.releaseStatus.name() == 'WORKING'}"
+                          th:action="@{'/suppliers/revisions/' + ${r.id} + '/release'}" method="post" style="display:inline">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="supplierId" th:value="${supplier.id}"/>
+                        <button type="submit" class="btn btn-secondary" th:text="#{button.release}">Freigeben</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/suppliers/' + ${supplier.id} + '/revisions'}" method="post"
+              style="margin-top:1rem;display:flex;gap:.5rem;align-items:flex-end">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+            <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.newRevision}">Neue Revision</label>
+                <input type="text" name="revision" placeholder="z.B. B" required style="width:80px"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.changeDescription}">Änderungsbeschreibung</label>
+                <input type="text" name="changeDescription" style="width:300px"></div>
+            <button type="submit" class="btn btn-primary" th:text="#{button.createRevision}">Revision anlegen</button>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

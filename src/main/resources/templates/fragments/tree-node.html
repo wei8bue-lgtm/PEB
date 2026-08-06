@@ -7,11 +7,11 @@
             <span th:text="${node.name}">Name</span>
             <span th:if="${node.quantity != null}" 
                   style="color: #6c757d;">
-                (Qty: <span th:text="${node.quantity}">1</span>)
+                (<span th:text="#{tree.qty}">Qty</span>: <span th:text="${node.quantity}">1</span>)
             </span>
             <span th:if="${node.positionNumber != null}" 
                   style="color: #6c757d;">
-                [Pos: <span th:text="${node.positionNumber}">10</span>]
+                [<span th:text="#{tree.pos}">Pos</span>: <span th:text="${node.positionNumber}">10</span>]
             </span>
             <span class="status-badge"
                   th:classappend="${node.releaseStatus == 'WORKING'} ? 'status-working' : 
@@ -19,10 +19,14 @@
                   th:text="${node.releaseStatus}">
                 Status
             </span>
-            <span class="node-actions">
-                <a th:href="@{/structure/{id}(id=${node.objectId})}" 
-                   class="btn btn-primary btn-sm">View</a>
-            </span>
+			<span class="node-actions">
+				<a th:if="${#strings.startsWith(node.objectId, 'DC')}"
+				   th:href="@{/documents/{id}(id=${node.objectId})}"
+				   class="btn btn-primary btn-sm" th:text="#{button.view}">View</a>
+				<a th:unless="${#strings.startsWith(node.objectId, 'DC')}"
+				   th:href="@{/structure/{id}(id=${node.objectId})}"
+				   class="btn btn-primary btn-sm" th:text="#{button.view}">View</a>
+			</span>
         </div>
         
         <div th:if="${!node.children.isEmpty()}" class="tree-children">

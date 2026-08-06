@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{docTemplate.createTitle}">Neues Document Template - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{docTemplate.createHeading}">Neues Document Template erstellen</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 th:text="#{docTemplate.info}">Template-Informationen</h2>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form th:action="@{/document-templates}" th:object="${template}"
+                  method="post" enctype="multipart/form-data">
+
+                <div class="form-group">
+                    <label for="name" th:text="#{label.name} + ' *'">Name *</label>
+                    <input type="text" id="name" th:field="*{name}"
+                           required maxlength="255" th:placeholder="#{docTemplate.namePlaceholder}" placeholder="Template-Name eingeben">
+                </div>
+
+                <div class="form-group">
+                    <label for="department" th:text="#{label.department}">Department</label>
+                    <input type="text" id="department" th:field="*{department}"
+                           maxlength="100" th:placeholder="#{docTemplate.departmentPlaceholder}" placeholder="Abteilung (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" th:text="#{label.description}">Beschreibung</label>
+                    <textarea id="description" th:field="*{description}"
+                              maxlength="1000" rows="3"
+                              th:placeholder="#{docTemplate.descriptionPlaceholder}" placeholder="Beschreibung des Templates (optional)"></textarea>
+                </div>
+
+                <hr style="margin:1.5rem 0;">
+                <h3 th:text="#{docTemplate.attributesHeading}">Attribute (Platzhalter im Template)</h3>
+                <p class="help-text" th:text="#{docTemplate.attributesHelp}">
+                    Verwenden Sie {{Attribute1}} und {{Attribute2}}
+                    als Platzhalter in der .doc-Datei. Diese werden beim Erstellen eines Dokuments
+                    durch die eingetragenen Werte ersetzt.
+                </p>
+
+                <div class="form-group">
+                    <label for="attribute1" th:text="#{label.attribute1Full}">Attribute 1 (Standardwert / Beschreibung)</label>
+                    <input type="text" id="attribute1" th:field="*{attribute1}"
+                           maxlength="500" th:placeholder="#{docTemplate.attribute1Placeholder}" placeholder="z.B. Projektnummer, Abteilung, ...">
+                </div>
+
+                <div class="form-group">
+                    <label for="attribute2" th:text="#{label.attribute2Full}">Attribute 2 (Standardwert / Beschreibung)</label>
+                    <input type="text" id="attribute2" th:field="*{attribute2}"
+                           maxlength="500" th:placeholder="#{docTemplate.attribute2Placeholder}" placeholder="z.B. Version, Autor, ...">
+                </div>
+
+                <hr style="margin:1.5rem 0;">
+                <h3 th:text="#{docTemplate.fileHeading}">Template-Datei *</h3>
+                <p class="help-text" th:text="#{docTemplate.fileHelp}">
+                    Laden Sie eine <strong>.docx-Datei</strong> hoch, die als Template dient.
+                    Die Datei kann die Platzhalter {{Attribute1}} und
+                    {{Attribute2}} enthalten.
+                </p>
+
+                <div class="form-group">
+                    <label for="docFile" th:text="#{label.templateFile}">Template-Datei (.docx) *</label>
+                    <input type="file" id="docFile" name="docFile"
+                           required accept=".docx"
+                           style="padding:.5rem; border:1px solid #ced4da; border-radius:4px; width:100%;">
+                </div>
+
+                <div style="margin-top:2rem;">
+                    <button type="submit" class="btn btn-success" th:text="#{button.createTemplate}">Template erstellen</button>
+                    <a th:href="@{/document-templates}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 th:text="#{docTemplate.notesHeading}">Hinweise</h3>
+            <ul>
+                <li th:text="#{docTemplate.note1}">Name ist Pflichtfeld (max. 255 Zeichen)</li>
+                <li th:text="#{docTemplate.note2}">ID wird automatisch generiert (Format: DT00000001)</li>
+                <li th:text="#{docTemplate.note3}">Revision 01 wird automatisch angelegt (Status: Working)</li>
+                <li th:text="#{docTemplate.note4}">Nur .docx-Dateien sind erlaubt</li>
+                <li th:text="#{docTemplate.note5}">Platzhalter {{Attribute1}} und {{Attribute2}}
+                    in der .doc-Datei werden beim Erstellen eines Dokuments automatisch ersetzt</li>
+                <li th:text="#{docTemplate.note6}">Das Template muss zuerst freigegeben werden, bevor Dokumente
+                    daraus erstellt werden können</li>
+            </ul>
+        </div>
+    </div>
+
+    <style>
+        .btn-secondary { background-color:#6c757d; color:white; }
+        .btn-secondary:hover { background-color:#5a6268; }
+        .alert-danger { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
+        .help-text { color:#6c757d; font-size:.9rem; margin-bottom:.75rem; }
+        textarea { width:100%; box-sizing:border-box; padding:.5rem; border:1px solid #ced4da; border-radius:4px; font-family:inherit; }
+        code { background:#f8f9fa; padding:.1rem .3rem; border-radius:3px; font-size:.9rem; color:#c7254e; }
+    </style>
+</body>
+</html>

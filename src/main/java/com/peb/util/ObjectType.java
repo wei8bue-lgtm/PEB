@@ -3,7 +3,7 @@ package com.peb.util;
 
 /**
  * Object type enumeration with ID prefixes.
- * Bestehende Typen NICHT verändert – nur PRODUCT_DATA ergänzt.
+ * Bestehende Typen NICHT verändert – nur MATERIAL ergänzt.
  */
 public enum ObjectType {
 
@@ -18,8 +18,18 @@ public enum ObjectType {
     PART(      "PT", "Part"),
     AUXILIARY( "AX", "Auxiliary"),
 
-    // ── NEU ───────────────────────────────────────────────────────
-    PRODUCT_DATA("PD", "Product Data");
+    // ── Produkt-Daten ─────────────────────────────────────────────
+    PRODUCT_DATA("PD", "Product Data"),
+
+    // ── Dokumentenmanagement ──────────────────────────────────────
+    DOCUMENT_TEMPLATE("DT", "Document Template"),
+    DOCUMENT(         "DC", "Document"),
+
+    // ── Materialmanagement ──────────────────────────────────────
+    MATERIAL("MT", "Material"),
+
+    // ── Lieferantenmanagement ─────────────────────────────────────
+    SUPPLIER("MF", "Supplier");
 
     // ─────────────────────────────────────────────────────────────
 
@@ -41,7 +51,7 @@ public enum ObjectType {
 
     /**
      * Formatiert Sequenznummer zur ID.
-     * Beispiel: PRODUCT_DATA, 1 → "PD00000001"
+     * Beispiel: MATERIAL, 1 → "MT00000001"
      * Länge: 2 (Prefix) + 8 (Ziffern) = 10 Zeichen
      * → passt zu BaseObject @Column(length = 10)
      */

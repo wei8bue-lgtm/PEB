@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,6 +81,13 @@
 
         .btn-viewer { background-color: #6f42c1; color: white; }
         .btn-viewer:hover { background-color: #5a32a3; }
+        .btn-viewer.disabled {
+            background-color: #adb5bd;
+            color: #f1f1f1;
+            cursor: not-allowed;
+            opacity: 0.65;
+            pointer-events: none;
+        }
         .alert-info {
             background:#d1ecf1; color:#0c5460;
             border:1px solid #bee5eb;
@@ -120,7 +128,7 @@
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="${design.name}">Design Name</h1>
     <div style="margin-left: auto;">
-        <a th:href="@{/designs}" class="btn btn-primary">Back to List</a>
+        <a th:href="@{/designs}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
     </div>
 </div>
 
@@ -144,31 +152,36 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
-            <h2>Design Details</h2>
+            <h2 th:text="#{design.details}">Design Details</h2>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
 
 				<a th:href="@{/designs/{id}/edit(id=${design.id})}"
 				   class="btn btn-primary"
-				   sec:authorize="hasAuthority('WRITE')">✏️ Edit</a>
+				   sec:authorize="hasAuthority('WRITE')" th:text="'✏️ ' + #{button.edit}">✏️ Edit</a>
 
 				<!-- ✅ NEU – Design Structure Button -->
 				<a th:href="@{/designs/structure/{id}(id=${design.id})}"
 				   class="btn btn-primary"
-				   title="Design Structure verwalten">🗂️ Structure</a>
+				   th:title="#{design.structureTitle}" title="Design Structure verwalten" th:text="#{button.structure}">🗂️ Structure</a>
 
 				<!-- Existing: 3D Viewer button -->
 				<a th:if="${design.latestRevision != null}"
-				   th:href="@{'/viewer/' + ${design.id}
-							 + '/revision/'
-							 + ${design.latestRevision.revisionId}}"
+				   th:href="${viewerAvailableByRevision.get(design.latestRevision.revisionId)}
+							 ? @{'/viewer/' + ${design.id} + '/revision/' + ${design.latestRevision.revisionId}}
+							 : null"
+				   th:classappend="${viewerAvailableByRevision.get(design.latestRevision.revisionId)} ? '' : ' disabled'"
 				   class="btn btn-viewer"
-				   title="3D Viewer – neueste Revision">🔷 3D Viewer</a>
+				   th:title="${viewerAvailableByRevision.get(design.latestRevision.revisionId)}
+							  ? #{design.viewer3dTitle}
+							  : #{design.viewer3dNotAvailableTitle}"
+				   title="3D Viewer – neueste Revision"
+				   th:text="#{button.viewer3d}">🔷 3D Viewer</a>
 
                 <form th:action="@{/designs/{id}/delete(id=${design.id})}"
                       method="post" style="display:inline;"
-                      onsubmit="return confirm('Delete this design?');"
+                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('design.confirmDelete'))}');|"
                       sec:authorize="hasAuthority('DELETE')">
-                    <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                    <button type="submit" class="btn btn-danger" th:text="'🗑️ ' + #{button.delete}">🗑️ Delete</button>
                 </form>
             </div>
         </div>
@@ -176,46 +189,46 @@
         <table style="width:100%; border-collapse:collapse;">
             <tr>
                 <th style="width:200px; padding:0.5rem; text-align:left;
-                           background:#f8f9fa;">ID</th>
+                           background:#f8f9fa;" th:text="#{label.id}">ID</th>
                 <td style="padding:0.5rem;" th:text="${design.id}">DS00000001</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Name</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.name}">Name</th>
                 <td style="padding:0.5rem;" th:text="${design.name}">Name</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Department</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.department}">Department</th>
                 <td style="padding:0.5rem;" th:text="${design.department}">Engineering</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Mass (kg)</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.mass}">Mass (kg)</th>
                 <td style="padding:0.5rem;" th:text="${design.mass}">100</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Material</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.material}">Material</th>
                 <td style="padding:0.5rem;" th:text="${design.material}">Steel</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Created</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.created}">Created</th>
                 <td style="padding:0.5rem;"
                     th:text="${design.createdDate != null
                         ? #temporals.format(design.createdDate,'dd.MM.yyyy HH:mm:ss')
-                        : 'N/A'}">01.01.2024</td>
+                        : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Created By</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{lifecycle.history.createdBy}">Created By</th>
                 <td style="padding:0.5rem;" th:text="${design.createdBy}">admin</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;">Last Modified</th>
+                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.lastModified}">Last Modified</th>
                 <td style="padding:0.5rem;"
                     th:text="${design.lastModifiedDate != null
                         ? #temporals.format(design.lastModifiedDate,'dd.MM.yyyy HH:mm:ss')
-                        : 'N/A'}">01.01.2024</td>
+                        : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr th:if="${design.childView != null and !design.childView.isEmpty()}">
                 <th style="padding:0.5rem; text-align:left;
-                           background:#f8f9fa; vertical-align:top;">Child View</th>
+                           background:#f8f9fa; vertical-align:top;" th:text="#{label.childView}">Child View</th>
                 <td style="padding:0.5rem;">
                     <pre style="margin:0; white-space:pre-wrap; word-break:break-word;
                                 font-family:inherit; font-size:0.9rem;
@@ -232,9 +245,9 @@
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
-                🖼️ Thumbnail
+                🖼️ <span th:text="#{ebom.thumbnail}">Thumbnail</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
-                    — Revision
+                    — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
@@ -242,14 +255,14 @@
                 <a th:href="@{/designs/{id}/thumbnail(id=${design.id})}"
                    target="_blank"
                    class="btn btn-primary btn-sm"
-                   id="thumbnailOpenBtn">Vollbild ↗</a>
+                   id="thumbnailOpenBtn" th:text="#{button.fullscreen}">Vollbild ↗</a>
 
                 <!-- ✅ String-Konkatenation -->
                 <a th:href="@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
                              + '?objectId=' + ${design.id}}"
                    class="btn btn-primary btn-sm"
-                   title="Thumbnail Dataset verwalten">📎 Dataset</a>
+                   th:title="#{design.manageDatasetTitle}" title="Thumbnail Dataset verwalten" th:text="#{button.datasetShort}">📎 Dataset</a>
             </div>
         </div>
 
@@ -257,31 +270,31 @@
             <img th:src="@{/designs/{id}/thumbnail(id=${design.id})}"
                  id="thumbnailImg"
                  alt="Thumbnail"
-                 title="Klicken zum Vergrößern"
+                 th:title="#{ebom.clickToEnlarge}" title="Klicken zum Vergrößern"
                  onclick="openLightbox(this.src)"
                  onerror="showThumbnailPlaceholder()"/>
 
             <div class="thumbnail-placeholder" id="thumbnailPlaceholder"
                  style="display:none;">
                 <div class="icon">🖼️</div>
-                <p style="margin:0; font-weight:500;">Kein Thumbnail vorhanden</p>
+                <p style="margin:0; font-weight:500;" th:text="#{ebom.noThumbnail}">Kein Thumbnail vorhanden</p>
                 <p style="margin:0; font-size:0.85rem;">
-                    Dataset der Kategorie <strong>Thumbnail</strong>
-                    hinzufügen (jpeg / jpg / bmp / png)
+                    <strong th:text="#{category.thumbnail}">Thumbnail</strong>
+                    <span th:text="#{ebom.noThumbnailHintTrail}">hinzufügen (jpeg / jpg / bmp / png)</span>
                 </p>
                 <!-- ✅ String-Konkatenation -->
                 <a th:href="@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
                              + '?objectId=' + ${design.id}}"
                    class="btn btn-primary btn-sm"
-                   style="margin-top:0.5rem;">📎 Dataset hinzufügen</a>
+                   style="margin-top:0.5rem;" th:text="#{button.addDataset}">📎 Dataset hinzufügen</a>
             </div>
         </div>
 
         <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
                     display:flex; justify-content:space-between;">
-            <span>Kategorie: <code>DatasetCategory.THUMBNAIL</code></span>
-            <span>Status:
+            <span><span th:text="#{drawing.category}">Kategorie:</span> <code>DatasetCategory.THUMBNAIL</code></span>
+            <span><span th:text="#{common.status} + ':'">Status:</span>
                 <span th:text="${design.latestRevision.releaseStatus.displayName}">
                     Working
                 </span>
@@ -292,8 +305,8 @@
     <!-- ══ Lightbox ══════════════════════════════════════════ -->
     <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
         <button class="lightbox-close" onclick="closeLightbox()"
-                title="Schließen">✕</button>
-        <img id="lightboxImg" src="" alt="Thumbnail Vollansicht"
+                th:title="#{button.close}" title="Schließen">✕</button>
+        <img id="lightboxImg" src="" th:alt="#{ebom.thumbnailFullView}" alt="Thumbnail Vollansicht"
              onclick="event.stopPropagation()"/>
     </div>
 
@@ -305,7 +318,7 @@
                 📄
                 <span th:text="${pdfDataset.category.displayName}">PDF Document</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
-                    — Revision
+                    — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
@@ -313,20 +326,20 @@
                 <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                    download
                    class="btn btn-primary btn-sm"
-                   title="PDF herunterladen">⬇️ Download</a>
+                   th:title="#{button.downloadPdf}" title="PDF herunterladen" th:text="#{button.download}">⬇️ Download</a>
 
                 <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                    target="_blank"
                    rel="noopener noreferrer"
                    class="btn btn-primary btn-sm"
-                   title="In neuem Tab öffnen">Vollbild ↗</a>
+                   th:title="#{design.openNewTabTitle}" title="In neuem Tab öffnen" th:text="#{button.fullscreen}">Vollbild ↗</a>
 
                 <!-- ✅ String-Konkatenation -->
                 <a th:href="@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
                              + '?objectId=' + ${design.id}}"
                    class="btn btn-primary btn-sm"
-                   title="Dataset verwalten">📎 Dataset</a>
+                   th:title="#{design.manageDatasetTitle}" title="Dataset verwalten" th:text="#{button.datasetShort}">📎 Dataset</a>
             </div>
         </div>
 
@@ -334,22 +347,22 @@
             <iframe th:src="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
                     class="embedded-viewer-frame"
                     title="PDF Viewer">
+                <p th:text="#{drawing.browserNoPdfSupport}">Ihr Browser unterstützt keine eingebetteten PDFs.</p>
                 <p>
-                    Ihr Browser unterstützt keine eingebetteten PDFs.
                     <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                       download>PDF herunterladen</a>
+                       download th:text="#{button.downloadPdf}">PDF herunterladen</a>
                 </p>
             </iframe>
         </div>
 
         <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
                     display:flex; justify-content:space-between;">
-            <span>Kategorie:
+            <span><span th:text="#{drawing.category}">Kategorie:</span>
                 <code th:text="'DatasetCategory.' + ${pdfDataset.category.name()}">
                     DatasetCategory.PDF_DOCUMENT
                 </code>
             </span>
-            <span>Datei: <strong th:text="${pdfDataset.fileName}">dokument.pdf</strong></span>
+            <span><span th:text="#{drawing.file}">Datei:</span> <strong th:text="${pdfDataset.fileName}">dokument.pdf</strong></span>
         </div>
     </div>
 
@@ -358,16 +371,16 @@
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
-                📊 Excel Table
+                📊 <span th:text="#{design.excelTable}">Excel Table</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
-                    — Revision
+                    — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
                 <a th:href="@{/datasets/{id}/stream(id=${excelDataset.datasetId})}"
                    download
-                   class="btn btn-primary btn-sm">⬇️ Download</a>
+                   class="btn btn-primary btn-sm" th:text="#{button.download}">⬇️ Download</a>
 
                 <select id="sheetSelector"
                         class="btn btn-primary btn-sm"
@@ -378,7 +391,7 @@
                 <a th:href="@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
                              + '?objectId=' + ${design.id}}"
-                   class="btn btn-primary btn-sm">📎 Dataset</a>
+                   class="btn btn-primary btn-sm" th:text="#{button.datasetShort}">📎 Dataset</a>
             </div>
         </div>
 
@@ -386,7 +399,7 @@
             <div class="embedded-viewer-placeholder" id="excelPlaceholder">
                 <div class="icon">📊</div>
                 <p style="font-weight:500; margin:0;">
-                    Excel-Datei:
+                    <span th:text="#{design.excelFile}">Excel-Datei:</span>
                     <strong th:text="${excelDataset.fileName}">Datei.xlsx</strong>
                 </p>
                 <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
@@ -395,7 +408,7 @@
                             th:data-file-name="${excelDataset.fileName}"
                             onclick="loadExcelWithSheetJS(
                                 this.dataset.datasetId,
-                                this.dataset.fileName)">
+                                this.dataset.fileName)" th:text="#{button.viewDirectSheetJS}">
                         👁️ Direkt anzeigen (SheetJS)
                     </button>
                     <button class="btn btn-primary btn-sm"
@@ -403,7 +416,7 @@
                             th:data-file-name="${excelDataset.fileName}"
                             onclick="requestExcelAsPdf(
                                 this.dataset.datasetId,
-                                this.dataset.fileName)">
+                                this.dataset.fileName)" th:text="#{button.viewAsPdf}">
                         📄 Als PDF anzeigen
                     </button>
                 </div>
@@ -415,8 +428,8 @@
 
         <div style="margin-top:0.5rem; font-size:0.8rem; color:#6c757d;
                     display:flex; justify-content:space-between;">
-            <span>Kategorie: <code>DatasetCategory.EXCEL_TABLE</code></span>
-            <span>Datei: <strong th:text="${excelDataset.fileName}">tabelle.xlsx</strong></span>
+            <span><span th:text="#{drawing.category}">Kategorie:</span> <code>DatasetCategory.EXCEL_TABLE</code></span>
+            <span><span th:text="#{drawing.file}">Datei:</span> <strong th:text="${excelDataset.fileName}">tabelle.xlsx</strong></span>
         </div>
     </div>
 
@@ -429,12 +442,12 @@
         <div style="display:flex; align-items:center; gap:1rem; color:#6c757d;">
             <span style="font-size:2rem; opacity:0.5;">📄</span>
             <div>
-                <p style="margin:0; font-weight:500;">Kein Dokument-Dataset vorhanden</p>
+                <p style="margin:0; font-weight:500;" th:text="#{ebom.noDocument}">Kein Dokument-Dataset vorhanden</p>
                 <p style="margin:0.25rem 0 0; font-size:0.85rem;">
-                    Füge ein Dataset der Kategorie
-                    <strong>PDF Document</strong>,
-                    <strong>PDF Drawing</strong> oder
-                    <strong>Excel Table</strong> hinzu.
+                    <span th:text="#{ebom.noDocumentHintMid}">Füge ein Dataset der Kategorie</span>
+                    <strong th:text="#{drawing.pdfDocument}">PDF Document</strong>,
+                    <strong th:text="#{drawing.pdfDrawing}">PDF Drawing</strong> <span th:text="#{ebom.noDocumentHintOr}">oder</span>
+                    <strong th:text="#{design.excelTableCat}">Excel Table</strong>.
                 </p>
             </div>
             <!-- ✅ String-Konkatenation -->
@@ -442,13 +455,13 @@
                          + ${design.latestRevision.revisionId}
                          + '?objectId=' + ${design.id}}"
                class="btn btn-primary btn-sm"
-               style="margin-left:auto;">📎 Dataset hinzufügen</a>
+               style="margin-left:auto;" th:text="#{button.addDataset}">📎 Dataset hinzufügen</a>
         </div>
     </div>
 
     <!-- ══ Revision Actions ═══════════════════════════════════ -->
     <div class="card" sec:authorize="hasAuthority('EXECUTE')">
-        <h3>Revision Actions</h3>
+        <h3 th:text="#{drawing.revisionActions}">Revision Actions</h3>
 
         <div th:if="${design.latestRevision != null}">
 
@@ -461,41 +474,40 @@
                                   + '/release'}"
                       method="post"
                       style="display:inline;"
-                      onsubmit="return confirm(
-                          'Release this revision? All older revisions become obsolete.');">
-                    <button type="submit" class="btn btn-success">🏁 Release Revision</button>
+                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmReleaseRevision'))}');|">
+                    <button type="submit" class="btn btn-success">🏁 <span th:text="#{button.release}">Release Revision</span></button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
-                    Revision
+                    <span th:text="#{label.revision}">Revision</span>
                     <strong th:text="${design.latestRevision.revision}">01</strong>
-                    ist im Status Working.
+                    <span th:text="#{drawing.workingStatusText}">ist im Status Working.</span>
                 </p>
             </div>
 
             <div th:if="${design.latestRevision.releaseStatus.name() == 'RELEASED'}">
                 <form th:action="@{/api/revisions/designs/{id}/revise(id=${design.id})}"
                       method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-primary">📝 Revise (New Revision)</button>
+                    <button type="submit" class="btn btn-primary" th:text="#{button.reviseNewRevision}">📝 Revise (New Revision)</button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
-                    Revision
+                    <span th:text="#{label.revision}">Revision</span>
                     <strong th:text="${design.latestRevision.revision}">01</strong>
-                    ist Released.
+                    <span th:text="#{drawing.isReleasedShort}">ist Released.</span>
                 </p>
             </div>
         </div>
 
         <div th:if="${design.releasedRevision != null}"
              style="margin-top:1rem; padding-top:1rem; border-top:1px solid #dee2e6;">
-            <button onclick="handleSaveAs()" class="btn btn-primary">💾 Save As (Copy)</button>
+            <button onclick="handleSaveAs()" class="btn btn-primary" th:text="#{button.saveAsCopy}">💾 Save As (Copy)</button>
         </div>
     </div>
 
     <!-- ══ Revisions-Tabelle ══════════════════════════════════ -->
     <div class="card">
-        <h3>Revisions</h3>
+        <h3 th:text="#{material.revisions}">Revisions</h3>
 
-        <div th:if="${design.revisions.empty}" class="alert-info">
+        <div th:if="${design.revisions.empty}" class="alert-info" th:text="#{drawing.noRevisionsFound}">
             No revisions found.
         </div>
 
@@ -503,11 +515,11 @@
                style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                    <th style="padding:0.75rem; text-align:left;">Revision</th>
-                    <th style="padding:0.75rem; text-align:left;">Status</th>
-                    <th style="padding:0.75rem; text-align:left;">Created Date</th>
-                    <th style="padding:0.75rem; text-align:left;">Created By</th>
-                    <th style="padding:0.75rem; text-align:left;">Actions</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.revision}">Revision</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{common.status}">Status</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.createdDate}">Created Date</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{lifecycle.history.createdBy}">Created By</th>
+                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.actions}">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -541,15 +553,33 @@
                                          + ${revision.revisionId}
                                          + '?objectId=' + ${design.id}}"
                                class="btn btn-primary btn-sm"
-                               title="Datasets verwalten">📎 Datasets</a>
+                               th:title="#{drawing.manageDatasetsTitle}" title="Datasets verwalten" th:text="#{button.datasetShort} + 's'">📎 Datasets</a>
 
                             <!-- ✅ String-Konkatenation -->
-                            <a th:href="@{'/viewer/' + ${design.id}
-                                         + '/revision/' + ${revision.revisionId}}"
+                            <a th:href="${viewerAvailableByRevision.get(revision.revisionId)}
+                                        ? @{'/viewer/' + ${design.id} + '/revision/' + ${revision.revisionId}}
+                                        : null"
+                               th:classappend="${viewerAvailableByRevision.get(revision.revisionId)} ? '' : ' disabled'"
                                class="btn btn-viewer btn-sm"
-                               th:title="'3D Viewer für Revision '
-                                         + ${revision.revision}">
+                               th:title="${viewerAvailableByRevision.get(revision.revisionId)}
+                                          ? #{design.viewer3dForRevision(${revision.revision})}
+                                          : #{design.viewer3dNotAvailableForRevision(${revision.revision})}"
+                               th:text="#{button.threeDShort}">
                                 🔷 3D
+                            </a>
+
+                            <!-- ✅ NEU: Open in TCVIS -->
+                            <a th:href="${jtDatasetByRevision.containsKey(revision.revisionId)}
+                                        ? @{/datasets/{id}/stream(id=${jtDatasetByRevision.get(revision.revisionId).datasetId})}
+                                        : null"
+                               download
+                               th:classappend="${jtDatasetByRevision.containsKey(revision.revisionId)} ? '' : ' disabled'"
+                               class="btn btn-viewer btn-sm"
+                               th:title="${jtDatasetByRevision.containsKey(revision.revisionId)}
+                                          ? #{design.openInTcvisTitle(${tcvisExePath})}
+                                          : #{design.openInTcvisNotAvailableTitle}"
+                               th:text="#{button.openInTcvis}">
+                                🖥️ Open in TCVIS
                             </a>
                         </div>
                     </td>
@@ -565,15 +595,15 @@
         <h3 style="margin:0;">🏷️ ECLASS-Klassifizierung</h3> -->
 <div class="card">
 <!--     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;"> -->
-        <h3>🏷️ ECLASS-Klassifizierung</h3>
+        <h3 th:text="'🏷️ ' + #{eclass.classificationHeading}">🏷️ ECLASS-Klassifizierung</h3>
         <div style="display:flex; gap:.5rem;" sec:authorize="hasAuthority('WRITE')">
             <a th:href="@{'/eclass/classify/DESIGN/' + ${design.id}}"
                class="btn btn-primary btn-sm">
-                <span th:text="${eclassClassification != null ? '✏️ Ändern' : '+ Klassifizieren'}"></span>
+                <span th:text="${eclassClassification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span>
             </a>
             <a th:if="${eclassClassification != null}"
                th:href="@{'/eclass/similar/DESIGN/' + ${design.id}}"
-               class="btn btn-secondary btn-sm" title="Ähnliche Objekte finden">
+               class="btn btn-secondary btn-sm" th:title="#{button.similarTitle}" title="Ähnliche Objekte finden" th:text="#{button.similar}">
                 🔄 Ähnliche
             </a>
         </div>
@@ -583,22 +613,22 @@
     <div th:if="${eclassClassification != null}">
         <table style="width:100%; border-collapse:collapse;">
             <tr>
-                <th style="width:180px; padding:.4rem; background:#f8f9fa;">ECLASS-Code</th>
+                <th style="width:180px; padding:.4rem; background:#f8f9fa;" th:text="#{eclass.code}">ECLASS-Code</th>
                 <td style="padding:.4rem;">
                     <strong th:text="${eclassClassification.eclassCode}"></strong>
                     &nbsp;
                     <a th:href="@{'/eclass/objects/' + ${eclassClassification.eclassCode}}"
-                       style="font-size:.85rem; color:#1a73e8;">
+                       style="font-size:.85rem; color:#1a73e8;" th:text="#{eclass.allObjectsOfCode}">
                         Alle Objekte dieses Codes
                     </a>
                 </td>
             </tr>
             <tr>
-                <th style="padding:.4rem; background:#f8f9fa;">Bezeichnung</th>
+                <th style="padding:.4rem; background:#f8f9fa;" th:text="#{eclass.designation}">Bezeichnung</th>
                 <td style="padding:.4rem;" th:text="${eclassClassification.eclassName}"></td>
             </tr>
             <tr>
-                <th style="padding:.4rem; background:#f8f9fa;">Version</th>
+                <th style="padding:.4rem; background:#f8f9fa;" th:text="#{label.version}">Version</th>
                 <td style="padding:.4rem;" th:text="${eclassClassification.eclassVersion}"></td>
             </tr>
             <tr th:if="${eclassClassification.eclassIrdi != null}">
@@ -612,7 +642,7 @@
         <!-- Merkmalswerte -->
         <div th:if="${!eclassClassification.propertyValues.empty}"
              style="margin-top:.75rem;">
-            <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;">Merkmalswerte</h4>
+            <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;" th:text="#{eclass.propertyValues}">Merkmalswerte</h4>
             <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
                 <tr th:each="entry : ${eclassClassification.propertyValues}">
                     <th style="width:50%; padding:.3rem .5rem; background:#f8f9fa; font-weight:500;"
@@ -632,14 +662,35 @@
     <div th:unless="${eclassClassification != null}"
          style="color:#888; display:flex; align-items:center; gap:.75rem; padding:.5rem 0;">
         <span style="font-size:1.5rem; opacity:.4;">🏷️</span>
-        <span>Dieses Design ist noch nicht ECLASS-klassifiziert.</span>
+        <span th:text="#{design.notClassifiedYet}">Dieses Design ist noch nicht ECLASS-klassifiziert.</span>
     </div>
 </div>
 
 </div><!-- /container -->
 
 <!-- ══ Scripts ══════════════════════════════════════════════ -->
-<script>
+<script th:inline="javascript">
+    const designViewI18n = {
+        enterNewName:      /*[[#{design.enterNewName}]]*/ 'Enter name for the new design:',
+        copiedAlert:       /*[[#{drawing.copiedAlert}]]*/ 'Copied! New ID:',
+        saveAsFailed:      /*[[#{design.saveAsFailed}]]*/ 'Failed:',
+        convertingTo:      /*[[#{design.convertingTo}]]*/ 'Converting {0} to PDF\u2026',
+        libreOfficeWait:   /*[[#{design.libreOfficeWait}]]*/ 'LibreOffice is converting the file, please wait approx. 15\u201320 seconds\u2026',
+        conversionFailedHttp: /*[[#{design.conversionFailedHttp}]]*/ 'Conversion failed (HTTP {0})',
+        excelAsPdfTitle:   /*[[#{design.excelAsPdfTitle}]]*/ 'Excel as PDF \u2013 {0}',
+        timeoutTooLong:    /*[[#{design.timeoutTooLong}]]*/ 'Timeout \u2013 conversion is taking too long',
+        conversionFailed:  /*[[#{design.conversionFailed}]]*/ 'Conversion failed',
+        retry:             /*[[#{button.retry}]]*/ '\uD83D\uDD04 Retry',
+        download:          /*[[#{button.download}]]*/ '\u2B07\uFE0F Download',
+        loadingFile:       /*[[#{design.loadingFile}]]*/ 'Loading {0}\u2026',
+        processedInBrowser:/*[[#{design.processedInBrowser}]]*/ 'Processed directly in the browser, no server needed.',
+        loadError:         /*[[#{design.loadError}]]*/ 'Error loading'
+    };
+
+    function fmt(template, value) {
+        return template.replace('{0}', value);
+    }
+
     function showThumbnailPlaceholder() {
         const img         = document.getElementById('thumbnailImg');
         const placeholder = document.getElementById('thumbnailPlaceholder');
@@ -670,7 +721,7 @@
     });
 
     function handleSaveAs() {
-        const newName = prompt('Enter name for the new design:');
+        const newName = prompt(designViewI18n.enterNewName);
         if (!newName || !newName.trim()) return;
 
         const designId   = '[[${design.id}]]';
@@ -686,10 +737,10 @@
         })
         .then(r => r.json())
         .then(data => {
-            alert('Copied! New ID: ' + data.id);
+            alert(designViewI18n.copiedAlert + ' ' + data.id);
             window.location.href = '/designs/' + data.id;
         })
-        .catch(err => alert('Failed: ' + err.message));
+        .catch(err => alert(designViewI18n.saveAsFailed + ' ' + err.message));
     }
 
     function requestExcelAsPdf(datasetId, fileName) {
@@ -700,11 +751,10 @@
             <div class="embedded-viewer-placeholder">
                 <div class="icon">⏳</div>
                 <p style="margin:0; font-weight:500;">
-                    Konvertiere <em>${fileName}</em> zu PDF…
+                    ${fmt(designViewI18n.convertingTo, '<em>' + fileName + '</em>')}
                 </p>
                 <p style="margin:0.25rem 0 0; font-size:0.85rem; color:#6c757d;">
-                    LibreOffice konvertiert die Datei,
-                    bitte ca. 15–20 Sekunden warten…
+                    ${designViewI18n.libreOfficeWait}
                 </p>
             </div>`;
 
@@ -718,8 +768,7 @@
         .then(response => {
             clearTimeout(timeoutId);
             if (!response.ok) {
-                throw new Error(
-                    `Konvertierung fehlgeschlagen (HTTP ${response.status})`);
+                throw new Error(fmt(designViewI18n.conversionFailedHttp, response.status));
             }
             return response.blob();
         })
@@ -728,7 +777,7 @@
             wrapper.innerHTML = `
                 <iframe src="${pdfUrl}"
                         class="embedded-viewer-frame"
-                        title="Excel als PDF – ${fileName}">
+                        title="${fmt(designViewI18n.excelAsPdfTitle, fileName)}">
                 </iframe>`;
         })
         .catch(err => {
@@ -739,8 +788,8 @@
                     <div class="icon">⚠️</div>
                     <p style="margin:0; font-weight:500; color:#dc3545;">
                         ${isTimeout
-                            ? 'Timeout – Konvertierung dauert zu lange'
-                            : 'Konvertierung fehlgeschlagen'}
+                            ? designViewI18n.timeoutTooLong
+                            : designViewI18n.conversionFailed}
                     </p>
                     <p style="margin:0.25rem 0 0; font-size:0.85rem;">
                         ${err.message}
@@ -749,12 +798,12 @@
                         <button class="btn btn-primary btn-sm"
                                 onclick="requestExcelAsPdf(
                                     '${datasetId}', '${fileName}')">
-                            🔄 Erneut versuchen
+                            ${designViewI18n.retry}
                         </button>
                         <a href="/datasets/${datasetId}/stream"
                            download
                            class="btn btn-primary btn-sm">
-                            ⬇️ Herunterladen
+                            ${designViewI18n.download}
                         </a>
                     </div>
                 </div>`;
@@ -771,10 +820,10 @@
         placeholder.innerHTML = `
             <div class="icon">⏳</div>
             <p style="margin:0; font-weight:500;">
-                Lade <em>${fileName}</em>…
+                ${fmt(designViewI18n.loadingFile, '<em>' + fileName + '</em>')}
             </p>
             <p style="margin:0.25rem 0 0; font-size:0.85rem; color:#6c757d;">
-                Wird direkt im Browser verarbeitet, kein Server nötig.
+                ${designViewI18n.processedInBrowser}
             </p>`;
 
         try {
@@ -806,18 +855,18 @@
             placeholder.innerHTML = `
                 <div class="icon">⚠️</div>
                 <p style="margin:0; font-weight:500; color:#dc3545;">
-                    Fehler beim Laden
+                    ${designViewI18n.loadError}
                 </p>
                 <p style="font-size:0.85rem;">${err.message}</p>
                 <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
                     <button class="btn btn-primary btn-sm"
                             onclick="loadExcelWithSheetJS(
                                 '${datasetId}','${fileName}')">
-                        🔄 Erneut versuchen
+                        ${designViewI18n.retry}
                     </button>
                     <a href="/datasets/${datasetId}/stream"
                        download class="btn btn-primary btn-sm">
-                        ⬇️ Herunterladen
+                        ${designViewI18n.download}
                     </a>
                 </div>`;
         }

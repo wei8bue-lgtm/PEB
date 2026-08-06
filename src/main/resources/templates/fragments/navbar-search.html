@@ -1,0 +1,108 @@
+<!-- fragments/navbar-search.html
+     Einbinden in die bestehende Navbar-Vorlage mit:
+     <div th:replace="~{fragments/navbar-search :: navbar-search}"></div>
+-->
+<div th:fragment="navbar-search" class="peb-search" style="position:relative;" xmlns:th="http://www.thymeleaf.org">
+    <form th:action="@{/search}" method="get" autocomplete="off">
+        <input type="text"
+               id="peb-search-input"
+               name="q"
+               th:placeholder="#{search.placeholder}"
+               placeholder="Suche nach Name, ID, Material... (auch mit * und ?)"
+               style="width:320px;"/>
+    </form>
+
+    <div id="peb-search-suggestions"
+         style="display:none; position:absolute; top:100%; left:0; width:320px;
+                background:#fff; border:1px solid #ccc; z-index:1000; max-height:400px; overflow-y:auto;">
+    </div>
+</div>
+
+<script th:inline="javascript">
+    (function () {
+        const input = document.getElementById('peb-search-input');
+        const dropdown = document.getElementById('peb-search-suggestions');
+        let debounceTimer = null;
+        let currentAbortController = null;
+        const viewAllResultsText = /*[[#{search.viewAllResults}]]*/ 'Alle Ergebnisse anzeigen →';
+
+        function renderSuggestions(items, query) {
+            dropdown.innerHTML = '';
+
+            if (items.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            items.forEach(item => {
+                const row = document.createElement('a');
+                row.href = item.detailUrl;
+                row.style.cssText = 'display:block; padding:8px 12px; text-decoration:none; color:#333; border-bottom:1px solid #eee;';
+                row.innerHTML =
+                    '<strong>' + escapeHtml(item.name) + '</strong>' +
+                    ' <span style="color:#888; font-size:0.85em;">(' + escapeHtml(item.objectTypeDisplayName) +
+                    ' · ' + escapeHtml(item.objectId) + ' · Rev. ' + escapeHtml(item.revision) + ')</span>';
+                dropdown.appendChild(row);
+            });
+
+            const allResultsLink = document.createElement('a');
+            allResultsLink.href = '/search?q=' + encodeURIComponent(query);
+            allResultsLink.style.cssText = 'display:block; padding:8px 12px; text-decoration:none; color:#0066cc; font-weight:bold;';
+            allResultsLink.textContent = viewAllResultsText;
+            dropdown.appendChild(allResultsLink);
+
+            dropdown.style.display = 'block';
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        input.addEventListener('input', function () {
+            const query = input.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Vorherigen, noch laufenden Request abbrechen (Race-Condition
+            // vermeiden: schneller Tipper könnte sonst ein altes,
+            // langsameres Ergebnis nach dem neuen anzeigen)
+            debounceTimer = setTimeout(function () {
+                if (currentAbortController) {
+                    currentAbortController.abort();
+                }
+                currentAbortController = new AbortController();
+
+                fetch('/api/search/suggest?q=' + encodeURIComponent(query), {
+                    signal: currentAbortController.signal
+                })
+                    .then(res => {
+                        if (!res.ok) {
+                            // Sollte dank Fehlerbehandlung in SearchService eigentlich
+                            // nie mehr auftreten - Sicherheitsnetz für den Fall, dass
+                            // doch mal ein anderer Fehler durchschlägt.
+                            throw new Error('Suggest-Request fehlgeschlagen: HTTP ' + res.status);
+                        }
+                        return res.json();
+                    })
+                    .then(items => renderSuggestions(items, query))
+                    .catch(err => {
+                        if (err.name !== 'AbortError') {
+                            console.error('Search suggest failed', err);
+                        }
+                    });
+            }, 200); // 200ms Debounce, um nicht bei jedem Tastendruck zu feuern
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.peb-search')) {
+                dropdown.style.display = 'none';
+            }
+        });
+    })();
+</script>

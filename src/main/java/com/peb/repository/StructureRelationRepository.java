@@ -20,7 +20,12 @@ public interface StructureRelationRepository
 
     /** All direct children of a given child object
      *  (used to find where-used / parent lookup). */
-    List<StructureRelation> findByChildId(String childId);
+	List<StructureRelation> findByChildId(String childId);
+
+	/** Remove all structure links where the given object appears as child.
+	 *  Used when a leaf object (e.g. a Document) is deleted, to avoid
+	 *  orphaned structure links pointing at a non-existent object. */
+	void deleteByChildId(String childId);   // ← NEU
 
     /** Bulk-reset BMK for an entire top-level structure tree
      *  before a re-generation run. */

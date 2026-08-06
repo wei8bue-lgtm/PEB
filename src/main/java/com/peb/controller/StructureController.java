@@ -3,6 +3,8 @@ package com.peb.controller;
 import com.peb.dto.StructureRelationDTO;
 import com.peb.model.cad.Design;
 import com.peb.model.cad.Drawing;
+import com.peb.model.document.Document;
+import com.peb.model.document.DocumentRevision;
 import com.peb.model.ebom.*;
 import com.peb.model.structure.StructureNode;
 import com.peb.model.structure.StructureRelation;
@@ -14,7 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +42,8 @@ public class StructureController {
     private final EBOMService      ebomService;
     private final DesignService    designService;
     private final DrawingService   drawingService;
+	private final DocumentService         documentService;         // ← NEU
+	private final DocumentTemplateService documentTemplateService; // ← NEU
 
     // ─────────────────────────────────────────────────────────────────────────
     // GET /structure/{objectId}
@@ -53,54 +57,60 @@ public class StructureController {
      * These are populated by StructureService.buildStructureNode() which
      * was extended in Punkt 8.
      */
-    @GetMapping("/structure/{objectId}")
-    public String viewStructure(@PathVariable String objectId, Model model) {
+	@GetMapping("/structure/{objectId}")
+	public String viewStructure(@PathVariable String objectId, Model model) {
 
-        String prefix = objectId.substring(0, 2);
-        Object mainObject;
-        Long   revisionId = null;
+		String prefix = objectId.substring(0, 2);
+		Object mainObject;
+		Long   revisionId = null;
+		boolean isEbomObject = !prefix.equals("DS") && !prefix.equals("DR");   // ← NEU
 
-        // ── Resolve the root object ───────────────────────────────────────
-        if (prefix.equals("DS")) {
-            Design design = designService.getDesign(objectId);
-            mainObject = design;
-            if (design.getLatestRevision() != null) {
-                revisionId = design.getLatestRevision().getRevisionId();
-            }
+		if (prefix.equals("DS")) {
+			Design design = designService.getDesign(objectId);
+			mainObject = design;
+			if (design.getLatestRevision() != null) {
+				revisionId = design.getLatestRevision().getRevisionId();
+			}
 
-        } else if (prefix.equals("DR")) {
-            Drawing drawing = drawingService.getDrawing(objectId);
-            mainObject = drawing;
-            if (drawing.getLatestRevision() != null) {
-                revisionId = drawing.getLatestRevision().getRevisionId();
-            }
+		} else if (prefix.equals("DR")) {
+			Drawing drawing = drawingService.getDrawing(objectId);
+			mainObject = drawing;
+			if (drawing.getLatestRevision() != null) {
+				revisionId = drawing.getLatestRevision().getRevisionId();
+			}
 
-        } else {
-            // All eBOM object types: MA, SY, SU, MO, MU, PT, AX
-            EBOMObject ebomObject = ebomService.getEBOMObject(objectId);
-            mainObject = ebomObject;
-            if (ebomObject.getLatestRevision() != null) {
-                revisionId = ebomObject.getLatestRevision().getRevisionId();
-            }
-        }
+		} else {
+			EBOMObject ebomObject = ebomService.getEBOMObject(objectId);
+			mainObject = ebomObject;
+			if (ebomObject.getLatestRevision() != null) {
+				revisionId = ebomObject.getLatestRevision().getRevisionId();
+			}
+		}
 
-        model.addAttribute("object",    mainObject);
-        model.addAttribute("objectId",  objectId);
-        model.addAttribute("revisionId", revisionId);
+		model.addAttribute("object",    mainObject);
+		model.addAttribute("objectId",  objectId);
+		model.addAttribute("revisionId", revisionId);
+		model.addAttribute("isEbomObject", isEbomObject);          // ← NEU
 
-        // ── Build the structure tree (includes BMK fields) ────────────────
-        if (revisionId != null) {
-            StructureNode tree = structureService.getStructureTree(
-                    objectId, revisionId);
-            model.addAttribute("structureTree", tree);
+		// ── NEU: Daten für "Dokument erstellen"-Formular ──────────────────
+		if (isEbomObject) {
+			EBOMObject ebomObject = (EBOMObject) mainObject;
+			model.addAttribute("ebomMaterial", ebomObject.getMaterial());
+			model.addAttribute("ebomMass",     ebomObject.getMass());
+			model.addAttribute("releasedTemplates",
+					documentTemplateService.getReleasedTemplates());
+		}
 
-            List<String> allowedTypes =
-                    structureService.getAllowedChildTypes(objectId);
-            model.addAttribute("allowedTypes", allowedTypes);
-        }
+		if (revisionId != null) {
+			StructureNode tree = structureService.getStructureTree(objectId, revisionId);
+			model.addAttribute("structureTree", tree);
 
-        return "structure-view";
-    }
+			List<String> allowedTypes = structureService.getAllowedChildTypes(objectId);
+			model.addAttribute("allowedTypes", allowedTypes);
+		}
+
+		return "structure-view";
+	}
 
     // ─────────────────────────────────────────────────────────────────────────
     // POST /structure/add
@@ -135,6 +145,60 @@ public class StructureController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+	
+	// ─────────────────────────────────────────────────────────────────────────
+	// POST /structure/{objectId}/create-document
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Erstellt ein neues Dokument aus einem freigegebenen Template und
+	 * verlinkt es direkt als Kind in der Structure. Attribute 1/2 werden
+	 * NICHT vom User eingegeben, sondern automatisch aus Material/Mass
+	 * des eBOM-Objekts übernommen.
+	 */
+
+	@PostMapping("/structure/{objectId}/create-document")
+	@PreAuthorize("hasAuthority('WRITE')")
+	public String createDocumentForStructure(
+			@PathVariable String objectId,
+			@RequestParam Long   parentRevisionId,
+			@RequestParam String templateId,
+			@RequestParam String name,
+			@RequestParam(required = false) String department,
+			@RequestParam(required = false) String description,
+			Model model) {
+
+		try {
+			EBOMObject ebomObject = ebomService.getEBOMObject(objectId);
+
+			String attribute1 = ebomObject.getMaterial();
+			String attribute2 = ebomObject.getMass();
+
+			Document document = documentService.createFromTemplate(
+					name, department, description,
+					attribute1, attribute2, templateId);
+
+			// ── FIX: Revision frisch aus DB holen statt document.getLatestRevision() ──
+			DocumentRevision docRev = documentService.getRevisions(document.getId())
+					.stream()
+					.max(Comparator.comparing(DocumentRevision::getRevisionId))
+					.orElseThrow(() -> new IllegalStateException(
+							"Keine Revision für neu erstelltes Dokument gefunden: "
+							+ document.getId()));
+
+			structureService.addToStructure(
+					objectId, parentRevisionId,
+					document.getId(), docRev.getRevisionId(),
+					1, null, null);
+
+			return "redirect:/structure/" + objectId + "?documentCreated=true";
+
+		} catch (Exception e) {
+			log.error("Error creating document for structure {}: {}", objectId, e.getMessage(), e);
+			model.addAttribute("error", "Fehler beim Erstellen des Dokuments: " + e.getMessage());
+			return viewStructure(objectId, model);
+		}
+	}
 
     // ─────────────────────────────────────────────────────────────────────────
     // DELETE /structure/{relationId}
@@ -218,6 +282,8 @@ public class StructureController {
 
                 case "DR" -> drawingService.getAllDrawings()
                         .forEach(dr -> children.add(createObjectMap(dr)));
+				case "DC" -> documentService.getAllDocuments()
+                    .forEach(dc -> children.add(createObjectMap(dc)));
 
                 default -> log.warn(
                         "Unknown type '{}' in getAvailableChildrenForType",
@@ -293,4 +359,24 @@ public class StructureController {
 
         return map;
     }
+	
+	private Map<String, Object> createObjectMap(Document document) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("id",   document.getId());
+		map.put("name", document.getName());
+		map.put("type", "Document");
+
+		if (document.getLatestRevision() != null) {
+			map.put("revisionId",    document.getLatestRevision().getRevisionId());
+			map.put("revision",      document.getLatestRevision().getRevision());
+			map.put("releaseStatus", document.getLatestRevision()
+											.getReleaseStatus().name());
+		} else {
+			map.put("revisionId",    null);
+			map.put("revision",      "No revision");
+			map.put("releaseStatus", "NONE");
+		}
+
+		return map;
+	}
 }

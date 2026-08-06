@@ -99,8 +99,8 @@
 <div class="header">
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="${isNew}
-        ? '➕ Neue ProductData erstellen'
-        : '✏️ ProductData bearbeiten'">
+        ? #{pData.newHeading}
+        : #{pData.editHeading2}">
         ProductData
     </h1>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
@@ -109,7 +109,7 @@
                 ? @{/product-data}
                 : @{/product-data/{id}(id=${productData.id})}"
            class="btn btn-primary">
-            ← Zurück
+            ← <span th:text="#{button.back}">Zurück</span>
         </a>
     </div>
 </div>
@@ -134,8 +134,8 @@
     <div class="card">
         <h2 style="margin-top:0;"
             th:text="${isNew}
-                ? '📦 Neue ProductData'
-                : '📦 ProductData bearbeiten'">
+                ? #{pData.newHeadingShort}
+                : #{pData.editHeadingShort}">
             ProductData
         </h2>
 
@@ -160,7 +160,7 @@
                     <span class="status-badge status-working">
                         ⚙️ WORKING
                     </span>
-                    <span style="color:#856404; font-size:.9rem;">
+                    <span style="color:#856404; font-size:.9rem;" th:text="#{pData.workingStatusText}">
                         Diese ProductData befindet sich im
                         Bearbeitungsstatus. Änderungen sind erlaubt.
                     </span>
@@ -179,7 +179,7 @@
                     <span class="status-badge status-released">
                         ✅ RELEASED
                     </span>
-                    <span style="color:#155724; font-size:.9rem;">
+                    <span style="color:#155724; font-size:.9rem;" th:text="#{pData.releasedWarning}">
                         ⚠️ Achtung: Diese ProductData ist
                         freigegeben. Bitte erst revidieren
                         bevor Sie Änderungen vornehmen.
@@ -199,7 +199,7 @@
                     <span class="status-badge status-obsolete">
                         🔒 OBSOLETE
                     </span>
-                    <span style="color:#383d41; font-size:.9rem;">
+                    <span style="color:#383d41; font-size:.9rem;" th:text="#{pData.obsoleteWarning}">
                         Diese Revision ist obsolet und
                         sollte nicht mehr bearbeitet werden.
                     </span>
@@ -212,7 +212,7 @@
                             border-radius:6px;
                             padding:.75rem 1rem;
                             margin-bottom:1rem;">
-                    <span style="color:#6c757d; font-size:.9rem;">
+                    <span style="color:#6c757d; font-size:.9rem;" th:text="#{pData.noRevisionWarning2}">
                         ⚠️ Noch keine Revision vorhanden.
                     </span>
                 </div>
@@ -237,7 +237,7 @@
 
             <!-- ── ID (nur im Edit-Modus, readonly) ──────────── -->
             <div class="form-group" th:if="${!isNew}">
-                <label>ID</label>
+                <label th:text="#{label.id}">ID</label>
                 <div class="readonly-info"
                      style="font-family:monospace;
                             font-weight:600;
@@ -250,7 +250,7 @@
             <!-- ── Name ──────────────────────────────────────── -->
             <div class="form-group">
                 <label for="name">
-                    Name
+                    <span th:text="#{label.name}">Name</span>
                     <span class="required-mark">*</span>
                 </label>
                 <input type="text"
@@ -258,6 +258,7 @@
                        th:field="*{name}"
                        th:classappend="${#fields.hasErrors('name')}
                            ? 'border-danger' : ''"
+                       th:placeholder="#{label.namePlaceholderPD}"
                        placeholder="z.B. Motorgehäuse Typ A"
                        maxlength="255"
                        required>
@@ -270,10 +271,11 @@
 
             <!-- ── Produkttyp ─────────────────────────────────── -->
             <div class="form-group">
-                <label for="productType">Produkttyp</label>
+                <label for="productType" th:text="#{label.productType}">Produkttyp</label>
                 <input type="text"
                        id="productType"
                        th:field="*{productType}"
+                       th:placeholder="#{label.productTypePlaceholder}"
                        placeholder="z.B. Gehäuse, Welle, Baugruppe…"
                        maxlength="100">
                 <div class="field-error"
@@ -285,10 +287,11 @@
 
             <!-- ── Abteilung ──────────────────────────────────── -->
             <div class="form-group">
-                <label for="department">Abteilung</label>
+                <label for="department" th:text="#{label.department}">Abteilung</label>
                 <input type="text"
                        id="department"
                        th:field="*{department}"
+                       th:placeholder="#{label.departmentPlaceholder2}"
                        placeholder="z.B. Entwicklung, Konstruktion…"
                        maxlength="100">
                 <div class="field-error"
@@ -300,9 +303,10 @@
 
             <!-- ── Beschreibung ───────────────────────────────── -->
             <div class="form-group">
-                <label for="description">Beschreibung</label>
+                <label for="description" th:text="#{label.description}">Beschreibung</label>
                 <textarea id="description"
                           th:field="*{description}"
+                          th:placeholder="#{label.descriptionPlaceholderOptional}"
                           placeholder="Optionale Beschreibung…"
                           rows="4">
                 </textarea>
@@ -321,7 +325,7 @@
                             margin-bottom:1rem;">
 
                     <div class="form-group" style="margin:0;">
-                        <label>Erstellt am</label>
+                        <label th:text="#{label.createdDate}">Erstellt am</label>
                         <div class="readonly-info"
                              th:text="${productData.createdDate != null
                                  ? #temporals.format(
@@ -332,14 +336,14 @@
                     </div>
 
                     <div class="form-group" style="margin:0;">
-                        <label>Erstellt von</label>
+                        <label th:text="#{lifecycle.history.createdBy}">Erstellt von</label>
                         <div class="readonly-info"
                              th:text="${productData.createdBy ?: '—'}">
                         </div>
                     </div>
 
                     <div class="form-group" style="margin:0;">
-                        <label>Geändert am</label>
+                        <label th:text="#{label.modifiedDate}">Geändert am</label>
                         <div class="readonly-info"
                              th:text="${productData.lastModifiedDate != null
                                  ? #temporals.format(
@@ -350,7 +354,7 @@
                     </div>
 
                     <div class="form-group" style="margin:0;">
-                        <label>Geändert von</label>
+                        <label th:text="#{label.modifiedBy2}">Geändert von</label>
                         <div class="readonly-info"
                              th:text="${productData.lastModifiedBy ?: '—'}">
                         </div>
@@ -368,8 +372,8 @@
                                border-color:#28a745;
                                padding:.5rem 1.5rem;">
                     <span th:text="${isNew}
-                        ? '✅ Erstellen'
-                        : '💾 Speichern'">
+                        ? #{button.createShort2}
+                        : #{button.saveIcon}">
                         Speichern
                     </span>
                 </button>
@@ -381,7 +385,7 @@
                    class="btn btn-primary"
                    style="background:#6c757d;
                           border-color:#6c757d;">
-                    ✖ Abbrechen
+                    ✖ <span th:text="#{button.cancel}">Abbrechen</span>
                 </a>
 
                 <!-- Löschen – nur im Edit-Modus, nur bei WORKING -->
@@ -400,9 +404,8 @@
                                th:value="${_csrf.token}"/>
                         <button type="submit"
                                 class="btn btn-danger"
-                                onclick="return confirm(
-                                    'ProductData wirklich löschen?');">
-                            🗑️ Löschen
+                                th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('pData.confirmDeleteSimple'))}');|">
+                            🗑️ <span th:text="#{button.delete}">Löschen</span>
                         </button>
                     </form>
 
@@ -415,8 +418,7 @@
                                    color:#6c757d;
                                    cursor:not-allowed;
                                    border:1px solid #dee2e6;"
-                            th:title="${'Löschen nicht möglich: '
-                                + 'BOM verknüpft'}">
+                            th:title="#{pData.deleteBlockedBomLinked}" th:text="#{mfgBom.deleteLockedButton}">
                         🔒 Löschen gesperrt
                     </button>
                 </div>
@@ -427,11 +429,11 @@
 
     <!-- ── Revisionsverlauf (nur Edit-Modus) ─────────────────── -->
     <div class="card" th:if="${!isNew}">
-        <h3 style="margin-top:0;">📜 Revisionsverlauf</h3>
+        <h3 style="margin-top:0;" th:text="#{mfgBom.revisionHistory}">📜 Revisionsverlauf</h3>
 
         <div th:if="${productData.revisions == null
                      or #lists.isEmpty(productData.revisions)}"
-             style="color:#6c757d; padding:.5rem 0;">
+             style="color:#6c757d; padding:.5rem 0;" th:text="#{pData.noRevisionsYet}">
             Noch keine Revisionen vorhanden.
         </div>
 
@@ -443,19 +445,19 @@
                 <tr style="background:#f8f9fa;
                            border-bottom:2px solid #ddd;">
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">
+                               text-align:left;" th:text="#{label.revision}">
                         Revision
                     </th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">
+                               text-align:left;" th:text="#{common.status}">
                         Status
                     </th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">
+                               text-align:left;" th:text="#{lifecycle.history.createdBy}">
                         Erstellt von
                     </th>
                     <th style="padding:.5rem .75rem;
-                               text-align:left;">
+                               text-align:left;" th:text="#{label.createdDate}">
                         Erstellt am
                     </th>
                 </tr>

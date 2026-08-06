@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Drawing - PEB</title>
+    <title th:text="#{drawing.createTitle}">Create Drawing - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -11,15 +11,15 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Create New Drawing</h1>
+        <h1 th:text="#{drawing.createHeading}">Create New Drawing</h1>
         <div style="margin-left: auto;">
-            <a th:href="@{/drawings}" class="btn btn-primary">Back to List</a>
+            <a th:href="@{/drawings}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Drawing Information</h2>
+            <h2 th:text="#{drawing.info}">Drawing Information</h2>
 
             <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 Error message
@@ -27,39 +27,41 @@
 
             <form th:action="@{/drawings}" th:object="${drawing}" method="post">
                 <div class="form-group">
-                    <label for="name">Drawing Name *</label>
+                    <label for="name" th:text="#{label.drawingName}">Drawing Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256" 
+                           th:placeholder="#{drawing.namePlaceholder}"
                            placeholder="Enter drawing name (e.g., Assembly Drawing, Part Detail)">
-                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;" th:text="#{drawing.nameHint}">
                         Descriptive name for the drawing document
                     </small>
                 </div>
 
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128" 
+                           th:placeholder="#{drawing.departmentPlaceholder}"
                            placeholder="Enter department (optional)">
-                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                    <small style="color: #6c757d; display: block; margin-top: 0.25rem;" th:text="#{drawing.departmentHint}">
                         Department responsible for this drawing
                     </small>
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success">Create Drawing</button>
-                    <a th:href="@{/drawings}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success" th:text="#{button.createDrawing}">Create Drawing</button>
+                    <a th:href="@{/drawings}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
                 </div>
             </form>
         </div>
 
         <div class="card">
-            <h3>Information</h3>
+            <h3 th:text="#{drawing.formInfo}">Information</h3>
             <ul>
-                <li>Drawing name is required (max 256 characters)</li>
-                <li>A unique ID will be automatically generated (format: DR00000001)</li>
-                <li>An initial revision (01) will be created automatically with status "Working"</li>
-                <li>Drawings are created at revision level as per specification</li>
-                <li>After creation, you can attach files (PDF, images, etc.) as datasets</li>
-                <li>Drawings can be linked to any level in the eBOM structure</li>
+                <li th:text="#{drawing.formInfo.item1}">Drawing name is required (max 256 characters)</li>
+                <li th:text="#{drawing.formInfo.item2}">A unique ID will be automatically generated (format: DR00000001)</li>
+                <li th:text="#{drawing.formInfo.item3}">An initial revision (01) will be created automatically with status "Working"</li>
+                <li th:text="#{drawing.formInfo.item4}">Drawings are created at revision level as per specification</li>
+                <li th:text="#{drawing.formInfo.item5}">After creation, you can attach files (PDF, images, etc.) as datasets</li>
+                <li th:text="#{drawing.formInfo.item6}">Drawings can be linked to any level in the eBOM structure</li>
             </ul>
         </div>
     </div>

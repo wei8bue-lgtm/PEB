@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:,">
-    <title>Fehler - PEB</title>
+    <title th:text="#{error.title}">Fehler - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .error-container {
@@ -111,22 +111,22 @@
 
         <!-- Fehler Details Card -->
         <div class="error-card">
-            <h3 style="margin-top: 0; color: #dc3545;">🔴 Fehler-Details</h3>
+            <h3 style="margin-top: 0; color: #dc3545;" th:text="'🔴 ' + #{error.details}">🔴 Fehler-Details</h3>
 
             <div class="error-detail-row">
-                <span class="error-detail-label">Status Code:</span>
+                <span class="error-detail-label" th:text="#{error.statusCode}">Status Code:</span>
                 <span class="error-detail-value" th:text="${statusCode}">500</span>
             </div>
 
             <div class="error-detail-row">
-                <span class="error-detail-label">Status Text:</span>
+                <span class="error-detail-label" th:text="#{error.statusText}">Status Text:</span>
                 <span class="error-detail-value" th:text="${statusText}">
                     Internal Server Error
                 </span>
             </div>
 
             <div class="error-detail-row">
-                <span class="error-detail-label">URL:</span>
+                <span class="error-detail-label" th:text="#{error.url}">URL:</span>
                 <span class="error-detail-value"
                       th:text="${requestUri}">
                     /unbekannt
@@ -134,7 +134,7 @@
             </div>
 
             <div class="error-detail-row" th:if="${errorMessage != null and errorMessage != ''}">
-                <span class="error-detail-label">Meldung:</span>
+                <span class="error-detail-label" th:text="#{error.message}">Meldung:</span>
                 <span class="error-detail-value"
                       th:text="${errorMessage}">
                     Fehlermeldung
@@ -143,7 +143,7 @@
 
             <div class="error-detail-row"
                  th:if="${exceptionType != null}">
-                <span class="error-detail-label">Exception:</span>
+                <span class="error-detail-label" th:text="#{error.exception}">Exception:</span>
                 <span class="error-detail-value"
                       th:text="${exceptionType}">
                     ExceptionType
@@ -152,7 +152,7 @@
 
             <div class="error-detail-row"
                  th:if="${exceptionMessage != null}">
-                <span class="error-detail-label">Details:</span>
+                <span class="error-detail-label" th:text="#{error.exceptionDetails}">Details:</span>
                 <span class="error-detail-value"
                       th:text="${exceptionMessage}">
                     Exception Message
@@ -162,53 +162,53 @@
 
         <!-- Hilfestellung je nach Status -->
         <div class="hint-box" th:if="${statusCode == 404}">
-            <strong>💡 Mögliche Ursachen:</strong>
+            <strong th:text="'💡 ' + #{error.possibleCauses}">💡 Mögliche Ursachen:</strong>
             <ul>
-                <li>Die aufgerufene URL existiert nicht</li>
-                <li>Das Objekt wurde gelöscht</li>
-                <li>Tippfehler in der URL</li>
+                <li th:text="#{error.404.cause1}">Die aufgerufene URL existiert nicht</li>
+                <li th:text="#{error.404.cause2}">Das Objekt wurde gelöscht</li>
+                <li th:text="#{error.404.cause3}">Tippfehler in der URL</li>
             </ul>
         </div>
 
         <div class="hint-box" th:if="${statusCode == 403 or statusCode == 401}">
-            <strong>💡 Mögliche Ursachen:</strong>
+            <strong th:text="'💡 ' + #{error.possibleCauses}">💡 Mögliche Ursachen:</strong>
             <ul>
-                <li>Sie sind nicht angemeldet</li>
-                <li>Fehlende Berechtigung für diese Aktion</li>
-                <li>Session ist abgelaufen - bitte neu anmelden</li>
+                <li th:text="#{error.403.cause1}">Sie sind nicht angemeldet</li>
+                <li th:text="#{error.403.cause2}">Fehlende Berechtigung für diese Aktion</li>
+                <li th:text="#{error.403.cause3}">Session ist abgelaufen - bitte neu anmelden</li>
             </ul>
         </div>
 
         <div class="hint-box" th:if="${statusCode == 500}">
-            <strong>💡 Mögliche Ursachen:</strong>
+            <strong th:text="'💡 ' + #{error.possibleCauses}">💡 Mögliche Ursachen:</strong>
             <ul>
-                <li>Datenbankverbindung unterbrochen</li>
-                <li>Ungültige Daten wurden verarbeitet</li>
-                <li>Bitte prüfen Sie die Server-Logs für Details</li>
+                <li th:text="#{error.500.cause1}">Datenbankverbindung unterbrochen</li>
+                <li th:text="#{error.500.cause2}">Ungültige Daten wurden verarbeitet</li>
+                <li th:text="#{error.500.cause3}">Bitte prüfen Sie die Server-Logs für Details</li>
             </ul>
         </div>
 
         <!-- Aktions-Buttons -->
         <div class="error-actions">
             <button onclick="history.back()"
-                    class="btn btn-primary">
+                    class="btn btn-primary" th:text="#{button.backHistory}">
                 ← Zurück
             </button>
-            <a th:href="@{/}" class="btn btn-success">
+            <a th:href="@{/}" class="btn btn-success" th:text="#{button.toHome}">
                 🏠 Zur Startseite
             </a>
             <button onclick="location.reload()"
                     class="btn btn-secondary"
-                    style="background:#6c757d; color:white;">
+                    style="background:#6c757d; color:white;" th:text="#{button.reload}">
                 🔄 Neu laden
             </button>
         </div>
 
         <!-- Footer -->
         <p style="margin-top: 2rem; color: #6c757d; font-size: 0.85rem;">
-            PEB - Production Engineering Backbone
+            <span th:text="#{app.title}">PEB - Production Engineering Backbone</span>
             &nbsp;|&nbsp;
-            Bei anhaltenden Problemen: IT-Support kontaktieren
+            <span th:text="#{error.footerSupport}">Bei anhaltenden Problemen: IT-Support kontaktieren</span>
         </p>
     </div>
 

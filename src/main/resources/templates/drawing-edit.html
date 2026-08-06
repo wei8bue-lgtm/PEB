@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Drawing - PEB</title>
+    <title th:text="#{drawing.editTitle}">Edit Drawing - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -11,30 +11,30 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Edit Drawing</h1>
+        <h1 th:text="#{drawing.editHeading}">Edit Drawing</h1>
         <div style="margin-left: auto;">
-            <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-primary">Back to Drawing</a>
+            <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-primary" th:text="#{button.backToDrawing}">Back to Drawing</a>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2>Edit Drawing Information</h2>
+            <h2 th:text="#{drawing.editInfo}">Edit Drawing Information</h2>
 
             <form th:action="@{/drawings/{id}(id=${drawingId})}" th:object="${drawing}" method="post">
                 <div class="form-group">
-                    <label for="name">Drawing Name *</label>
+                    <label for="name" th:text="#{label.drawingName}">Drawing Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256">
                 </div>
 
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128">
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Save Changes</button>
+                    <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
                 </div>
             </form>
         </div>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Material ' + ${material.id} + ' - PEB'"></title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.5rem; font-size:.9rem; }
+        .kv-grid dt { color:#888; }
+        .kv-grid dd { margin:0 0 .5rem 0; font-weight:600; }
+        .badge-ok   { color:#137333; font-weight:600; }
+        .badge-warn { color:#b06000; font-weight:600; }
+        .badge-bad  { color:#c5221f; font-weight:600; }
+        .badge-na   { color:#5f6368; }
+
+        /* Revisions-Status-Badge, analog zur Design-Detailansicht */
+        .rev-table th, .rev-table td { padding:.9rem 1.5rem; }
+        .rev-status {
+            display:inline-flex; align-items:center; gap:.4rem;
+            padding:.3rem .9rem; border-radius:999px; font-weight:600; font-size:.85rem;
+            white-space:nowrap;
+        }
+        .rev-status-WORKING  { background:#f1f3f4; color:#3c4043; }
+        .rev-status-RELEASED { background:#e6f4ea; color:#137333; }
+        .rev-status-OBSOLETE { background:#fce8e6; color:#c5221f; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="'Material ' + ${material.id} + ' – ' + ${material.name}"></h1>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+        <span sec:authentication="name" class="user-info"></span>
+        <a th:href="@{/materials}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Stammdaten -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 th:text="#{material.masterData}">Stammdaten</h3>
+            <a sec:authorize="hasAuthority('WRITE')" th:href="@{'/materials/' + ${material.id} + '/edit'}" class="btn btn-secondary" th:text="#{button.edit}">Bearbeiten</a>
+        </div>
+        <dl class="kv-grid">
+            <dt th:text="#{label.materialGroup}">Werkstoffgruppe</dt><dd th:text="${material.materialGroup} ?: '–'"></dd>
+            <dt th:text="#{label.specification}">Spezifikation</dt><dd th:text="${material.specification} ?: '–'"></dd>
+            <dt th:text="#{common.status}">Status</dt><dd th:text="${material.status}"></dd>
+            <dt th:text="#{label.unitOfMeasure}">Mengeneinheit</dt><dd th:text="${material.unitOfMeasure} ?: '–'"></dd>
+            <dt th:text="#{label.density}">Dichte</dt><dd th:text="${material.densityKgM3} ? ${material.densityKgM3} + ' kg/m³' : '–'"></dd>
+            <dt th:text="#{label.tensileStrength}">Zugfestigkeit</dt><dd th:text="${material.tensileStrengthMpa} ? ${material.tensileStrengthMpa} + ' MPa' : '–'"></dd>
+            <dt th:text="#{label.elasticModulus}">E-Modul</dt><dd th:text="${material.elasticModulusGpa} ? ${material.elasticModulusGpa} + ' GPa' : '–'"></dd>
+            <dt th:text="#{label.meltingPoint}">Schmelzpunkt</dt><dd th:text="${material.meltingPointC} ? ${material.meltingPointC} + ' °C' : '–'"></dd>
+            <dt th:text="#{label.releasedRevision}">Freigegebene Revision</dt><dd th:text="${material.releasedRevision} ?: #{common.none}">keine</dd>
+            <dt th:text="#{lifecycle.history.createdBy}">Angelegt von</dt><dd th:text="#{material.createdByOn(${material.createdBy}, ${material.createdDate})}"></dd>
+        </dl>
+        <p th:if="${material.description}" th:text="${material.description}" style="margin-top:1rem;color:#555"></p>
+    </div>
+
+    <!-- ECLASS -->
+    <div class="card" style="padding:.75rem 1rem">
+        <div th:if="${classification != null}">
+            <span th:text="#{eclass.classifiedAs(${classification.eclassCode}, ${classification.eclassName})}"></span>
+        </div>
+        <a th:href="@{'/eclass/classify/MATERIAL/' + ${material.id}}" th:text="#{eclass.editClassification}">🏷️ ECLASS-Klassifizierung bearbeiten</a>
+        &nbsp;|&nbsp;
+        <a th:href="@{'/eclass/similar/MATERIAL/' + ${material.id}}" th:text="#{eclass.showSimilar}">🔄 Ähnliche Objekte anzeigen</a>
+    </div>
+
+    <!-- Revisionen -->
+    <div class="card">
+        <h3 th:text="#{material.revisions}">Revisionen</h3>
+        <table class="table rev-table">
+            <thead><tr><th th:text="#{label.rev}">Rev.</th><th th:text="#{common.status}">Status</th><th th:text="#{label.change}">Änderung</th><th th:text="#{lifecycle.history.createdBy}">Erstellt von</th><th th:text="#{label.date}">Datum</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${revisions}">
+                <td th:text="${r.revision}"></td>
+                <td>
+                    <span class="rev-status" th:classappend="'rev-status-' + ${r.releaseStatus.name()}">
+                        <span th:text="${r.releaseStatus.icon}"></span>
+                        <span th:text="${r.releaseStatus.displayName}"></span>
+                    </span>
+                </td>
+                <td th:text="${r.changeDescription}"></td>
+                <td th:text="${r.createdBy}"></td>
+                <td th:text="${r.createdDate}"></td>
+                <td>
+                    <form sec:authorize="hasAuthority('WRITE')"
+                          th:if="${r.releaseStatus.name() == 'WORKING'}"
+                          th:action="@{'/materials/revisions/' + ${r.id} + '/release'}" method="post" style="display:inline">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="materialId" th:value="${material.id}"/>
+                        <button type="submit" class="btn btn-secondary" th:text="#{button.release}">Freigeben</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/' + ${material.id} + '/revisions'}" method="post"
+              style="margin-top:1rem;display:flex;gap:.5rem;align-items:flex-end">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+            <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.newRevision}">Neue Revision</label>
+                <input type="text" name="revision" placeholder="z.B. B" required style="width:80px"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.changeDescription}">Änderungsbeschreibung</label>
+                <input type="text" name="changeDescription" style="width:300px"></div>
+            <button type="submit" class="btn btn-primary" th:text="#{button.createRevision}">Revision anlegen</button>
+        </form>
+    </div>
+
+    <!-- Compliance -->
+    <div class="card">
+        <h3 th:text="#{material.compliance}">Compliance</h3>
+        <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/' + ${material.id} + '/compliance'}" method="post">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+            <div class="kv-grid" style="align-items:center">
+                <label th:text="#{compliance.reachSvhc}">REACH – SVHC-Stoffe enthalten?</label>
+                <select name="reachSvhc">
+                    <option value="" th:text="#{common.unknown}">unbekannt</option>
+                    <option value="true"  th:selected="${material.compliance != null and material.compliance.reachSvhc == true}" th:text="#{common.yes}">Ja</option>
+                    <option value="false" th:selected="${material.compliance != null and material.compliance.reachSvhc == false}" th:text="#{common.no}">Nein</option>
+                </select>
+
+                <label th:text="#{compliance.rohsCompliant}">RoHS-konform?</label>
+                <select name="rohsCompliant">
+                    <option value="" th:text="#{common.unknown}">unbekannt</option>
+                    <option value="true"  th:selected="${material.compliance != null and material.compliance.rohsCompliant == true}" th:text="#{common.yes}">Ja</option>
+                    <option value="false" th:selected="${material.compliance != null and material.compliance.rohsCompliant == false}" th:text="#{common.no}">Nein</option>
+                </select>
+
+                <label th:text="#{compliance.conflictMinerals}">Konfliktmineralien-Status</label>
+                <select name="conflictMineralsStatus">
+                    <option value="" th:text="#{common.unknown}">unbekannt</option>
+                    <option value="DRC_CONFLICT_FREE">DRC conflict-free</option>
+                    <option value="NOT_APPLICABLE" th:text="#{compliance.notApplicable}">Nicht zutreffend</option>
+                    <option value="UNDER_REVIEW" th:text="#{compliance.underReview}">In Prüfung</option>
+                    <option value="NON_COMPLIANT" th:text="#{compliance.nonCompliant}">Nicht konform</option>
+                    <option value="UNKNOWN" th:text="#{compliance.unknownOption}">Unbekannt</option>
+                </select>
+
+                <label th:text="#{compliance.nextReviewDate}">Nächste Prüfung fällig am</label>
+                <input type="date" name="nextReviewDate"
+                       th:value="${material.compliance != null ? material.compliance.nextReviewDate : ''}">
+            </div>
+            <div style="margin-top:.75rem">
+                <label style="display:block;font-size:.85rem;color:#555;margin-bottom:.25rem" th:text="#{compliance.notes}">Notizen</label>
+                <textarea name="notes" rows="3" style="width:100%"
+                          th:text="${material.compliance != null ? material.compliance.notes : ''}"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:.75rem" th:text="#{button.saveCompliance}">Compliance-Daten speichern</button>
+        </form>
+    </div>
+
+    <!-- Lieferanten / AVL -->
+<!--     <div class="card">
+        <h3>Lieferanten (Approved Vendor List)</h3>
+        <table class="table">
+            <thead><tr><th>Lieferant</th><th>Teilenummer</th><th>Preis</th><th>Lieferzeit</th><th>Freigegeben</th><th>Bevorzugt</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${suppliers}">
+                <td th:text="${s.supplierName}"></td>
+                <td th:text="${s.supplierPartNumber}"></td>
+                <td th:text="${s.price} ? ${s.price} + ' ' + ${s.currency} : '–'"></td>
+                <td th:text="${s.leadTimeDays} ? ${s.leadTimeDays} + ' Tage' : '–'"></td>
+                <td th:text="${s.approved} ? '✓' : '–'"></td>
+                <td th:text="${s.preferred} ? '★' : '–'"></td>
+                <td>
+                    <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/suppliers/' + ${s.id} + '/delete'}" method="post" style="display:inline"
+                          onsubmit="return confirm('Lieferant wirklich entfernen?')">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="materialId" th:value="${material.id}"/>
+                        <button type="submit" class="btn btn-danger">Entfernen</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/' + ${material.id} + '/suppliers'}" method="post"
+              style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+            <div><label style="display:block;font-size:.8rem;color:#888">Lieferant *</label><input type="text" name="supplierName" required></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Teilenummer</label><input type="text" name="supplierPartNumber"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Preis</label><input type="number" step="0.0001" name="price" style="width:100px"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Währung</label><input type="text" name="currency" value="EUR" style="width:60px"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Lieferzeit (Tage)</label><input type="number" name="leadTimeDays" style="width:90px"></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Freigegeben</label>
+                <select name="approved"><option value="false">Nein</option><option value="true">Ja</option></select></div>
+            <div><label style="display:block;font-size:.8rem;color:#888">Bevorzugt</label>
+                <select name="preferred"><option value="false">Nein</option><option value="true">Ja</option></select></div>
+            <button type="submit" class="btn btn-primary">Lieferant hinzufügen</button>
+        </form>
+    </div> -->
+</div>
+</body>
+</html>

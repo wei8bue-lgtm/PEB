@@ -26,6 +26,9 @@ public class Design extends BaseObject {
     @Column(name = "material", length = 256)
     @Size(max = 256)
     private String material;
+	
+	@Column(name = "linked_material_id", length = 10)   // ← NEU
+	private String linkedMaterialId;
 
     /**
      * Child_View – Freitext für Stücklisten-/Strukturbeschreibung.

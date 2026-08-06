@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{document.createTitle}">Neues Dokument - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{document.createHeading}">Neues Dokument erstellen</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/documents}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 th:text="#{document.info}">Dokument-Informationen</h2>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <div th:if="${releasedTemplates.empty}" class="alert alert-warning">
+                <span th:text="#{document.noReleasedTemplates}">⚠ Keine freigegebenen Templates verfügbar.</span>
+                <a th:href="@{/document-templates}" th:text="#{document.pleaseReleaseFirst}">Bitte zuerst ein Template freigeben.</a>
+            </div>
+
+            <form th:unless="${releasedTemplates.empty}"
+                  th:action="@{/documents}" th:object="${document}" method="post">
+
+                <!-- Template-Auswahl -->
+                <div class="form-group">
+                    <label for="templateId" th:text="#{document.selectTemplateLabel}">Template (freigegeben) *</label>
+                    <select id="templateId" th:field="*{templateId}" required
+                            onchange="updateAttributeHints(this)">
+                        <option value="" th:text="#{document.selectTemplatePlaceholder}">-- Template auswählen --</option>
+                        <option th:each="tmpl : ${releasedTemplates}"
+                                th:value="${tmpl.id}"
+                                th:text="${tmpl.id + ' – ' + tmpl.name}"
+                                th:data-attr1="${tmpl.releasedRevision?.attribute1 ?: ''}"
+                                th:data-attr2="${tmpl.releasedRevision?.attribute2 ?: ''}">
+                        </option>
+                    </select>
+                    <small id="templateHint" class="help-text"></small>
+                </div>
+
+                <hr style="margin:1.5rem 0;">
+
+                <div class="form-group">
+                    <label for="name" th:text="#{label.documentName}">Dokumentname *</label>
+                    <input type="text" id="name" th:field="*{name}"
+                           required maxlength="255" th:placeholder="#{document.namePlaceholder}" placeholder="Dokumentname eingeben">
+                </div>
+
+                <div class="form-group">
+                    <label for="department" th:text="#{label.department}">Department</label>
+                    <input type="text" id="department" th:field="*{department}"
+                           maxlength="100" th:placeholder="#{docTemplate.departmentPlaceholder}" placeholder="Abteilung (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" th:text="#{label.description}">Beschreibung</label>
+                    <textarea id="description" th:field="*{description}"
+                              maxlength="1000" rows="3"
+                              th:placeholder="#{document.descriptionPlaceholder}" placeholder="Beschreibung (optional)"></textarea>
+                </div>
+
+                <hr style="margin:1.5rem 0;">
+                <h3 th:text="#{docTemplate.attributesHeading}">Attribute</h3>
+                <p class="help-text" th:text="#{document.attributesHelp}">
+                    Die Werte ersetzen die Platzhalter {{Attribute1}} und
+                    {{Attribute2}} im Template-Dokument.
+                </p>
+
+                <div class="form-group">
+                    <label for="attribute1" id="label-attr1" th:text="#{label.attribute1}">Attribute 1</label>
+                    <input type="text" id="attribute1" th:field="*{attribute1}"
+                           maxlength="500" th:placeholder="#{document.attr1Placeholder}" placeholder="Wert für Attribute 1">
+                </div>
+
+                <div class="form-group">
+                    <label for="attribute2" id="label-attr2" th:text="#{label.attribute2}">Attribute 2</label>
+                    <input type="text" id="attribute2" th:field="*{attribute2}"
+                           maxlength="500" th:placeholder="#{document.attr2Placeholder}" placeholder="Wert für Attribute 2">
+                </div>
+
+                <div style="margin-top:2rem;">
+                    <button type="submit" class="btn btn-success" th:text="#{button.createDocumentFull}">Dokument erstellen</button>
+                    <a th:href="@{/documents}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 th:text="#{document.processHeading}">Ablauf</h3>
+            <ol>
+                <li th:text="#{document.process1}">Dokument aus freigegebenem Template erstellen (Attribute eingeben)</li>
+                <li th:text="#{document.process2}">Vorausgefülltes .doc-Dokument herunterladen (Attribute wurden eingesetzt)</li>
+                <li th:text="#{document.process3}">Dokument lokal bearbeiten und fertigstellen</li>
+                <li th:text="#{document.process4}">Fertiggestelltes .doc-Dokument hochladen</li>
+                <li th:text="#{document.process5}">Dokument freigeben</li>
+            </ol>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const docFormI18n = {
+            attributesFromTemplate: /*[[#{document.attributesFromTemplate}]]*/ 'Attribute aus Template: Attr1="{0}", Attr2="{1}"',
+            attribute1: /*[[#{label.attribute1}]]*/ 'Attribute 1',
+            attribute2: /*[[#{label.attribute2}]]*/ 'Attribute 2'
+        };
+
+        function updateAttributeHints(select) {
+            const opt = select.options[select.selectedIndex];
+            const attr1 = opt.dataset.attr1 || '';
+            const attr2 = opt.dataset.attr2 || '';
+
+            const hint = document.getElementById('templateHint');
+            if (opt.value) {
+                hint.textContent = attr1 || attr2
+                    ? docFormI18n.attributesFromTemplate.replace('{0}', attr1).replace('{1}', attr2)
+                    : '';
+            } else {
+                hint.textContent = '';
+            }
+
+            const l1 = document.getElementById('label-attr1');
+            const l2 = document.getElementById('label-attr2');
+            l1.textContent = attr1 ? docFormI18n.attribute1 + ' (' + attr1 + ')' : docFormI18n.attribute1;
+            l2.textContent = attr2 ? docFormI18n.attribute2 + ' (' + attr2 + ')' : docFormI18n.attribute2;
+        }
+    </script>
+
+    <style>
+        .btn-secondary { background:#6c757d; color:white; }
+        .btn-secondary:hover { background:#5a6268; }
+        .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
+        .alert-warning { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:1rem; border-radius:4px; margin-bottom:1rem; }
+        .help-text { color:#6c757d; font-size:.9rem; margin-bottom:.75rem; display:block; }
+        textarea { width:100%; box-sizing:border-box; padding:.5rem; border:1px solid #ced4da; border-radius:4px; font-family:inherit; }
+        select { width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:4px; font-size:1rem; }
+        code { background:#f8f9fa; padding:.1rem .3rem; border-radius:3px; font-size:.9rem; color:#c7254e; }
+    </style>
+</body>
+</html>

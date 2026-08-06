@@ -8,6 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Web MVC Konfiguration
+ *
+ * Hinweis: Die Sprachauflösung (LocaleResolver) ist zentral in
+ * {@link I18nConfig} definiert, nicht hier.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

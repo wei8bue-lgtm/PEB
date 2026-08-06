@@ -32,16 +32,17 @@ public class DesignStructureService {
      * @param rootDesignId  Design.id of the root
      * @return              fully populated tree node (root)
      */
-    @Transactional(readOnly = true)
-    public DesignStructureNodeDTO buildTree(String rootDesignId) {
-        Design root = designService.getDesign(rootDesignId);
-        return buildNode(root,
-                         /* structureId */   null,
-                         /* quantity    */   null,
-                         /* posNumber   */   null,
-                         /* depth       */   0,
-                         /* visitedIds  */   new HashSet<>());
-    }
+	@Transactional(readOnly = true)
+	public DesignStructureNodeDTO buildTree(String rootDesignId) {
+		Design root = designService.getDesign(rootDesignId);
+		return buildNode(root,
+						 /* rev          */   root.getLatestRevision(),   // ← Root: immer aktuellster Stand
+						 /* structureId  */   null,
+						 /* quantity     */   null,
+						 /* posNumber    */   null,
+						 /* depth        */   0,
+						 /* visitedIds   */   new HashSet<>());
+	}
 
     /**
      * Returns all Designs that can legally be added as children
@@ -190,74 +191,79 @@ public class DesignStructureService {
      * @param depth          nesting level (0 = root)
      * @param visitedIds     guards against infinite loops from bad data
      */
-    private DesignStructureNodeDTO buildNode(Design      design,
-                                              Long        structureId,
-                                              Integer     quantity,
-                                              String      positionNumber,
-                                              int         depth,
-                                              Set<String> visitedIds) {
+	private DesignStructureNodeDTO buildNode(Design         design,
+											  DesignRevision rev,             // ← NEU: konkrete Revision statt design.getLatestRevision()
+											  Long           structureId,
+											  Integer        quantity,
+											  String         positionNumber,
+											  int            depth,
+											  Set<String>    visitedIds) {
 
-        DesignRevision rev = design.getLatestRevision();
+		DesignStructureNodeDTO node = DesignStructureNodeDTO.builder()
+				.id(design.getId())
+				.name(design.getName())
+				.department(design.getDepartment())
+				.revisionId(rev  != null ? rev.getRevisionId() : null)
+				.revision(rev    != null ? rev.getRevision()   : null)
+				.releaseStatus(rev != null
+						? rev.getReleaseStatus().name() : null)
+				.releaseStatusDisplay(rev != null
+						? rev.getReleaseStatus().getDisplayName()
+						  + " " + rev.getReleaseStatus().getIcon()
+						: "—")
+				.structureId(structureId)
+				.quantity(quantity)
+				.positionNumber(positionNumber)
+				.depth(depth)
+				.build();
 
-        DesignStructureNodeDTO node = DesignStructureNodeDTO.builder()
-                .id(design.getId())
-                .name(design.getName())
-                .department(design.getDepartment())
-                .revisionId(rev  != null ? rev.getRevisionId() : null)
-                .revision(rev    != null ? rev.getRevision()   : null)
-                .releaseStatus(rev != null
-                        ? rev.getReleaseStatus().name() : null)
-                .releaseStatusDisplay(rev != null
-                        ? rev.getReleaseStatus().getDisplayName()
-                          + " " + rev.getReleaseStatus().getIcon()
-                        : "—")
-                .structureId(structureId)
-                .quantity(quantity)
-                .positionNumber(positionNumber)
-                .depth(depth)
-                .build();
+		// Stop recursion: keine Revision → keine weiteren Structure-Links möglich
+		if (rev == null) return node;
 
-        // Stop recursion: no revision means no structure links possible
-        if (rev == null) return node;
+		// Stop recursion: Zyklus-Schutz bei fehlerhaften Daten
+		if (visitedIds.contains(design.getId())) {
+			log.warn("Cycle detected in design structure at [{}] "
+					 + "– stopping recursion", design.getId());
+			return node;
+		}
 
-        // Stop recursion: cycle guard for corrupted data
-        if (visitedIds.contains(design.getId())) {
-            log.warn("Cycle detected in design structure at [{}] "
-                     + "– stopping recursion", design.getId());
-            return node;
-        }
+		Set<String> pathVisited = new HashSet<>(visitedIds);
+		pathVisited.add(design.getId());
 
-        // Mark this design as visited FOR THIS PATH only
-        Set<String> pathVisited = new HashSet<>(visitedIds);
-        pathVisited.add(design.getId());
+		// Kinder anhand der ÜBERGEBENEN Revision laden (nicht latestRevision!)
+		List<DesignStructure> childLinks =
+				structureRepo.findByParentRevisionId(rev.getRevisionId());
 
-        // Load and recurse into all direct children
-        List<DesignStructure> childLinks =
-                structureRepo.findByParentRevisionId(rev.getRevisionId());
+		for (DesignStructure link : childLinks) {
+			try {
+				Design child = designService.getDesign(link.getChildId());
 
-        for (DesignStructure link : childLinks) {
-            try {
-                Design child = designService.getDesign(link.getChildId());
-                DesignStructureNodeDTO childNode = buildNode(
-                        child,
-                        link.getStructureId(),
-                        link.getQuantity(),
-                        link.getPositionNumber(),
-                        depth + 1,
-                        pathVisited);
-                node.getChildren().add(childNode);
-            } catch (Exception e) {
-                // Log and continue – a missing child should not break the view
-                log.error("Cannot resolve child design [{}] "
-                          + "referenced by structure link [{}]: {}",
-                          link.getChildId(),
-                          link.getStructureId(),
-                          e.getMessage());
-            }
-        }
+				// Die tatsächlich VERBAUTE Revision laden – nicht die neueste!
+				DesignRevision childRev =
+						designService.getRevision(link.getChildRevisionId());
 
-        return node;
-    }
+				DesignStructureNodeDTO childNode = buildNode(
+						child,
+						childRev,
+						link.getStructureId(),
+						link.getQuantity(),
+						link.getPositionNumber(),
+						depth + 1,
+						pathVisited);
+				node.getChildren().add(childNode);
+			} catch (Exception e) {
+				// Log und weiter – ein fehlendes Child/Revision soll die View nicht sprengen
+				log.error("Cannot resolve child design [{}] revision [{}] "
+						  + "referenced by structure link [{}]: {}",
+						  link.getChildId(),
+						  link.getChildRevisionId(),
+						  link.getStructureId(),
+						  e.getMessage());
+			}
+		}
+
+		return node;
+	}
 
     /**
      * Returns true if making {@code potentialChildId} a child of

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Objekte: ' + ${code} + ' - PEB'">ECLASS Objekte - PEB</title>
+    <title th:text="#{eclass.objectsPrefix} + ': ' + ${code} + ' - PEB'">ECLASS Objekte - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         .type-badge {
@@ -29,30 +29,30 @@
     <h1>ECLASS: <span th:text="${code}"></span></h1>
     <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
         <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/eclass}" class="btn btn-secondary">← Katalog</a>
+        <a th:href="@{/eclass}" class="btn btn-secondary">← <span th:text="#{button.catalog}">Katalog</span></a>
     </div>
 </div>
 
 <div class="container">
     <div class="card">
         <h3>
-            Alle PEB-Objekte mit ECLASS <strong th:text="${code}"></strong>
+            <span th:text="#{eclass.allPebObjectsWith}">Alle PEB-Objekte mit ECLASS</span> <strong th:text="${code}"></strong>
             &nbsp;<span style="color:#888;font-size:.9rem"
-                        th:text="'(' + ${objects.size()} + ' Objekte)'"></span>
+                        th:text="'(' + #{eclass.objectsCount(${objects.size()})} + ')'"></span>
         </h3>
 
-        <div th:if="${objects.empty}" style="color:#888;padding:1rem 0">
+        <div th:if="${objects.empty}" style="color:#888;padding:1rem 0" th:text="#{eclass.noObjectsClassified}">
             Noch keine Objekte mit diesem ECLASS-Code klassifiziert.
         </div>
 
         <table class="table" th:unless="${objects.empty}">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Typ</th>
-                    <th>Name</th>
-                    <th>Abteilung</th>
-                    <th>Aktion</th>
+                    <th th:text="#{label.id}">ID</th>
+                    <th th:text="#{label.type}">Typ</th>
+                    <th th:text="#{label.name}">Name</th>
+                    <th th:text="#{label.department}">Abteilung</th>
+                    <th th:text="#{label.action}">Aktion</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,7 @@
                     <td th:text="${obj.objectName}"></td>
                     <td th:text="${obj.objectDepartment}"></td>
                     <td>
-                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary">Öffnen</a>
+                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary" th:text="#{button.open}">Öffnen</a>
                     </td>
                 </tr>
             </tbody>

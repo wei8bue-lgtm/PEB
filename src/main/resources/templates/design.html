@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title>Designs - PEB</title>
+    <title th:text="#{design.title}">Designs - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
 <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -10,13 +10,13 @@
 <body>
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>Designs</h1>
+        <h1 th:text="#{design.heading}">Designs</h1>
     </div>
     <div class="container">
         <div class="card">
-            <h2>Design Management</h2>
-            <p>Design objects will be displayed here.</p>
-            <a th:href="@{/}" class="btn btn-primary">Back to Home</a>
+            <h2 th:text="#{design.management}">Design Management</h2>
+            <p th:text="#{design.placeholderText}">Design objects will be displayed here.</p>
+            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.backToHome}">Back to Home</a>
         </div>
     </div>
 </body>

@@ -301,6 +301,7 @@ public class EclassController {
             case SUBMODULE -> "/ebom/submodule/" + objectId;
             case PART      -> "/ebom/part/" + objectId;
             case AUXILIARY -> "/ebom/auxiliary/" + objectId;
+            case MATERIAL  -> "/materials/" + objectId;
             default        -> "/eclass";
         };
     }

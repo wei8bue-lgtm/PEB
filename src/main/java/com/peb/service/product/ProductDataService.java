@@ -7,6 +7,7 @@ import com.peb.model.product.ProductDataRevision;
 import com.peb.repository.product.ProductDataRepository;
 import com.peb.repository.product.ProductDataRevisionRepository;
 import com.peb.service.IDGeneratorService;
+import com.peb.service.search.SearchIndexService;
 import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class ProductDataService {
     private final ProductDataRepository         repository;
     private final ProductDataRevisionRepository revisionRepository;
     private final IDGeneratorService            idGeneratorService;
+    private final SearchIndexService            searchIndexService; // NEU: zentrale Suche
 
     @Transactional
     public ProductData create(ProductData pd) {
@@ -43,10 +45,15 @@ public class ProductDataService {
         initRev.setStatus(ManufacturingStatus.WORKING);
         initRev.setCreatedBy(currentUser());
         revisionRepository.save(initRev);
+        saved.getRevisions().add(initRev); // NEU: haelt In-Memory-Graph konsistent, damit getLatestRevision() sofort die neue Revision sieht
 
         log.info("Erstelle ProductData: {} – '{}' "
                 + "mit initialer Revision 01 (WORKING)",
                 newId, pd.getName());
+
+        // NEU: zentrale Suche aktualisieren
+        searchIndexService.index(ObjectType.PRODUCT_DATA, saved);
+
         return saved;
     }
 
@@ -63,7 +70,12 @@ public class ProductDataService {
         existing.setDescription(form.getDescription());
 
         log.info("Aktualisiere ProductData: {}", id);
-        return repository.save(existing);
+        ProductData saved = repository.save(existing);
+
+        // NEU: zentrale Suche aktualisieren
+        searchIndexService.index(ObjectType.PRODUCT_DATA, saved);
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +102,9 @@ public class ProductDataService {
     public void delete(String id) {
         log.info("Lösche ProductData: {}", id);
         repository.deleteById(id);
+
+        // NEU: aus zentraler Suche entfernen
+        searchIndexService.remove(ObjectType.PRODUCT_DATA, id);
     }
 
     // ── Hilfsmethode ─────────────────────────────────────────

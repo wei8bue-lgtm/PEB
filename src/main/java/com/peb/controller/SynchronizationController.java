@@ -23,12 +23,12 @@ public class SynchronizationController {
         return ResponseEntity.ok("Mass synchronized from Design to eBOM");
     }
 
-    @PostMapping("/material")
-    @PreAuthorize("hasAuthority('WRITE')")
-    public ResponseEntity<String> syncMaterial(@RequestParam String ebomId, @RequestParam String designId) {
-        synchronizationService.syncMaterialToDesign(ebomId, designId);
-        return ResponseEntity.ok("Material synchronized from eBOM to Design");
-    }
+	@PostMapping("/material")
+	@PreAuthorize("hasAuthority('WRITE')")
+	public ResponseEntity<String> syncMaterial(@RequestParam String designId, @RequestParam String ebomId) {
+		synchronizationService.syncMaterialFromDesign(designId, ebomId);
+		return ResponseEntity.ok("Material synchronized from Design to eBOM");
+	}
 
     @PostMapping("/full")
     @PreAuthorize("hasAuthority('WRITE')")

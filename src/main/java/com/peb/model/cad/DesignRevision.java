@@ -39,21 +39,24 @@ public class DesignRevision extends BaseRevision {
      * Synchronize attributes from parent object
      */
     public void syncFromParent() {
-        if (design != null) {
-            this.setName(design.getName());
-            this.setDepartment(design.getDepartment());
-            this.mass = design.getMass();
-        }
-    }
-
-    /**
+		if (design != null) {
+			this.setName(design.getName());
+			this.setDepartment(design.getDepartment());
+			this.mass = design.getMass();
+			this.material = design.getMaterial();   // ← NEU
+		}
+	}
+	
+	 /**
      * Synchronize attributes to parent object
      */
-    public void syncToParent() {
-        if (design != null) {
-            design.setName(this.getName());
-            design.setDepartment(this.getDepartment());
-            design.setMass(this.mass);
-        }
-    }
+
+	public void syncToParent() {
+		if (design != null) {
+			design.setName(this.getName());
+			design.setDepartment(this.getDepartment());
+			design.setMass(this.mass);
+			design.setMaterial(this.material);       // ← NEU
+		}
+	}
 }

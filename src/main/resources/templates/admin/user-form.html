@@ -1,11 +1,12 @@
 <!-- src/main/resources/templates/admin/user-form.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isNew} ? 'Neuer Benutzer - PEB' : 'Benutzer bearbeiten - PEB'">
+    <title th:text="${isNew} ? #{admin.userForm.newTitle} : #{admin.userForm.editTitle}">
         Benutzer - PEB
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -17,19 +18,19 @@
     <!-- ── Header ─────────────────────────────────────────────── -->
     <div class="header">
         <div class="logo-placeholder">PEB</div>
-        <h1>PEB - Production Engineering Backbone</h1>
+        <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
 
         <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
             <div class="user-info">
                 <span class="user-icon">👤</span>
                 <span sec:authentication="name">Benutzer</span>
-                <span class="role-badge role-admin">Admin</span>
+                <span class="role-badge role-admin" th:text="#{role.admin}">Admin</span>
             </div>
             <a th:href="@{/admin/users}" class="btn btn-secondary">
-                ← Benutzerverwaltung
+                ← <span th:text="#{admin.userForm.backToUsers}">Benutzerverwaltung</span>
             </a>
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-danger">Logout</button>
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
             </form>
         </div>
     </div>
@@ -38,8 +39,7 @@
     <div class="container">
 
         <div class="page-header">
-            <h2 th:text="${isNew} ? '➕ Neuen Benutzer anlegen'
-                                  : '✏️ Benutzer bearbeiten'">
+            <h2 th:text="${isNew} ? #{admin.userForm.newHeading} : #{admin.userForm.editHeading}">
                 Benutzer
             </h2>
         </div>
@@ -56,8 +56,8 @@
                     <!-- AD-Benutzername -->
                     <div class="form-group">
                         <label for="username">
-                            AD-Benutzername *
-                            <span class="label-hint">(z.B. AB1CDE)</span>
+                            <span th:text="#{login.username} + ' *'">AD-Benutzername *</span>
+                            <span class="label-hint" th:text="#{login.usernameHint}">(z.B. AB1CDE)</span>
                         </label>
                         <input type="text"
                                id="username"
@@ -65,19 +65,21 @@
                                th:value="${user.username}"
                                th:readonly="${!isNew}"
                                required
+                               th:placeholder="#{login.usernamePlaceholder}"
                                placeholder="Windows-Benutzername">
-                        <small th:if="${!isNew}" class="form-hint">
+                        <small th:if="${!isNew}" class="form-hint" th:text="#{admin.userForm.usernameCannotChange}">
                             Benutzername kann nicht geändert werden.
                         </small>
                     </div>
 
                     <!-- Anzeigename -->
                     <div class="form-group">
-                        <label for="displayName">Anzeigename</label>
+                        <label for="displayName" th:text="#{label.displayName}">Anzeigename</label>
                         <input type="text"
                                id="displayName"
                                name="displayName"
                                th:value="${user.displayName}"
+                               th:placeholder="#{label.displayNameHint}"
                                placeholder="Wird aus AD synchronisiert">
                     </div>
 
@@ -87,17 +89,18 @@
 
                     <!-- E-Mail -->
                     <div class="form-group">
-                        <label for="email">E-Mail</label>
+                        <label for="email" th:text="#{label.email}">E-Mail</label>
                         <input type="email"
                                id="email"
                                name="email"
                                th:value="${user.email}"
+                               th:placeholder="#{label.emailHint}"
                                placeholder="vorname.nachname@bosch.com">
                     </div>
 
                     <!-- Rolle -->
                     <div class="form-group">
-                        <label for="role">Applikationsrolle *</label>
+                        <label for="role" th:text="#{label.appRole}">Applikationsrolle *</label>
                         <select id="role" name="role" required>
                             <option th:each="r : ${availableRoles}"
                                     th:value="${r}"
@@ -105,7 +108,7 @@
                                     th:selected="${r == user.role}">
                             </option>
                         </select>
-                        <small class="form-hint">
+                        <small class="form-hint" th:text="#{admin.userForm.roleHint}">
                             ADMIN: Vollzugriff |
                             USER: Lesen &amp; Schreiben |
                             VIEWER: Nur Lesen
@@ -118,18 +121,21 @@
 
                     <!-- Status -->
                     <div class="form-group" th:if="${!isNew}">
-                        <label for="status">Status</label>
+                        <label for="status" th:text="#{common.status}">Status</label>
                         <select id="status" name="status">
                             <option value="ACTIVE"
-                                    th:selected="${user.status.name() == 'ACTIVE'}">
+                                    th:selected="${user.status.name() == 'ACTIVE'}"
+                                    th:text="'✅ ' + #{material.status.active}">
                                 ✅ Aktiv
                             </option>
                             <option value="INACTIVE"
-                                    th:selected="${user.status.name() == 'INACTIVE'}">
+                                    th:selected="${user.status.name() == 'INACTIVE'}"
+                                    th:text="'🚫 ' + #{admin.stat.inactive}">
                                 🚫 Inaktiv
                             </option>
                             <option value="PENDING"
-                                    th:selected="${user.status.name() == 'PENDING'}">
+                                    th:selected="${user.status.name() == 'PENDING'}"
+                                    th:text="'⏳ ' + #{admin.stat.pending}">
                                 ⏳ Ausstehend
                             </option>
                         </select>
@@ -140,10 +146,11 @@
 
                     <!-- Notizen -->
                     <div class="form-group">
-                        <label for="notes">Notizen</label>
+                        <label for="notes" th:text="#{compliance.notes}">Notizen</label>
                         <textarea id="notes"
                                   name="notes"
                                   rows="3"
+                                  th:placeholder="#{label.notesOptional}"
                                   placeholder="Optionale Bemerkungen"
                                   th:text="${user.notes}">
                         </textarea>
@@ -153,20 +160,19 @@
 
                 <!-- Info bei Neuanlage -->
                 <div th:if="${isNew}" class="alert alert-info">
-                    ℹ️ Benutzer wird als <strong>AKTIV</strong> angelegt.
-                    Name und E-Mail werden beim ersten Login aus dem
-                    Active Directory synchronisiert.
+                    ℹ️ <span th:text="#{admin.userForm.newInfo}">Benutzer wird als AKTIV angelegt.</span>
+                    <span th:text="#{admin.userForm.newInfo2}">Name und E-Mail werden beim ersten Login aus dem
+                    Active Directory synchronisiert.</span>
                 </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
-                        <span th:text="${isNew} ? '✅ Anlegen'
-                                               : '💾 Speichern'">
+                        <span th:text="${isNew} ? #{button.createShort} : #{button.saveShort}">
                             Speichern
                         </span>
                     </button>
                     <a th:href="@{/admin/users}"
-                       class="btn btn-secondary">
+                       class="btn btn-secondary" th:text="#{button.cancel}">
                         Abbrechen
                     </a>
                 </div>

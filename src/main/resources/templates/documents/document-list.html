@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{document.title}">Dokumente - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-placeholder">PEB</div>
+        <h1 th:text="#{document.heading}">Dokument-Management</h1>
+        <div style="margin-left: auto;">
+            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
+            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.templates}">Templates</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2 th:text="#{document.allDocuments}">Alle Dokumente</h2>
+                <div style="display:flex; gap:.5rem; align-items:center;">
+                    <div th:if="${param.deleted}" class="alert alert-success" style="margin:0; padding:.4rem .8rem;" th:text="#{document.deletedAlert}">
+                        ✅ Dokument gelöscht.
+                    </div>
+                    <a th:href="@{/documents/new}" class="btn btn-success"
+                       sec:authorize="hasAuthority('WRITE')" th:text="#{button.newDocument}">
+                        + Neues Dokument
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${documents.empty}" class="alert alert-info" th:text="#{document.noneFound}">
+                Keine Dokumente vorhanden. Erstellen Sie das erste Dokument aus einem freigegebenen Template!
+            </div>
+
+            <table th:unless="${documents.empty}" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.id}">ID</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.name}">Name</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.department}">Department</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.template}">Template</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute1}">Attribute 1</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.attribute2}">Attribute 2</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.currentStatus}">Aktueller Status</th>
+                        <th style="padding:.75rem; text-align:left;" th:text="#{label.actions}">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${documents}" style="border-bottom:1px solid #ddd;">
+                        <td style="padding:.75rem;" th:text="${doc.id}">DC00000001</td>
+                        <td style="padding:.75rem;" th:text="${doc.name}">Dokument Name</td>
+                        <td style="padding:.75rem;" th:text="${doc.department ?: '-'}"></td>
+                        <td style="padding:.75rem;">
+                            <a th:if="${doc.template != null}"
+                               th:href="@{/document-templates/{id}(id=${doc.template.id})}"
+                               th:text="${doc.template.id}"></a>
+                            <span th:if="${doc.template == null}">–</span>
+                        </td>
+                        <td style="padding:.75rem;" th:text="${doc.attribute1 ?: '-'}"></td>
+                        <td style="padding:.75rem;" th:text="${doc.attribute2 ?: '-'}"></td>
+                        <td style="padding:.75rem;">
+                            <span th:if="${doc.latestRevision != null}"
+                                  th:text="${doc.latestRevision.releaseStatus.displayName}"
+                                  th:class="${'badge badge-' + doc.latestRevision.releaseStatus.name().toLowerCase()}">
+                            </span>
+                            <span th:if="${doc.latestRevision == null}" class="badge">-</span>
+                        </td>
+                        <td style="padding:.75rem;">
+                            <a th:href="@{/documents/{id}(id=${doc.id})}"
+                               class="btn btn-primary" style="font-size:.875rem; padding:.25rem .5rem;">
+                                Details
+                            </a>
+                            <a th:href="@{/documents/{id}/edit(id=${doc.id})}"
+                               class="btn btn-secondary" style="font-size:.875rem; padding:.25rem .5rem;"
+                               sec:authorize="hasAuthority('WRITE')" th:text="#{button.edit}">
+                                Bearbeiten
+                            </a>
+                            <form th:action="@{/documents/{id}/delete(id=${doc.id})}"
+                                  method="post" style="display:inline;"
+                                  sec:authorize="hasAuthority('DELETE')"
+                                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('document.confirmDelete', doc.id))}');|">
+                                <button type="submit" class="btn btn-danger" style="font-size:.875rem; padding:.25rem .5rem;" th:text="#{button.delete}">
+                                    Löschen
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+        .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; padding:1rem; border-radius:4px; }
+        .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:.4rem .8rem; border-radius:4px; }
+        .badge { display:inline-block; padding:.2rem .5rem; border-radius:3px; font-size:.8rem; font-weight:600; }
+        .badge-working  { background:#fff3cd; color:#856404; }
+        .badge-released { background:#d4edda; color:#155724; }
+        .badge-obsolete { background:#f8d7da; color:#721c24; }
+        .btn-secondary { background:#6c757d; color:white; }
+        .btn-secondary:hover { background:#5a6268; }
+        .btn-danger { background:#dc3545; color:white; }
+        .btn-danger:hover { background:#c82333; }
+        tbody tr:hover { background:#f8f9fa; }
+    </style>
+</body>
+</html>

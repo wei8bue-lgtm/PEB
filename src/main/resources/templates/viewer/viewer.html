@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -208,9 +209,9 @@
 <!-- ── Header ── -->
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>3D Viewer — <span th:text="${objectName}">Objekt</span></h1>
+    <h1><span th:text="#{viewer.heading}">3D Viewer</span> — <span th:text="${objectName}">Objekt</span></h1>
     <div style="margin-left: auto;">
-        <button onclick="history.back()" class="btn btn-primary">← Zurück</button>
+        <button onclick="history.back()" class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></button>
     </div>
 </div>
 
@@ -222,19 +223,19 @@
                     align-items:center; flex-wrap:wrap; gap:1rem;">
             <div>
                 <strong th:text="${objectId}">DS00000001</strong>
-                &nbsp;|&nbsp; Revision-ID:
+                &nbsp;|&nbsp; <span th:text="#{viewer.revisionIdLabel}">Revision-ID:</span>
                 <strong th:text="${revisionId}">1</strong>
-                &nbsp;|&nbsp; Typ:
+                &nbsp;|&nbsp; <span th:text="#{viewer.typeLabel}">Typ:</span>
                 <span th:text="${revisionType}">DESIGN</span>
             </div>
             <div class="stat-row">
                 <div class="stat-box">
                     <div class="val" th:text="${totalCount}">0</div>
-                    <div class="lbl">Datasets</div>
+                    <div class="lbl" th:text="#{label.datasets}">Datasets</div>
                 </div>
                 <div class="stat-box">
                     <div class="val" th:text="${viewerCount}">0</div>
-                    <div class="lbl">Viewer-Dateien</div>
+                    <div class="lbl" th:text="#{viewer.viewerFiles}">Viewer-Dateien</div>
                 </div>
             </div>
         </div>
@@ -247,7 +248,7 @@
                             id=${objectId},rev=${revisionId})}"
                class="filter-chip"
                th:classappend="${filterCategory == null} ? ' selected' : ''">
-                Alle (<span th:text="${totalCount}">0</span>)
+                <span th:text="#{viewer.allLabel}">Alle</span> (<span th:text="${totalCount}">0</span>)
             </a>
             <a th:each="cat : ${availableCategories}"
                th:href="@{/viewer/{id}/revision/{rev}(
@@ -261,8 +262,8 @@
             </a>
         </div>
         <small style="color:#6c757d;">
-            Reihenfolge nach <code>DatasetCategory.ordinal()</code> —
-            Viewer-Kompatibilität über <code>isViewerCompatible()</code>
+            <span th:text="#{viewer.sortOrderNote}">Reihenfolge nach</span> <code>DatasetCategory.ordinal()</code> —
+            <span th:text="#{viewer.viewerCompatVia}">Viewer-Kompatibilität über</span> <code>isViewerCompatible()</code>
         </small>
     </div>
 
@@ -272,16 +273,17 @@
         <!-- ── Sidebar ── -->
         <div class="viewer-sidebar">
             <div class="card" style="padding:1rem;">
-                <h3 style="margin:0 0 0.75rem;">
+                <h3 style="margin:0 0 0.75rem;" th:text="#{viewer.assembliesHeading}">
                     📦 Baugruppen
-                    <span style="font-size:0.85rem; color:#6c757d;
-                                 font-weight:normal;">
-                        (sortiert nach Kategorie)
-                    </span>
                 </h3>
+                <span style="font-size:0.85rem; color:#6c757d;
+                             font-weight:normal;
+                             display:block; margin:-0.5rem 0 0.75rem;" th:text="#{viewer.sortedByCategory}">
+                    (sortiert nach Kategorie)
+                </span>
 
                 <div th:if="${datasets.empty}"
-                     style="color:#6c757d; padding:1rem 0;">
+                     style="color:#6c757d; padding:1rem 0;" th:text="#{viewer.noDatasets}">
                     Keine Datasets vorhanden.
                 </div>
 
@@ -348,7 +350,7 @@
                                     Kategorie
                                 </span>
                                 <span th:unless="${ds.category != null}"
-                                      class="category-tag tag-other">
+                                      class="category-tag tag-other" th:text="#{viewer.noCategory}">
                                     Keine Kategorie
                                 </span>
 
@@ -356,7 +358,7 @@
                                 <span th:if="${ds.category != null
                                               and ds.category.isViewerCompatible()}"
                                       style="font-size:0.68rem;
-                                             color:#28a745; font-weight:600;">
+                                             color:#28a745; font-weight:600;" th:text="#{viewer.viewerBadge}">
                                     ✓ Viewer
                                 </span>
 
@@ -373,7 +375,7 @@
                         <a th:href="@{/api/v1/datasets/{id}/download(
                                         id=${ds.datasetId})}"
                            onclick="event.stopPropagation()"
-                           title="Herunterladen"
+                           th:title="#{title.download}" title="Herunterladen"
                            style="color:#0066cc; font-size:1.1rem;
                                   text-decoration:none;">⬇</a>
                     </div>
@@ -382,7 +384,7 @@
                 <!-- Sortier-Legende -->
                 <div style="margin-top:0.75rem; font-size:0.75rem;
                             color:#6c757d;">
-                    <strong>Sortierung:</strong>
+                    <strong th:text="#{viewer.sortingLabel}">Sortierung:</strong>
                     <span th:each="cat, s : ${allCategories}"
                           th:text="${cat.ordinal() + ':' + cat.displayName
                                      + (s.last ? '' : ' → ')}">
@@ -398,25 +400,25 @@
             <div class="viewer-toolbar">
                 <button class="viewer-btn active"
                         onclick="setView('perspective')"
-                        id="btn-perspective">Perspektive</button>
+                        id="btn-perspective" th:text="#{button.perspective}">Perspektive</button>
                 <button class="viewer-btn"
                         onclick="setView('front')"
-                        id="btn-front">Vorne</button>
+                        id="btn-front" th:text="#{button.front}">Vorne</button>
                 <button class="viewer-btn"
                         onclick="setView('top')"
-                        id="btn-top">Oben</button>
+                        id="btn-top" th:text="#{button.top}">Oben</button>
                 <button class="viewer-btn"
                         onclick="setView('side')"
-                        id="btn-side">Seite</button>
+                        id="btn-side" th:text="#{button.side}">Seite</button>
                 <span style="flex:1;"></span>
                 <button class="viewer-btn"
-                        onclick="resetView()">⟳ Reset</button>
+                        onclick="resetView()" th:text="#{button.resetView}">⟳ Reset</button>
                 <button class="viewer-btn"
                         onclick="toggleWireframe()"
-                        id="btn-wireframe">Wireframe</button>
+                        id="btn-wireframe" th:text="#{button.wireframe}">Wireframe</button>
                 <button class="viewer-btn"
                         onclick="downloadSelected()"
-                        id="btn-download" disabled>⬇ Download</button>
+                        id="btn-download" disabled th:text="#{button.download}">⬇ Download</button>
             </div>
 
             <!-- Canvas für Three.js -->
@@ -425,7 +427,7 @@
             <!-- Ladeindikator -->
             <div class="viewer-loading" id="viewerLoading">
                 <div style="font-size:2rem;">⏳</div>
-                <div id="loadingText">Lade 3D-Modell...</div>
+                <div id="loadingText" th:text="#{viewer.loadingModel}">Lade 3D-Modell...</div>
                 <div class="progress-bar-wrapper">
                     <div class="progress-bar-fill" id="progressBar"></div>
                 </div>
@@ -438,10 +440,10 @@
             <!-- Placeholder -->
             <div class="viewer-placeholder" id="viewerPlaceholder">
                 <div class="viewer-placeholder-icon">🔷</div>
-                <p style="margin:0; font-size:1.1rem;">
+                <p style="margin:0; font-size:1.1rem;" th:text="#{viewer.selectFromList}">
                     Baugruppe aus der Liste auswählen
                 </p>
-                <p style="margin:0.5rem 0 0; font-size:0.85rem;">
+                <p style="margin:0.5rem 0 0; font-size:0.85rem;" th:text="#{viewer.compatibleFilesNote}">
                     Viewer-kompatible Dateien sind mit ✓ Viewer markiert
                 </p>
                 <!--
@@ -450,25 +452,25 @@
                     und vom UI-Brücken-Script unten aktualisiert
                 -->
                 <p style="margin:0.5rem 0 0; font-size:0.75rem; opacity:0.5;"
-                   id="loaderStatus">
+                   id="loaderStatus" th:text="#{viewer.loadingThreeJs}">
                     Lade Three.js (ES Module)...
                 </p>
             </div>
 
             <!-- Info-Bar -->
             <div class="viewer-info-bar">
-                <span id="infoFileName">Keine Datei geladen</span>
+                <span id="infoFileName" th:text="#{viewer.noFileLoaded}">Keine Datei geladen</span>
                 <span id="infoCategory"></span>
                 <span id="infoPolycount"></span>
                 <span style="flex:1;"></span>
-                <span id="infoView">Ansicht: Perspektive</span>
+                <span id="infoView" th:text="#{viewer.viewLabel}">Ansicht: Perspektive</span>
             </div>
         </div>
     </div>
 
     <!-- ── API Info ── -->
     <div class="card" sec:authorize="hasAuthority('EXECUTE')">
-        <h3>🔌 API-Endpunkte</h3>
+        <h3 th:text="#{viewer.apiEndpoints}">🔌 API-Endpunkte</h3>
         <code style="display:block; background:#f8f9fa; padding:0.75rem;
                      border-radius:4px; font-size:0.82rem; line-height:1.9;">
             GET /api/v1/viewer/<span th:text="${objectId}">DS00000001</span>/revision/<span
@@ -484,12 +486,17 @@
      UI-Brücke: verbindet HTML-Toolbar mit viewer-init.js (ES-Module)
      viewer-init.js exportiert Funktionen über window.*
      ══════════════════════════════════════════════════════════════ -->
-<script>
+<script th:inline="javascript">
+    const viewerI18n = {
+        loadingThreeJs: /*[[#{viewer.loadingThreeJs}]]*/ 'Lade Three.js (ES Module)...',
+        readyFallback: /*[[#{viewer.readyFallback}]]*/ '✓ Viewer bereit'
+    };
+
     /* ── Loader-Status im Placeholder aktualisieren ── */
     document.addEventListener('DOMContentLoaded', function () {
         const loaderStatus = document.getElementById('loaderStatus');
         if (loaderStatus) {
-            loaderStatus.textContent = 'Lade Three.js (ES Module)...';
+            loaderStatus.textContent = viewerI18n.loadingThreeJs;
         }
 
         /* viewer-init.js meldet Bereitschaft über CustomEvent 'viewerReady' */
@@ -498,7 +505,7 @@
                 loaderStatus.textContent =
                     e.detail && e.detail.message
                         ? e.detail.message
-                        : '✓ Viewer bereit';
+                        : viewerI18n.readyFallback;
             }
         });
     });

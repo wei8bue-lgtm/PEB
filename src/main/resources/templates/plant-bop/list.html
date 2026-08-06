@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title>Plant BOP – PEB</title>
+    <title th:text="#{plantBop.title}">Plant BOP – PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-placeholder">PEB</div>
-    <h1>🏭 Plant BOP</h1>
+    <h1 th:text="#{plantBop.heading}">🏭 Plant BOP</h1>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
-        <a th:href="@{/}" class="btn btn-primary">🏠 Home</a>
+        <a th:href="@{/}" class="btn btn-primary">🏠 <span th:text="#{button.home}">Home</span></a>
     </div>
 </div>
 
@@ -37,10 +37,10 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
-            <h2 style="margin:0;">Plant BOP Liste</h2>
+            <h2 style="margin:0;" th:text="#{plantBop.listHeading}">Plant BOP Liste</h2>
             <a th:href="@{/plant-bop/new}"
                class="btn btn-primary"
-               sec:authorize="hasAuthority('WRITE')">
+               sec:authorize="hasAuthority('WRITE')" th:text="#{button.newPlantBop}">
                 ➕ Neue Plant BOP
             </a>
         </div>
@@ -83,7 +83,7 @@
                 <tr th:if="${#lists.isEmpty(plantBOPs)}">
                     <td colspan="9"
                         style="padding:2rem; text-align:center;
-                               color:#6c757d;">
+                               color:#6c757d;" th:text="#{plantBop.noneFound}">
                         Keine Plant BOPs vorhanden.
                     </td>
                 </tr>
@@ -165,7 +165,7 @@
                                          background:#f8f9fa;
                                          color:#6c757d;
                                          border:1px solid #dee2e6;">
-                                — Keine Revision
+                                <span th:text="#{status.noRevision}">— Keine Revision</span>
                             </span>
                         </th:block>
                     </td>
@@ -199,19 +199,19 @@
                             <!-- View -->
                             <a th:href="@{/plant-bop/{id}(id=${pbop.id})}"
                                class="btn btn-primary btn-sm"
-                               title="Anzeigen">👁️</a>
+                               th:title="#{button.view}" title="Anzeigen">👁️</a>
 
                             <!-- Line Balancing -->
                             <a th:href="@{/plant-bop/{id}/balancing(id=${pbop.id})}"
                                class="btn btn-primary btn-sm"
-                               title="Line Balancing">⚖️</a>
+                               th:title="#{title.lineBalancing}" title="Line Balancing">⚖️</a>
 
                             <!-- Edit – nur bei WORKING -->
                             <div sec:authorize="hasAuthority('WRITE')">
                                 <a th:if="${pbop.latestStatusName == 'WORKING'}"
                                    th:href="@{/plant-bop/{id}/edit(id=${pbop.id})}"
                                    class="btn btn-primary btn-sm"
-                                   title="Bearbeiten"
+                                   th:title="#{button.edit}" title="Bearbeiten"
                                    style="background:#ffc107;
                                           color:#212529;
                                           border-color:#ffc107;">
@@ -228,16 +228,13 @@
                                               and #lists.isEmpty(pbop.nodes)}"
                                       th:action="@{/plant-bop/{id}/delete(id=${pbop.id})}"
                                       method="post"
-                                      onsubmit="return confirm(
-                                          'Plant BOP \''
-                                          + /*[[${pbop.name}]]*/ ''
-                                          + '\' wirklich löschen?');">
+                                      th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('plantBop.confirmDeleteFull', pbop.name))}');|">
                                     <input type="hidden"
                                            th:name="${_csrf.parameterName}"
                                            th:value="${_csrf.token}"/>
                                     <button type="submit"
                                             class="btn btn-danger btn-sm"
-                                            title="Löschen">
+                                            th:title="#{button.delete}" title="Löschen">
                                         🗑️
                                     </button>
                                 </form>
@@ -251,7 +248,7 @@
                                                color:#6c757d;
                                                cursor:not-allowed;
                                                border:1px solid #dee2e6;"
-                                        title="Löschen nicht möglich: Status ist nicht WORKING">
+                                        th:title="#{mfgBom.deleteBlockedStatus}" title="Löschen nicht möglich: Status ist nicht WORKING">
                                     🔒
                                 </button>
 
@@ -264,9 +261,7 @@
                                                color:#6c757d;
                                                cursor:not-allowed;
                                                border:1px solid #dee2e6;"
-                                        th:title="${'Löschen nicht möglich: '
-                                            + #lists.size(pbop.nodes)
-                                            + ' Knoten vorhanden'}">
+                                        th:title="#{plantBop.deleteBlockedNodes(${#lists.size(pbop.nodes)})}">
                                     🔒
                                 </button>
                             </div>
@@ -278,9 +273,9 @@
 
         <div style="margin-top:1rem; font-size:.85rem;
                     color:#6c757d;">
-            Gesamt:
+            <span th:text="#{mfgBom.total}">Gesamt:</span>
             <strong th:text="${#lists.size(plantBOPs)}">0</strong>
-            Einträge
+            <span th:text="#{mfgBom.entries}">Einträge</span>
         </div>
     </div>
 </div>

@@ -3,6 +3,7 @@ package com.peb.service;
 import com.peb.exception.StructureException;
 import com.peb.model.cad.Design;
 import com.peb.model.cad.Drawing;
+import com.peb.model.document.Document;
 import com.peb.model.ebom.*;
 import com.peb.model.structure.StructureNode;
 import com.peb.model.structure.StructureRelation;
@@ -29,6 +30,7 @@ public class StructureService {
     private final EBOMService ebomService;
     private final DesignService designService;
     private final DrawingService drawingService;
+	private final DocumentService documentService;
 
     @Transactional
     public StructureRelation addToStructure(String parentId, Long parentRevisionId,
@@ -61,10 +63,10 @@ public class StructureService {
         return structureRelationRepository.save(relation);
     }
 
-    @Transactional(readOnly = true)
-    public StructureNode getStructureTree(String objectId, Long revisionId) {
-        return buildStructureNode(objectId, revisionId, 0);
-    }
+	@Transactional(readOnly = true, noRollbackFor = com.peb.exception.ObjectNotFoundException.class)
+	public StructureNode getStructureTree(String objectId, Long revisionId) {
+		return buildStructureNode(objectId, revisionId, 0);
+	}
 
 	private StructureNode buildStructureNode(String objectId, Long revisionId, int depth) {
 		if (depth > 20) {
@@ -101,6 +103,18 @@ public class StructureService {
 						node.setReleaseStatus(drawing.getLatestRevision()
 								.getReleaseStatus().name());
 						node.setReleased(drawing.getLatestRevision()
+								.getReleaseStatus() == ReleaseStatus.RELEASED);
+					}
+				}
+				case "DC" -> {                                                    // ← NEU
+					Document document = documentService.getDocument(objectId);
+					node.setName(document.getName());
+					node.setObjectType("Document");
+					if (document.getLatestRevision() != null) {
+						node.setRevision(document.getLatestRevision().getRevision());
+						node.setReleaseStatus(document.getLatestRevision()
+								.getReleaseStatus().name());
+						node.setReleased(document.getLatestRevision()
 								.getReleaseStatus() == ReleaseStatus.RELEASED);
 					}
 				}
@@ -146,62 +160,67 @@ public class StructureService {
 		return node;
 	}
 
-    private void validateStructureRelation(String parentId, String childId) {
-        String parentPrefix = parentId.substring(0, 2);
-        String childPrefix = childId.substring(0, 2);
+		private void validateStructureRelation(String parentId, String childId) {
+			String parentPrefix = parentId.substring(0, 2);
+			String childPrefix = childId.substring(0, 2);
 
-        // Validate based on parent type
-        switch (parentPrefix) {
-            case "MA" -> { // Machine can contain: System, Part, Auxiliary
-                if (!childPrefix.equals("SY") && !childPrefix.equals("PT") && 
-                    !childPrefix.equals("AX") && !childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "Machine can only contain System, Part, Auxiliary, or Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "SY" -> { // System can contain: Subsystem, Part, Auxiliary
-                if (!childPrefix.equals("SU") && !childPrefix.equals("PT") && 
-                    !childPrefix.equals("AX") && !childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "System can only contain Subsystem, Part, Auxiliary, or Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "SU" -> { // Subsystem can contain: Module, Part, Auxiliary
-                if (!childPrefix.equals("MO") && !childPrefix.equals("PT") && 
-                    !childPrefix.equals("AX") && !childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "Subsystem can only contain Module, Part, Auxiliary, or Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "MO" -> { // Module can contain: Submodule, Part, Auxiliary
-                if (!childPrefix.equals("MU") && !childPrefix.equals("PT") && 
-                    !childPrefix.equals("AX") && !childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "Module can only contain Submodule, Part, Auxiliary, or Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "MU" -> { // Submodule can contain: Part, Auxiliary (leaf level)
-                if (!childPrefix.equals("PT") && !childPrefix.equals("AX") && !childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "Submodule can only contain Part, Auxiliary, or Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "PT", "AX" -> { // Part and Auxiliary can contain: Drawings only
-                if (!childPrefix.equals("DR")) {
-                    throw new StructureException(
-                        "Part/Auxiliary can only contain Drawing. Cannot add: " + childPrefix);
-                }
-            }
-            case "DS" -> { // Design objects can be used in eBOM structure
-                if (!childPrefix.equals("DS") && !childPrefix.equals("DR") && 
-                    !childPrefix.equals("PT") && !childPrefix.equals("AX")) {
-                    throw new StructureException(
-                        "Design can contain Design, Drawing, Part, or Auxiliary. Cannot add: " + childPrefix);
-                }
-            }
-            default -> throw new StructureException("Unknown parent type: " + parentPrefix);
-        }
-    }
+			switch (parentPrefix) {
+				case "MA" -> {
+					if (!childPrefix.equals("SY") && !childPrefix.equals("PT") &&
+						!childPrefix.equals("AX") && !childPrefix.equals("DR") &&
+						!childPrefix.equals("DC")) {                                    // ← NEU
+						throw new StructureException(
+							"Machine can only contain System, Part, Auxiliary, Drawing, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "SY" -> {
+					if (!childPrefix.equals("SU") && !childPrefix.equals("PT") &&
+						!childPrefix.equals("AX") && !childPrefix.equals("DR") &&
+						!childPrefix.equals("DC")) {                                    // ← NEU
+						throw new StructureException(
+							"System can only contain Subsystem, Part, Auxiliary, Drawing, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "SU" -> {
+					if (!childPrefix.equals("MO") && !childPrefix.equals("PT") &&
+						!childPrefix.equals("AX") && !childPrefix.equals("DR") &&
+						!childPrefix.equals("DC")) {                                    // ← NEU
+						throw new StructureException(
+							"Subsystem can only contain Module, Part, Auxiliary, Drawing, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "MO" -> {
+					if (!childPrefix.equals("MU") && !childPrefix.equals("PT") &&
+						!childPrefix.equals("AX") && !childPrefix.equals("DR") &&
+						!childPrefix.equals("DC")) {                                    // ← NEU
+						throw new StructureException(
+							"Module can only contain Submodule, Part, Auxiliary, Drawing, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "MU" -> {
+					if (!childPrefix.equals("PT") && !childPrefix.equals("AX") &&
+						!childPrefix.equals("DR") && !childPrefix.equals("DC")) {       // ← NEU
+						throw new StructureException(
+							"Submodule can only contain Part, Auxiliary, Drawing, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "PT", "AX" -> {
+					if (!childPrefix.equals("DR") && !childPrefix.equals("DC")) {      // ← NEU
+						throw new StructureException(
+							"Part/Auxiliary can only contain Drawing or Document. Cannot add: " + childPrefix);
+					}
+				}
+				case "DS" -> {
+					if (!childPrefix.equals("DS") && !childPrefix.equals("DR") &&
+						!childPrefix.equals("PT") && !childPrefix.equals("AX") &&
+						!childPrefix.equals("DC")) {                                    // ← NEU
+						throw new StructureException(
+							"Design can contain Design, Drawing, Part, Auxiliary, or Document. Cannot add: " + childPrefix);
+					}
+				}
+				default -> throw new StructureException("Unknown parent type: " + parentPrefix);
+			}
+		}
 
     @Transactional(readOnly = true)
     public boolean canReleaseStructure(String objectId, Long revisionId) {
@@ -249,21 +268,21 @@ public class StructureService {
         return structureRelationRepository.findByParentIdAndParentRevisionId(parentId, parentRevisionId);
     }
 
-    @Transactional(readOnly = true)
-    public List<String> getAllowedChildTypes(String parentId) {
-        String parentPrefix = parentId.substring(0, 2);
-        
-        return switch (parentPrefix) {
-            case "MA" -> List.of("SY", "PT", "AX", "DR");
-            case "SY" -> List.of("SU", "PT", "AX", "DR");
-            case "SU" -> List.of("MO", "PT", "AX", "DR");
-            case "MO" -> List.of("MU", "PT", "AX", "DR");
-            case "MU" -> List.of("PT", "AX", "DR");
-            case "PT", "AX" -> List.of("DR");
-            case "DS" -> List.of("DS", "DR", "PT", "AX");
-            default -> List.of();
-        };
-    }
+	@Transactional(readOnly = true)
+	public List<String> getAllowedChildTypes(String parentId) {
+		String parentPrefix = parentId.substring(0, 2);
+
+		return switch (parentPrefix) {
+			case "MA" -> List.of("SY", "PT", "AX", "DR", "DC");
+			case "SY" -> List.of("SU", "PT", "AX", "DR", "DC");
+			case "SU" -> List.of("MO", "PT", "AX", "DR", "DC");
+			case "MO" -> List.of("MU", "PT", "AX", "DR", "DC");
+			case "MU" -> List.of("PT", "AX", "DR", "DC");
+			case "PT", "AX" -> List.of("DR", "DC");
+			case "DS" -> List.of("DS", "DR", "PT", "AX", "DC");
+			default -> List.of();
+		};
+	}
 	
 	// In StructureService – Signatur erweitern:
 	@Transactional
