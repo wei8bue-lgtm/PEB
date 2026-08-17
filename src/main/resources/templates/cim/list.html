@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{cim.title}">CIM Integration - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="cim-page">
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="#{cim.heading}">CIM Integration</h1>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${successMessage}" class="card" style="background:#d4edda; border-color:#c3e6cb;">
+        <p style="margin:0; color:#155724;" th:text="${successMessage}">Success</p>
+    </div>
+    <div th:if="${errorMessage}" class="card" style="background:#f8d7da; border-color:#f5c6cb;">
+        <p style="margin:0; color:#721c24;" th:text="${errorMessage}">Error</p>
+    </div>
+
+    <div class="card" sec:authorize="hasAuthority('WRITE')">
+        <h2 th:text="#{cim.createFromMae}">Create CIM from MAE</h2>
+        <form th:action="@{/cim/from-mae}" method="post" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <select name="maeObjectId" required style="min-width:380px;">
+                <option value="" th:text="#{cim.selectMae}">-- Select MAE object --</option>
+                <option th:each="m : ${maeObjects}" th:value="${m.id}" th:text="${m.id + ' - ' + m.name + ' (' + m.objectType.displayName + ')'}">MA00000001</option>
+            </select>
+            <button type="submit" class="btn btn-success" th:text="#{cim.createCim}">Create CIM</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 th:text="#{cim.listHeading}">CIM Objects</h2>
+        <form th:action="@{/cim}" method="get" style="display:flex; align-items:center; gap:.5rem; margin:0 0 .75rem 0;">
+            <label for="scope" th:text="#{cim.list.scope.label}">View</label>
+            <select id="scope" name="scope" onchange="this.form.submit()" style="max-width:260px;">
+                <option value="top" th:selected="${listScope == 'top'}" th:text="#{cim.list.scope.top}">Top nodes (Machines)</option>
+                <option value="all" th:selected="${listScope == 'all'}" th:text="#{cim.list.scope.all}">All CIM objects</option>
+            </select>
+            <span style="color:#6c757d;" th:if="${listScope == 'top'}" th:text="#{cim.list.scope.topHint}">Default view for DAU clarity.</span>
+        </form>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+            <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                <th style="padding:.6rem; text-align:left;" th:text="#{cim.column.id}">CIM ID</th>
+                <th style="padding:.6rem; text-align:left;" th:text="#{label.name}">Name</th>
+                <th style="padding:.6rem; text-align:left;" th:text="#{cim.sourceMae}">Source MAE</th>
+                <th style="padding:.6rem; text-align:left;" th:text="#{label.status}">Status</th>
+                <th style="padding:.6rem; text-align:left;" th:text="#{label.actions}">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(cimObjects)}">
+                <td colspan="5" style="padding:1rem; color:#6c757d;" th:text="#{cim.none}">No CIM objects</td>
+            </tr>
+            <tr th:each="c : ${cimObjects}" style="border-bottom:1px solid #eee;">
+                <td style="padding:.6rem;" class="mono">
+                    <a th:href="@{/cim/{id}(id=${c.id})}" th:text="${c.id}">CI00000001</a>
+                </td>
+                <td style="padding:.6rem;" th:text="${c.name}">Name</td>
+                <td style="padding:.6rem;" class="mono" th:text="${c.sourceMaeObjectId + ' (' + c.sourceMaeObjectType + ')'}">MA00000001</td>
+                <td style="padding:.6rem;">
+                    <span th:text="${c.latestRevision != null ? c.latestRevision.releaseStatus : #messages.msg('common.unknown')}">WORKING</span>
+                </td>
+                <td style="padding:.6rem;">
+                    <a th:href="@{/cim/{id}(id=${c.id})}" class="btn btn-primary btn-sm" th:text="#{button.details}">Details</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

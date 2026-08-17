@@ -1,6 +1,7 @@
 package com.peb.model.ebom;
 
 import com.peb.model.base.BaseObject;
+import com.peb.util.BomType;
 import com.peb.util.ObjectType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -31,6 +32,16 @@ public abstract class EBOMObject extends BaseObject {
 
     @Column(name = "linked_design_id", length = 10)
     private String linkedDesignId;
+
+    /**
+     * Indicates whether this BOM is a standard 100% BOM or a
+     * 150% superset BOM containing all variants and options.
+     * Defaults to HUNDRED_PERCENT for full backwards compatibility.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bom_type", length = 20, nullable = false,
+            columnDefinition = "varchar2(20 char) default 'HUNDRED_PERCENT' not null check (bom_type in ('HUNDRED_PERCENT','SUPER_BOM_150'))")
+    private BomType bomType = BomType.HUNDRED_PERCENT;
 
     public abstract ObjectType getObjectType();
     

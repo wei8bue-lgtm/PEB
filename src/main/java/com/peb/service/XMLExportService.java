@@ -2,6 +2,8 @@ package com.peb.service;
 
 import com.peb.model.ebom.EBOMObject;
 import com.peb.model.structure.StructureNode;
+import com.peb.model.variant.ProductConfiguration;
+import com.peb.model.variant.VariantOption;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class XMLExportService {
 
     private final StructureService structureService;
     private final EBOMService ebomService;
+    private final ConfigurationService configurationService;
 
     /**
      * Export complete eBOM structure to XML
@@ -262,5 +265,63 @@ public class XMLExportService {
         transformer.transform(source, result);
 
         return writer.toString();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Konfigurationsgesteuerter Export (150% → 100% BOM)
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Exports the resolved 100% BOM for a specific {@link ProductConfiguration}
+     * as XML.  All structure nodes whose configRule does not match the
+     * selected options are omitted.
+     *
+     * @param objectId       Root eBOM object ID
+     * @param revisionId     Revision of the root object (null = latest)
+     * @param configId       ID of the ProductConfiguration to apply
+     * @return               XML string of the resolved 100% BOM
+     */
+    public String exportConfiguredBOMToXML(String objectId, Long revisionId, Long configId)
+            throws Exception {
+
+        StructureNode resolvedTree = configurationService.resolve150BOM(objectId, revisionId, configId);
+        ProductConfiguration config = configurationService.getConfiguration(configId);
+        EBOMObject rootObject = ebomService.getEBOMObject(objectId);
+
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+        Document doc = docBuilder.newDocument();
+
+        Element rootElement = doc.createElement("eBOM_Export");
+        rootElement.setAttribute("bomType", "100%");
+        rootElement.setAttribute("configurationId", String.valueOf(configId));
+        rootElement.setAttribute("configurationName", config.getName());
+        doc.appendChild(rootElement);
+
+        // Metadata
+        addMetadata(doc, rootElement, rootObject);
+        Element configMeta = doc.createElement("Configuration");
+        rootElement.appendChild(configMeta);
+        addElement(doc, configMeta, "Id",          String.valueOf(config.getId()));
+        addElement(doc, configMeta, "Name",         config.getName());
+        if (config.getOrderNumber() != null) {
+            addElement(doc, configMeta, "OrderNumber", config.getOrderNumber());
+        }
+        Element selectedOptsEl = doc.createElement("SelectedOptions");
+        configMeta.appendChild(selectedOptsEl);
+        for (VariantOption opt : config.getSelectedOptions()) {
+            Element optEl = doc.createElement("Option");
+            optEl.setAttribute("classId", opt.getOptionClass().getId());
+            optEl.setAttribute("code",    opt.getCode());
+            optEl.setTextContent(opt.getName());
+            selectedOptsEl.appendChild(optEl);
+        }
+
+        // Structure
+        Element structureElement = doc.createElement("Structure");
+        rootElement.appendChild(structureElement);
+        buildXMLElement(doc, structureElement, resolvedTree);
+
+        return transformToString(doc);
     }
 }

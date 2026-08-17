@@ -16,9 +16,39 @@
          style="display:none; position:absolute; top:100%; left:0; width:320px;
                 background:#fff; border:1px solid #ccc; z-index:1000; max-height:400px; overflow-y:auto;">
     </div>
-</div>
 
-<script th:inline="javascript">
+    <button id="pepperoni-chat-toggle"
+            type="button"
+            title="PEPperoni"
+            style="position:fixed; right:20px; bottom:20px; z-index:1200; border:none; border-radius:999px;
+                   padding:12px 16px; background:#0f766e; color:#fff; font-weight:700; cursor:pointer;">
+        PEPperoni
+    </button>
+
+    <div id="pepperoni-chat-panel"
+         style="display:none; position:fixed; right:20px; bottom:74px; width:360px; max-width:calc(100vw - 24px);
+                background:#fff; border:1px solid #d0d7de; border-radius:12px; box-shadow:0 14px 36px rgba(15,23,42,.22);
+                z-index:1200; overflow:hidden;">
+        <div style="padding:10px 12px; background:#0f766e; color:#fff; font-weight:700;">
+            <span th:text="#{chat.title}">PEPperoni</span>
+        </div>
+        <div id="pepperoni-chat-log" style="max-height:280px; overflow:auto; padding:12px; font-size:14px;"></div>
+        <div style="display:flex; gap:8px; padding:10px; border-top:1px solid #e5e7eb;">
+            <input id="pepperoni-chat-input"
+                   type="text"
+                   th:placeholder="#{chat.placeholder}"
+                   placeholder="Frage nach Name, ID oder Objekt..."
+                   style="flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px;"/>
+            <button id="pepperoni-chat-send"
+                    type="button"
+                    th:text="#{chat.send}"
+                    style="border:none; border-radius:8px; padding:8px 12px; background:#0f766e; color:#fff; cursor:pointer;">
+                Senden
+            </button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
     (function () {
         const input = document.getElementById('peb-search-input');
         const dropdown = document.getElementById('peb-search-suggestions');
@@ -105,4 +135,98 @@
             }
         });
     })();
-</script>
+    </script>
+
+    <script th:inline="javascript">
+    (function () {
+        const toggle = document.getElementById('pepperoni-chat-toggle');
+        const panel = document.getElementById('pepperoni-chat-panel');
+        const input = document.getElementById('pepperoni-chat-input');
+        const send = document.getElementById('pepperoni-chat-send');
+        const log = document.getElementById('pepperoni-chat-log');
+        const botName = 'PEPperoni';
+        const welcomeText = /*[[#{chat.welcome}]]*/ 'Hallo, ich bin PEPperoni. Frag mich nach Namen, IDs oder Objekttypen.';
+
+        if (!toggle || !panel || !input || !send || !log) {
+            return;
+        }
+
+        function appendMessage(sender, text, isHtml) {
+            const item = document.createElement('div');
+            item.style.cssText = 'margin-bottom:10px; line-height:1.45;';
+            const prefix = '<strong>' + sender + ':</strong> ';
+            if (isHtml) {
+                item.innerHTML = prefix + text;
+            } else {
+                item.textContent = sender + ': ' + text;
+            }
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function renderResults(data) {
+            if (!data.results || data.results.length === 0) {
+                return;
+            }
+
+            const links = data.results.map(function (r) {
+                const label = [r.objectTypeDisplayName, r.objectId, r.name, 'Rev. ' + (r.revision || '-')].join(' · ');
+                return '<a href="' + (r.detailUrl || '#') + '" style="display:block; margin:4px 0; color:#0f766e; text-decoration:none;">' + escapeHtml(label) + '</a>';
+            }).join('');
+
+            appendMessage(botName, links, true);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function sendQuery() {
+            const q = input.value.trim();
+            if (!q) {
+                return;
+            }
+
+            appendMessage('Du', q, false);
+            input.value = '';
+
+            fetch('/api/chat/query?q=' + encodeURIComponent(q))
+                .then(function (res) {
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status);
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    appendMessage(data.botName || botName, data.responseText || '', false);
+                    renderResults(data);
+                })
+                .catch(function () {
+                    appendMessage(botName, 'Die Anfrage konnte nicht verarbeitet werden.', false);
+                });
+        }
+
+        toggle.addEventListener('click', function () {
+            const isVisible = panel.style.display === 'block';
+            panel.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                input.focus();
+                if (!log.dataset.initialized) {
+                    appendMessage(botName, welcomeText, false);
+                    log.dataset.initialized = 'true';
+                }
+            }
+        });
+
+        send.addEventListener('click', sendQuery);
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendQuery();
+            }
+        });
+    })();
+    </script>
+</div>

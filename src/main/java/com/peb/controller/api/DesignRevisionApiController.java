@@ -122,6 +122,8 @@ public class DesignRevisionApiController {
                                           ? design.getMass() : "");
             response.put("material",      design.getMaterial() != null
                                           ? design.getMaterial() : "");
+            response.put("linkedMaterialId", design.getLinkedMaterialId() != null
+                                          ? design.getLinkedMaterialId() : "");
             response.put("revisionCount", revisionList.size());
             response.put("revisions",     revisionList);
 
@@ -224,9 +226,11 @@ public class DesignRevisionApiController {
                                  ? design.getDepartment() : "");
         map.put("mass",          design.getMass() != null
                                  ? design.getMass() : "");
-        map.put("material",      design.getMaterial() != null
-                                 ? design.getMaterial() : "");
-        map.put("createdDate",   design.getCreatedDate() != null
+        map.put("material",          design.getMaterial() != null
+                                     ? design.getMaterial() : "");
+        map.put("linkedMaterialId",  design.getLinkedMaterialId() != null
+                                     ? design.getLinkedMaterialId() : "");
+        map.put("createdDate",       design.getCreatedDate() != null
                                  ? design.getCreatedDate().toString() : "");
         map.put("createdBy",     design.getCreatedBy() != null
                                  ? design.getCreatedBy() : "");

@@ -10,4 +10,5 @@ public class DesignDTO {
     private String material;
     private String childView;
 	private String materialId;
+
 }

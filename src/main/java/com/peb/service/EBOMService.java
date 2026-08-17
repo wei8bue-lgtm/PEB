@@ -260,7 +260,7 @@ public class EBOMService {
 @Transactional
 public EBOMObject updateEBOMObject(String id, String name, String department,
                                    String mass, String material, String supplier,
-                                   String linkedDesignId) {
+                                   String linkedDesignId, com.peb.util.BomType bomType) {
     EBOMObject ebomObject = getEBOMObject(id);
 
     String oldLinkedDesignId = ebomObject.getLinkedDesignId();
@@ -273,6 +273,9 @@ public EBOMObject updateEBOMObject(String id, String name, String department,
     ebomObject.setMaterial(material);
     ebomObject.setSupplier(supplier);
     ebomObject.setLinkedDesignId(linkedDesignId);
+    if (bomType != null) {
+        ebomObject.setBomType(bomType);
+    }
 
     EBOMObject savedObject = switch (ebomObject.getObjectType()) {
         case MACHINE    -> machineRepository.save((Machine) ebomObject);

@@ -83,6 +83,21 @@
                                placeholder="Wird aus AD synchronisiert">
                     </div>
 
+                    <!-- Abteilung -->
+                    <div class="form-group">
+                        <label for="department" th:text="#{label.department}">Abteilung</label>
+                        <input type="text"
+                               id="department"
+                               name="department"
+                               th:value="${user.department}"
+                               th:placeholder="#{label.departmentHint}"
+                               placeholder="Aus dem Anzeigenamen abgeleitet"
+                               readonly>
+                        <small class="form-hint" th:text="#{label.departmentHint}">
+                            Wird aus dem Anzeigenamen in Klammern ermittelt.
+                        </small>
+                    </div>
+
                 </div>
 
                 <div class="form-row">

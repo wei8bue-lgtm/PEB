@@ -129,6 +129,13 @@
             text-transform:uppercase;
             letter-spacing:.4px;
         }
+        .resolved-tree { font-family: monospace; font-size: 0.88rem; }
+        .rtree-node { padding: 0.3rem 0.5rem; border-left: 3px solid #198754; background: #f0fff4; border-radius:3px; margin:0.25rem 0; }
+        .rtree-badge { display:inline-block; padding:0.1rem 0.4rem; border-radius:10px; font-size:0.72rem; font-weight:600; }
+        .badge-reltype-always { background:#d1e7dd; color:#0a3622; border:1px solid #badbcc; }
+        .badge-reltype-optional { background:#fff3cd; color:#664d03; border:1px solid #ffecb5; }
+        .badge-reltype-variant_specific { background:#cfe2ff; color:#084298; border:1px solid #b6d4fe; }
+        .badge-reltype-alternative { background:#e2d9f3; color:#3d0b6d; border:1px solid #c5b8e8; }
     </style>
 </head>
 <body>
@@ -201,6 +208,31 @@
                             'dd.MM.yyyy HH:mm')
                         : '—'}">
                 </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card" th:if="${mfgBOM.sourceCimId != null}">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.importAuditHeading}">🧾 CIM Import Audit</h3>
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <th style="width:220px; padding:.5rem; text-align:left; background:#f8f9fa; border-bottom:1px solid #eee;" th:text="#{mfgBom.importedFromCim}">Imported from CIM</th>
+                <td style="padding:.5rem; border-bottom:1px solid #eee;">
+                    <span style="font-family:monospace; font-weight:600;" th:text="${mfgBOM.sourceCimId}">CI00000001</span>
+                    <span th:if="${mfgBOM.sourceCimRevision != null}" th:text="${' / Rev. ' + mfgBOM.sourceCimRevision}">/ Rev. 01</span>
+                </td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem; text-align:left; background:#f8f9fa; border-bottom:1px solid #eee;" th:text="#{cim.import.configuration}">Configuration</th>
+                <td style="padding:.5rem; border-bottom:1px solid #eee;" th:text="${mfgBOM.sourceConfigurationName != null ? mfgBOM.sourceConfigurationName + ' (#' + mfgBOM.sourceConfigurationId + ')' : '—'}">Config</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem; text-align:left; background:#f8f9fa; border-bottom:1px solid #eee;" th:text="#{mfgBom.importAuditImportedBy}">Imported by</th>
+                <td style="padding:.5rem; border-bottom:1px solid #eee;" th:text="${mfgBOM.cimImportedBy ?: '—'}">system</td>
+            </tr>
+            <tr>
+                <th style="padding:.5rem; text-align:left; background:#f8f9fa;" th:text="#{mfgBom.importAuditImportedAt}">Imported at</th>
+                <td style="padding:.5rem;" th:text="${mfgBOM.cimImportedAt != null ? #temporals.format(mfgBOM.cimImportedAt, 'dd.MM.yyyy HH:mm:ss') : '—'}">—</td>
             </tr>
         </table>
     </div>
@@ -344,6 +376,30 @@
                               text-decoration:none;">
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;" th:text="#{mfgBom.importedStructureHeading}">📦 Imported 100% Structure Basis</h3>
+        <div th:if="${mfgBOM.sourceCimId != null}" style="margin-bottom:1rem; color:#6c757d;">
+            <span th:text="#{mfgBom.importedFromCim}">Imported from CIM</span>
+            <span style="font-weight:600;" th:text="${mfgBOM.sourceCimId}">CI00000001</span>
+            <span th:if="${mfgBOM.sourceCimRevision != null}" th:text="${' Rev. ' + mfgBOM.sourceCimRevision}">Rev. 01</span>
+            <span th:if="${mfgBOM.sourceConfigurationName != null}" th:text="${' | Config: ' + mfgBOM.sourceConfigurationName + ' (#' + mfgBOM.sourceConfigurationId + ')'}">| Config</span>
+        </div>
+        <div th:if="${#lists.isEmpty(mfgBOM.productBOMs)}" style="color:#6c757d;" th:text="#{mfgBom.noImportedStructure}">
+            No imported Product BOM structure is available.
+        </div>
+        <div th:each="pb : ${mfgBOM.productBOMs}" style="margin-bottom:1rem;">
+            <h4 style="margin:.25rem 0;">
+                <a th:href="@{/product-bom/{id}(id=${pb.id})}" th:text="${pb.name}">PBOM</a>
+            </h4>
+            <div th:if="${productBomStructureTrees[pb.id] != null}" class="resolved-tree">
+                <div th:replace="~{variant/resolve-node :: resolve-node(node=${productBomStructureTrees[pb.id]}, depth=0)}"></div>
+            </div>
+            <div th:if="${productBomStructureTrees[pb.id] == null}" style="color:#6c757d;" th:text="#{mfgBom.noImportedStructureForBom}">
+                No imported structure snapshot exists for this Product BOM.
             </div>
         </div>
     </div>

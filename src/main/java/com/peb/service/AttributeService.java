@@ -278,7 +278,8 @@ public class AttributeService {
             obj.getMass(),
             obj.getMaterial(),
             obj.getSupplier(),
-            obj.getLinkedDesignId()
+            obj.getLinkedDesignId(),
+            null  // bomType bleibt unverändert
         );
     }
 

@@ -27,6 +27,60 @@ body {
     background-color: #f5f5f5;
 }
 
+.cim-page,
+.cim-page table,
+.cim-page th,
+.cim-page td,
+.cim-page h1,
+.cim-page h2,
+.cim-page h3,
+.cim-page p,
+.cim-page a,
+.cim-page button,
+.cim-page input,
+.cim-page select,
+.cim-page label,
+.cim-page span,
+.cim-page li {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.cim-page .mono {
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.cim-page .card h2,
+.cim-page .card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.cim-page .btn {
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.cim-page table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.cim-page th,
+.cim-page td {
+    vertical-align: top;
+}
+
+.cim-page select,
+.cim-page input,
+.cim-page textarea {
+    font-size: 0.95rem;
+}
+
 /* ── Header ───────────────────────────────────────────────────── */
 .header {
     background-color: var(--primary-color);

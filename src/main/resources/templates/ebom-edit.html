@@ -67,6 +67,21 @@
                     </select>
                 </div>
 
+                <div class="form-group"
+                     style="border:2px solid #6f42c1; border-radius:6px; padding:1rem; background:#faf5ff;">
+                    <label for="bomType" style="color:#6f42c1; font-weight:600;">
+                        🔀 <span th:text="#{variant.bomType.label}">BOM Type (Variant Management)</span>
+                    </label>
+                    <select id="bomType" th:field="*{bomType}">
+                        <option value="HUNDRED_PERCENT" th:text="#{variant.bomType.hundred}">100% – Standard BOM</option>
+                        <option value="SUPER_BOM_150"   th:text="#{variant.bomType.super150}">150% – Superset BOM (alle Varianten)</option>
+                    </select>
+                    <small style="color:#6c757d; display:block; margin-top:0.4rem;"
+                           th:text="#{variant.bomType.hint}">
+                        150% aktiviert das Varianten-Management. Im Structure-View erscheint dann das Konfigurations-Panel.
+                    </small>
+                </div>
+
                 <div style="margin-top: 2rem;">
                     <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Save Changes</button>
                     <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>

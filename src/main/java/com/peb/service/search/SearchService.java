@@ -1,6 +1,10 @@
 package com.peb.service.search;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import com.peb.model.material.Material;
+import com.peb.model.material.MaterialRevision;
+import com.peb.repository.MaterialRepository;
 import com.peb.dto.search.SearchResultPageDTO;
 import com.peb.dto.search.SearchSuggestionDTO;
 import com.peb.search.SearchDocument;
@@ -14,10 +18,9 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,9 +29,8 @@ import java.util.stream.Collectors;
  *
  * Zwei Modi, je nachdem ob der Suchbegriff Wildcards (* oder ?) enthält:
  *
- * 1. NORMALFALL (kein * oder ?): Criteria-API mit "contains" - das
- *    matched implizit bereits als *Begriff* (Infix-Suche), ist aber ein
- *    analysiertes Text-Matching (findet einzelne Wörter/Teilwörter).
+ * 1. NORMALFALL (kein * oder ?): Native-Query mit match auf searchText
+ *    (Operator AND) plus optionaler Prefix-Match auf objectId.
  *
  * 2. WILDCARD-MODUS (Nutzer tippt selbst * oder ?): echte Elasticsearch
  *    Wildcard-Query auf den unanalysierten Keyword-Feldern (nameSort,
@@ -45,6 +47,7 @@ public class SearchService {
     private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final ElasticsearchOperations elasticsearchOperations;
+    private final MaterialRepository materialRepository;
 
     /**
      * Für die Navbar-Autocomplete. Bewusst knapp gehalten (max. 8
@@ -57,8 +60,9 @@ public class SearchService {
         }
 
         try {
+            String normalizedQuery = normalizeQueryInput(query);
             org.springframework.data.elasticsearch.core.query.Query esQuery =
-                    buildQuery(query.trim(), null, null,
+                    buildQuery(normalizedQuery, null, null,
                             PageRequest.of(0, SUGGESTION_LIMIT, Sort.by("nameSort").ascending()));
 
             SearchHits<SearchDocument> hits = elasticsearchOperations.search(esQuery, SearchDocument.class);
@@ -71,8 +75,12 @@ public class SearchService {
             // Autocomplete soll bei ES-Ausfall einfach leer bleiben statt die
             // Seite mit einem 500er zu stören - der Nutzer merkt es höchstens
             // daran, dass keine Vorschläge erscheinen.
-            log.error("Suche (Autocomplete) fehlgeschlagen - Elasticsearch nicht erreichbar? Fehler: {}",
-                    e.getMessage());
+            log.error("Suche (Autocomplete) fehlgeschlagen | rawQuery='{}' normalizedQuery='{}' mode={} | cause={} | message={}",
+                    toLogValue(query),
+                    toLogValue(normalizeQueryInput(query)),
+                    isWildcardQuery(query) ? "WILDCARD" : "DEFAULT",
+                    e.getClass().getSimpleName(),
+                    toLogValue(e.getMessage()));
             return List.of();
         }
     }
@@ -87,8 +95,14 @@ public class SearchService {
      */
     public SearchResultPageDTO search(String query, ObjectType objectType, String releaseStatus, int page) {
         try {
+            String normalizedQuery = normalizeQueryInput(query);
+
+            if (isReleasedMaterialSearch(objectType, releaseStatus)) {
+                return searchReleasedMaterialsFromDatabase(normalizedQuery, Math.max(page, 0));
+            }
+
             org.springframework.data.elasticsearch.core.query.Query esQuery =
-                    buildQuery(query.trim(), objectType, releaseStatus, PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE));
+                buildQuery(normalizedQuery, objectType, releaseStatus, PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE));
 
             SearchHits<SearchDocument> hits = elasticsearchOperations.search(esQuery, SearchDocument.class);
 
@@ -99,15 +113,115 @@ public class SearchService {
             long totalHits = hits.getTotalHits();
             int totalPages = (int) Math.ceil((double) totalHits / DEFAULT_PAGE_SIZE);
 
-            return new SearchResultPageDTO(query, results, totalHits, page, DEFAULT_PAGE_SIZE, totalPages, false);
+            return new SearchResultPageDTO(normalizedQuery, results, totalHits, page, DEFAULT_PAGE_SIZE, totalPages, false);
         } catch (Exception e) {
-            log.error("Suche fehlgeschlagen - Elasticsearch nicht erreichbar? Fehler: {}", e.getMessage());
+            String normalizedQuery = normalizeQueryInput(query);
+            log.error("Suche fehlgeschlagen | rawQuery='{}' normalizedQuery='{}' mode={} objectType={} releaseStatus='{}' page={} pageSize={} | cause={} | message={}",
+                    toLogValue(query),
+                    toLogValue(normalizedQuery),
+                    isWildcardQuery(normalizedQuery) ? "WILDCARD" : "DEFAULT",
+                    objectType != null ? objectType.name() : "ALL",
+                    toLogValue(releaseStatus),
+                    Math.max(page, 0),
+                    DEFAULT_PAGE_SIZE,
+                    e.getClass().getSimpleName(),
+                    toLogValue(e.getMessage()));
             return SearchResultPageDTO.unavailable(query, page, DEFAULT_PAGE_SIZE);
         }
     }
 
+            private boolean isReleasedMaterialSearch(ObjectType objectType, String releaseStatus) {
+            return objectType == ObjectType.MATERIAL
+                && releaseStatus != null
+                && "RELEASED".equalsIgnoreCase(releaseStatus.trim());
+            }
+
+            private SearchResultPageDTO searchReleasedMaterialsFromDatabase(String normalizedQuery, int page) {
+            List<SearchDocument> allReleased = materialRepository.findAll().stream()
+                .map(this::toReleasedMaterialSearchDocument)
+                .filter(doc -> doc != null)
+                .filter(doc -> matchesReleasedMaterialQuery(doc, normalizedQuery))
+                .sorted(Comparator.comparing(doc -> safeLower(doc.getName())))
+                .collect(Collectors.toList());
+
+            long totalHits = allReleased.size();
+            int from = page * DEFAULT_PAGE_SIZE;
+            int to = Math.min(from + DEFAULT_PAGE_SIZE, allReleased.size());
+
+            List<SearchDocument> pageResults = from >= allReleased.size()
+                ? List.of()
+                : allReleased.subList(from, to);
+
+            int totalPages = (int) Math.ceil((double) totalHits / DEFAULT_PAGE_SIZE);
+            return new SearchResultPageDTO(normalizedQuery, pageResults, totalHits, page, DEFAULT_PAGE_SIZE, totalPages, false);
+            }
+
+            private SearchDocument toReleasedMaterialSearchDocument(Material material) {
+            MaterialRevision releasedRevision = material.getRevisions().stream()
+                .filter(r -> r.getReleaseStatus() != null && "RELEASED".equals(r.getReleaseStatus().name()))
+                .max(Comparator.comparing(MaterialRevision::getCreatedDate,
+                    Comparator.nullsLast(Comparator.naturalOrder())))
+                .orElse(null);
+
+            if (releasedRevision == null) {
+                return null;
+            }
+
+            String searchText = String.join(" ",
+                nullToEmpty(material.getName()),
+                nullToEmpty(material.getId()),
+                nullToEmpty(material.getMaterialGroup()),
+                nullToEmpty(material.getSpecification()),
+                nullToEmpty(material.getDepartment()));
+
+            return SearchDocument.builder()
+                .id(ObjectType.MATERIAL.name() + "_" + material.getId() + "_RELEASED")
+                .objectId(material.getId())
+                .objectType(ObjectType.MATERIAL)
+                .objectTypeDisplayName(ObjectType.MATERIAL.getDisplayName())
+                .name(material.getName())
+                .nameSort(material.getName())
+                .revision(releasedRevision.getRevision())
+                .releaseStatus("RELEASED")
+                .department(material.getDepartment())
+                .material(material.getMaterialGroup())
+                .searchText(searchText)
+                .createdBy(material.getCreatedBy())
+                .createdDate(material.getCreatedDate())
+                .lastModifiedDate(material.getLastModifiedDate())
+                .detailUrl("/materials/" + material.getId())
+                .build();
+            }
+
+            private boolean matchesReleasedMaterialQuery(SearchDocument doc, String normalizedQuery) {
+            if (normalizedQuery == null || normalizedQuery.isBlank()) {
+                return true;
+            }
+
+            String q = normalizedQuery.toLowerCase();
+
+            if (normalizedQuery.contains("*") || normalizedQuery.contains("?")) {
+                String regex = normalizedQuery
+                    .replace("?", ".")
+                    .replace("*", ".*");
+                return safeLower(doc.getObjectId()).matches(regex.toLowerCase())
+                    || safeLower(doc.getName()).matches(regex.toLowerCase())
+                    || safeLower(doc.getMaterial()).matches(regex.toLowerCase())
+                    || safeLower(doc.getSearchText()).matches(".*" + regex.toLowerCase() + ".*");
+            }
+
+            return safeLower(doc.getObjectId()).contains(q)
+                || safeLower(doc.getName()).contains(q)
+                || safeLower(doc.getMaterial()).contains(q)
+                || safeLower(doc.getSearchText()).contains(q);
+            }
+
     private org.springframework.data.elasticsearch.core.query.Query buildQuery(
             String query, ObjectType objectType, String releaseStatus, Pageable pageable) {
+
+        if (query == null || query.isBlank()) {
+            return buildFilterOnlyQuery(objectType, releaseStatus, pageable);
+        }
 
         boolean isWildcardQuery = query.contains("*") || query.contains("?");
 
@@ -117,24 +231,61 @@ public class SearchService {
         return buildDefaultQuery(query, objectType, releaseStatus, pageable);
     }
 
+    private NativeQuery buildFilterOnlyQuery(ObjectType objectType, String releaseStatus, Pageable pageable) {
+        Query boolQuery = Query.of(q -> q.bool(b -> {
+            b.must(m -> m.matchAll(ma -> ma));
+
+            if (objectType != null) {
+                b.filter(f -> f.term(t -> t.field("objectType").value(objectType.name())));
+            }
+            if (releaseStatus != null && !releaseStatus.isBlank()) {
+                b.filter(f -> f.term(t -> t.field("releaseStatus").value(releaseStatus)));
+            }
+            return b;
+        }));
+
+        return NativeQuery.builder()
+                .withQuery(boolQuery)
+                .withPageable(pageable)
+                .build();
+    }
+
     /**
      * Normalfall: Criteria-API, "contains" auf dem analysierten
      * searchText-Feld + Präfix-Match auf der objectId.
      */
-    private CriteriaQuery buildDefaultQuery(String query, ObjectType objectType, String releaseStatus, Pageable pageable) {
-        Criteria criteria = new Criteria("searchText").contains(query)
-                .or(new Criteria("objectId").startsWith(query.toUpperCase()));
+    private NativeQuery buildDefaultQuery(String query, ObjectType objectType, String releaseStatus, Pageable pageable) {
+        String objectIdPrefix = query.toUpperCase();
 
-        if (objectType != null) {
-            criteria = criteria.and(new Criteria("objectType").is(objectType.name()));
-        }
-        if (releaseStatus != null && !releaseStatus.isBlank()) {
-            criteria = criteria.and(new Criteria("releaseStatus").is(releaseStatus));
-        }
+        Query boolQuery = Query.of(q -> q.bool(b -> {
+            b.should(s -> s.match(m -> m
+                    .field("searchText")
+                    .query(query)
+                    .operator(Operator.And)));
 
-        CriteriaQuery criteriaQuery = new CriteriaQuery(criteria);
-        criteriaQuery.setPageable(pageable);
-        return criteriaQuery;
+            b.should(s -> s.matchPhrasePrefix(mpp -> mpp
+                    .field("name")
+                    .query(query)));
+
+            b.should(s -> s.prefix(p -> p
+                    .field("objectId")
+                    .value(objectIdPrefix)));
+
+            b.minimumShouldMatch("1");
+
+            if (objectType != null) {
+                b.filter(f -> f.term(t -> t.field("objectType").value(objectType.name())));
+            }
+            if (releaseStatus != null && !releaseStatus.isBlank()) {
+                b.filter(f -> f.term(t -> t.field("releaseStatus").value(releaseStatus)));
+            }
+            return b;
+        }));
+
+        return NativeQuery.builder()
+                .withQuery(boolQuery)
+                .withPageable(pageable)
+                .build();
     }
 
     /**
@@ -153,7 +304,7 @@ public class SearchService {
         String objectIdPattern = query.toUpperCase();
 
         Query boolQuery = Query.of(q -> q.bool(b -> {
-            b.should(s -> s.wildcard(w -> w.field("nameSort").value(query).caseInsensitive(true)));
+            b.should(s -> s.wildcard(w -> w.field("name_sort").value(query).caseInsensitive(true)));
             b.should(s -> s.wildcard(w -> w.field("objectId").value(objectIdPattern).caseInsensitive(true)));
             b.minimumShouldMatch("1");
 
@@ -182,5 +333,48 @@ public class SearchService {
                 doc.getReleaseStatus(),
                 doc.getDetailUrl()
         );
+    }
+
+    private String normalizeQueryInput(String query) {
+        if (query == null) {
+            return "";
+        }
+
+        String normalized = query
+                .replace('"', ' ')
+                .replace('\'', ' ')
+                .replace('`', ' ')
+                .replaceAll("[^\\p{L}\\p{N}\\s*?_-]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (normalized.contains(" ") && (normalized.contains("*") || normalized.contains("?"))) {
+            normalized = normalized.replace("*", "").replace("?", "").trim();
+        }
+
+        return normalized;
+    }
+
+    private boolean isWildcardQuery(String query) {
+        return query != null && (query.contains("*") || query.contains("?"));
+    }
+
+    private String toLogValue(String value) {
+        if (value == null) {
+            return "<null>";
+        }
+        String compact = value.replaceAll("\\s+", " ").trim();
+        if (compact.length() <= 160) {
+            return compact;
+        }
+        return compact.substring(0, 160) + "...";
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
     }
 }

@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
  *   GET    /api/v1/designs/{designId}/structure/available    → Verfügbare Kinder (zum Hinzufügen)
  *   GET    /api/v1/designs/{designId}/structure/where-used   → Wo wird dieses Design verwendet?
  *   POST   /api/v1/designs/{designId}/structure              → Kind hinzufügen
+ *   PATCH  /api/v1/designs/{designId}/structure/{structureId}→ Placement (Translation/Rotation) ändern
  *   DELETE /api/v1/designs/{designId}/structure/{structureId}→ Link entfernen
  *   GET    /api/v1/designs/structure/links                   → Alle Links (Admin)
  */
@@ -321,7 +322,13 @@ public class DesignStructureApiController {
                     req.childId(),
                     childRevisionId,
                     quantity,
-                    req.positionNumber());
+                    req.positionNumber(),
+                    req.translationX(),
+                    req.translationY(),
+                    req.translationZ(),
+                    req.rotationI(),
+                    req.rotationJ(),
+                    req.rotationK());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success",          true);
@@ -334,6 +341,12 @@ public class DesignStructureApiController {
             response.put("quantity",         link.getQuantity());
             response.put("positionNumber",   link.getPositionNumber() != null
                                              ? link.getPositionNumber() : "");
+            response.put("translationX",     link.getTranslationX());
+            response.put("translationY",     link.getTranslationY());
+            response.put("translationZ",     link.getTranslationZ());
+            response.put("rotationI",        link.getRotationI());
+            response.put("rotationJ",        link.getRotationJ());
+            response.put("rotationK",        link.getRotationK());
             response.put("createdBy",        link.getCreatedBy());
             response.put("createdDate",      link.getCreatedDate() != null
                                              ? link.getCreatedDate().toString() : "");
@@ -354,8 +367,52 @@ public class DesignStructureApiController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE – Struktur-Link entfernen
+    // ══════════════════════════════════════════════════════════════════════    // PATCH – Placement (Translation / Rotation) ändern
+    // PATCH /api/v1/designs/{designId}/structure/{structureId}
+    //
+    // Body (JSON): alle Felder optional (null = Wert wird gelöscht)
+    // { "translationX": 12.5, "translationY": 0.0, "translationZ": -3.1,
+    //   "rotationI": 0.0, "rotationJ": 90.0, "rotationK": 0.0 }
+    // ══════════════════════════════════════════════════════════════════
+
+    @PatchMapping("/{designId}/structure/{structureId}")
+    @PreAuthorize("hasAuthority('WRITE')")
+    public ResponseEntity<?> updatePlacement(
+            @PathVariable String designId,
+            @PathVariable Long   structureId,
+            @RequestBody  PlacementApiRequest req) {
+        try {
+            DesignStructure link = structureService.updatePlacement(
+                    structureId,
+                    req.translationX(), req.translationY(), req.translationZ(),
+                    req.rotationI(),    req.rotationJ(),    req.rotationK());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success",      true);
+            response.put("structureId",  link.getStructureId());
+            response.put("translationX", link.getTranslationX());
+            response.put("translationY", link.getTranslationY());
+            response.put("translationZ", link.getTranslationZ());
+            response.put("rotationI",    link.getRotationI());
+            response.put("rotationJ",    link.getRotationJ());
+            response.put("rotationK",    link.getRotationK());
+
+            log.info("PATCH /api/v1/designs/{}/structure/{} → placement updated",
+                     designId, structureId);
+            return ResponseEntity.ok(response);
+
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404)
+                    .body(errorMap("Struktur-Link nicht gefunden: " + structureId));
+        } catch (Exception e) {
+            log.error("Fehler beim Placement-Update {}/{}: {}",
+                      designId, structureId, e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(errorMap("Fehler: " + e.getMessage()));
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════    // DELETE – Struktur-Link entfernen
     // DELETE /api/v1/designs/{designId}/structure/{structureId}
     //
     // Entfernt nur den Link – das Kind-Design wird NICHT gelöscht.
@@ -507,6 +564,12 @@ public class DesignStructureApiController {
         map.put("quantity",         link.getQuantity());
         map.put("positionNumber",   link.getPositionNumber() != null
                                     ? link.getPositionNumber() : "");
+        map.put("translationX",     link.getTranslationX());
+        map.put("translationY",     link.getTranslationY());
+        map.put("translationZ",     link.getTranslationZ());
+        map.put("rotationI",        link.getRotationI());
+        map.put("rotationJ",        link.getRotationJ());
+        map.put("rotationK",        link.getRotationK());
         map.put("createdDate",      link.getCreatedDate() != null
                                     ? link.getCreatedDate().toString() : "");
         map.put("createdBy",        link.getCreatedBy() != null
@@ -610,6 +673,17 @@ public class DesignStructureApiController {
             String  childId,
             Long    childRevisionId,   // optional
             Integer quantity,          // optional, default 1
-            String  positionNumber     // optional
+            String  positionNumber,    // optional
+            Double  translationX,      // optional
+            Double  translationY,      // optional
+            Double  translationZ,      // optional
+            Double  rotationI,         // optional
+            Double  rotationJ,         // optional
+            Double  rotationK          // optional
+    ) {}
+
+    record PlacementApiRequest(
+            Double translationX, Double translationY, Double translationZ,
+            Double rotationI,    Double rotationJ,    Double rotationK
     ) {}
 }

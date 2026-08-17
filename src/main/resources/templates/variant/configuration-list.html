@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{variant.config.listTitle}">Configurations - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>⚙️ <span th:text="#{variant.config.listHeading}">Product Configurations (150% BOM)</span></h1>
+    <div style="margin-left:auto; display:flex; gap:0.5rem;">
+        <a th:href="@{/variant/options}"         class="btn btn-primary" th:text="#{variant.menu.options}">Variant Options</a>
+        <a th:href="@{/variant/configurations/new}" class="btn btn-success" sec:authorize="hasAuthority('WRITE')" th:text="#{variant.config.new}">+ New Configuration</a>
+        <a th:href="@{/}"                        class="btn btn-primary" th:text="#{button.home}">Home</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${success}" class="alert" style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;padding:0.75rem 1rem;border-radius:4px;margin-bottom:1rem;" th:text="${success}"></div>
+
+    <div class="card">
+        <h2 th:text="#{variant.config.listHeading}">All Configurations</h2>
+
+        <p th:if="${configurations.empty}" style="color:#6c757d;" th:text="#{variant.config.noConfigs}">No configurations found.</p>
+
+        <table th:unless="${configurations.empty}" style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+            <thead>
+                <tr style="background:#0066cc;color:#fff;">
+                    <th style="padding:0.6rem 0.75rem;" th:text="#{label.name}">Name</th>
+                    <th style="padding:0.6rem 0.75rem;" th:text="#{variant.config.orderNumber}">Order Number</th>
+                    <th style="padding:0.6rem 0.75rem;" th:text="#{variant.config.rootObject}">Root Object</th>
+                    <th style="padding:0.6rem 0.75rem;" th:text="#{variant.config.selectedOptions}">Selected Options</th>
+                    <th style="padding:0.6rem 0.75rem;" th:text="#{label.actions}">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="c : ${configurations}" style="border-bottom:1px solid #dee2e6;">
+                    <td style="padding:0.5rem 0.75rem;">
+                        <a th:href="@{/variant/configurations/{id}(id=${c.id})}" th:text="${c.name}">Config Name</a>
+                    </td>
+                    <td style="padding:0.5rem 0.75rem;" th:text="${c.orderNumber ?: '-'}">-</td>
+                    <td style="padding:0.5rem 0.75rem;">
+                        <code th:text="${c.rootObjectId ?: '-'}">MA00000001</code>
+                    </td>
+                    <td style="padding:0.5rem 0.75rem;">
+                        <span th:each="opt,iter : ${c.selectedOptions}">
+                            <code th:text="${opt.optionClass.id + '=' + opt.code}"
+                                  style="background:#e8f5e9;padding:0.1rem 0.35rem;border-radius:4px;font-size:0.8rem;">
+                            </code><span th:unless="${iter.last}">, </span>
+                        </span>
+                    </td>
+                    <td style="padding:0.5rem 0.75rem; display:flex; gap:0.4rem;">
+                        <a th:href="@{/variant/configurations/{id}(id=${c.id})}"
+                           class="btn btn-primary btn-xs" th:text="#{button.view}">View</a>
+                        <a th:href="@{/variant/configurations/{id}/resolve(id=${c.id})}"
+                           class="btn btn-success btn-xs" th:text="#{variant.config.resolve}">Resolve BOM</a>
+                        <form th:action="@{/variant/configurations/{id}/delete(id=${c.id})}"
+                              method="post" style="display:inline;"
+                              sec:authorize="hasAuthority('WRITE')"
+                              onsubmit="return confirm('Delete configuration?')">
+                            <button type="submit" class="btn btn-danger btn-xs" th:text="#{button.delete}">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -107,7 +107,13 @@ public class DesignStructureController {
                     req.childId(),
                     req.childRevisionId(),
                     req.quantity(),
-                    req.positionNumber());
+                    req.positionNumber(),
+                    req.translationX(),
+                    req.translationY(),
+                    req.translationZ(),
+                    req.rotationI(),
+                    req.rotationJ(),
+                    req.rotationK());
 
             return ResponseEntity.ok(Map.of(
                     "structureId", link.getStructureId(),
@@ -116,6 +122,30 @@ public class DesignStructureController {
         } catch (IllegalArgumentException e) {
             log.warn("addChild rejected: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // REST – placement aktualisieren
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * PATCH /designs/structure/{structureId}/placement
+     * Updates Translation X/Y/Z and Rotation I/J/K on an existing link.
+     */
+    @PatchMapping("/{structureId}/placement")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('WRITE')")
+    public ResponseEntity<?> updatePlacement(@PathVariable Long structureId,
+                                             @RequestBody PlacementRequest req) {
+        try {
+            structureService.updatePlacement(structureId,
+                    req.translationX(), req.translationY(), req.translationZ(),
+                    req.rotationI(),    req.rotationJ(),    req.rotationK());
+            return ResponseEntity.ok(Map.of("success", true,
+                    "structureId", structureId));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         }
     }
 
@@ -153,6 +183,17 @@ public class DesignStructureController {
             String  childId,
             Long    childRevisionId,
             int     quantity,
-            String  positionNumber
+            String  positionNumber,
+            Double  translationX,
+            Double  translationY,
+            Double  translationZ,
+            Double  rotationI,
+            Double  rotationJ,
+            Double  rotationK
+    ) {}
+
+    record PlacementRequest(
+            Double translationX, Double translationY, Double translationZ,
+            Double rotationI,    Double rotationJ,    Double rotationK
     ) {}
 }

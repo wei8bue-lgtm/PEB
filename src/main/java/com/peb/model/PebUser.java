@@ -25,6 +25,9 @@ public class PebUser {
     @Column(name = "DISPLAY_NAME", length = 200)
     private String displayName;
 
+    @Column(name = "DEPARTMENT", length = 200)
+    private String department;
+
     @Column(name = "EMAIL", length = 200)
     private String email;
 
@@ -71,6 +74,7 @@ public class PebUser {
                    String email, String role) {
         this.username    = username;
         this.displayName = displayName;
+        this.department  = extractDepartment(displayName);
         this.email       = email;
         this.role        = role;
         this.authType    = AuthType.AD;
@@ -82,6 +86,7 @@ public class PebUser {
                    String email, String role, String passwordHash) {
         this.username     = username;
         this.displayName  = displayName;
+        this.department   = extractDepartment(displayName);
         this.email        = email;
         this.role         = role;
         this.authType     = AuthType.LOCAL;
@@ -98,7 +103,13 @@ public class PebUser {
     public void setUsername(String u)               { this.username = u; }
 
     public String getDisplayName()                  { return displayName; }
-    public void setDisplayName(String n)            { this.displayName = n; }
+    public void setDisplayName(String n)            {
+        this.displayName = n;
+        this.department  = extractDepartment(n);
+    }
+
+    public String getDepartment()                   { return department; }
+    public void setDepartment(String d)              { this.department = d; }
 
     public String getEmail()                        { return email; }
     public void setEmail(String e)                  { this.email = e; }
@@ -140,4 +151,24 @@ public class PebUser {
     // ── Hilfsmethoden ─────────────────────────────────────────
     public boolean isAdUser()    { return AuthType.AD.equals(authType); }
     public boolean isLocalUser() { return AuthType.LOCAL.equals(authType); }
+
+    private String extractDepartment(String sourceDisplayName) {
+        if (sourceDisplayName == null) {
+            return null;
+        }
+
+        String trimmed = sourceDisplayName.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        int start = trimmed.lastIndexOf('(');
+        int end   = trimmed.lastIndexOf(')');
+        if (start >= 0 && end > start) {
+            String value = trimmed.substring(start + 1, end).trim();
+            return value.isEmpty() ? null : value;
+        }
+
+        return null;
+    }
 }

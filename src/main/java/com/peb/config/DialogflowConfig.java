@@ -36,6 +36,9 @@ public class DialogflowConfig {
     @Value("${peb.bmk.ai-agent-enabled:false}")
     private boolean aiAgentEnabled;
 
+    @Value("${peb.chat.llm-enabled:false}")
+    private boolean chatLlmEnabled;
+
     /**
      * Erstellt GoogleCredentials – oder gibt NULL zurück wenn:
      *   - peb.bmk.ai-agent-enabled=false
@@ -49,8 +52,8 @@ public class DialogflowConfig {
     public GoogleCredentials googleCredentials() {
 
         // ── Feature Flag Check ────────────────────────────────
-        if (!aiAgentEnabled) {
-            log.info("KI-Agent deaktiviert (peb.bmk.ai-agent-enabled=false). " +
+        if (!aiAgentEnabled && !chatLlmEnabled) {
+            log.info("KI-Agent deaktiviert (peb.bmk.ai-agent-enabled=false und peb.chat.llm-enabled=false). " +
                      "GoogleCredentials werden nicht geladen.");
             return null;
         }

@@ -163,7 +163,7 @@ public class DesignController {
 		dto.setName(design.getName());
 		dto.setDepartment(design.getDepartment());
 		dto.setMass(design.getMass());
-		dto.setMaterialId(design.getLinkedMaterialId());          // ← geändert (war: setMaterial(...))
+		dto.setMaterialId(design.getLinkedMaterialId());
 		dto.setChildView(design.getChildView());
 
 		model.addAttribute("design",    dto);
@@ -182,7 +182,7 @@ public class DesignController {
 				designDTO.getName(),
 				designDTO.getDepartment(),
 				designDTO.getMass(),
-				designDTO.getMaterialId(),      // ← geändert (war: designDTO.getMaterial())
+				designDTO.getMaterialId(),
 				designDTO.getChildView());
 		return "redirect:/designs/" + id;
 	}

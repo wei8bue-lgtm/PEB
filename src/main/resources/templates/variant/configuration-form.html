@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{variant.config.formTitle}">Configuration - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .option-class-section { border:1px solid #dee2e6; border-radius:6px; margin-bottom:1rem; overflow:hidden; }
+        .option-class-section-header { background:#f0f4ff; padding:0.6rem 1rem; font-weight:600; border-bottom:1px solid #dee2e6; }
+        .option-class-section-body { padding:0.75rem 1rem; display:flex; flex-wrap:wrap; gap:0.5rem; }
+        .option-chip {
+            display:inline-flex; align-items:center; gap:0.35rem;
+            padding:0.3rem 0.7rem; border-radius:20px; cursor:pointer;
+            border:2px solid #ced4da; background:#fff;
+            font-size:0.85rem; transition:all 0.15s;
+        }
+        .option-chip:has(input:checked) {
+            border-color:#0066cc; background:#e7f1ff; font-weight:600;
+        }
+        .option-chip input[type=checkbox],
+        .option-chip input[type=radio] { cursor:pointer; }
+        .validation-box { background:#fff3cd; border:1px solid #ffc107; border-radius:4px; padding:0.75rem 1rem; margin-bottom:1rem; }
+        .validation-box ul { margin:0.25rem 0 0 1.25rem; padding:0; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>⚙️ <span th:text="${config.id != null ? config.name : #messages.msg('variant.config.newHeading')}">Configuration</span></h1>
+    <div style="margin-left:auto; display:flex; gap:0.5rem;">
+        <a th:href="@{/variant/configurations}" class="btn btn-primary" th:text="#{variant.menu.configurations}">Configurations</a>
+        <a th:href="@{/}"                       class="btn btn-primary" th:text="#{button.home}">Home</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${success}" class="alert" style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;padding:0.75rem 1rem;border-radius:4px;margin-bottom:1rem;" th:text="${success}"></div>
+
+    <!-- Validation warnings -->
+    <div th:if="${validationErrors != null and !validationErrors.empty}" class="validation-box">
+        <strong>⚠️ <span th:text="#{variant.config.validationWarnings}">Configuration is incomplete:</span></strong>
+        <ul>
+            <li th:each="err : ${validationErrors}" th:text="${err}"></li>
+        </ul>
+    </div>
+
+    <!-- ── Base data form ─────────────────────────────────────────────── -->
+    <div class="card">
+        <h2 th:text="#{variant.config.baseData}">Configuration Details</h2>
+          <form id="configurationForm"
+              th:action="${config.id != null ? '/variant/configurations/' + config.id + '/options' : '/variant/configurations'}"
+              method="post">
+
+            <th:block th:unless="${config.id != null}">
+                <!-- Creation form: include base fields -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                    <div>
+                        <label th:text="#{label.name}">Name *</label>
+                        <input type="text" name="name" th:value="${config.name}" required class="form-control" style="width:100%;">
+                    </div>
+                    <div>
+                        <label th:text="#{variant.config.orderNumber}">Order Number</label>
+                        <input type="text" name="orderNumber" th:value="${config.orderNumber}" class="form-control" style="width:100%;">
+                    </div>
+                    <div>
+                        <label th:text="#{variant.config.rootObject}">Root Object ID (MA…)</label>
+                        <input type="text" name="rootObjectId" th:value="${config.rootObjectId}"
+                               placeholder="MA00000001" class="form-control" style="width:100%;">
+                    </div>
+                    <div>
+                        <label th:text="#{variant.config.description}">Description</label>
+                        <input type="text" name="description" th:value="${config.description}" class="form-control" style="width:100%;">
+                    </div>
+                </div>
+            </th:block>
+
+            <th:block th:if="${config.id != null}">
+                <!-- Edit mode: show read-only info, allow updating options only -->
+                <table style="margin-bottom:1rem; font-size:0.9rem;">
+                    <tr><td style="width:160px; color:#6c757d;" th:text="#{label.name}">Name</td><td th:text="${config.name}"></td></tr>
+                    <tr><td style="color:#6c757d;" th:text="#{variant.config.orderNumber}">Order</td><td th:text="${config.orderNumber ?: '-'}"></td></tr>
+                    <tr><td style="color:#6c757d;" th:text="#{variant.config.rootObject}">Root</td><td><code th:text="${config.rootObjectId ?: '-'}"></code></td></tr>
+                </table>
+            </th:block>
+
+            <!-- ── Option selection ──────────────────────────────────── -->
+            <h3 th:text="#{variant.config.selectOptions}">Select Options</h3>
+            <p style="color:#6c757d; font-size:0.85rem;" th:text="#{variant.config.selectOptionsHint}">
+                Choose one option per mandatory class. Multi-select classes allow multiple choices.
+            </p>
+
+            <div th:each="oc : ${optionClasses}" class="option-class-section">
+                <div class="option-class-section-header">
+                    <span th:text="${oc.name}">Engine Type</span>
+                    <span style="font-weight:normal; font-size:0.8rem; margin-left:0.5rem; color:#6c757d;"
+                          th:text="${oc.id}">ENGINE_TYPE</span>
+                    <span th:if="${oc.mandatory}" style="color:#dc3545; font-size:0.8rem; margin-left:0.4rem;">*</span>
+                </div>
+                <div class="option-class-section-body">
+                    <label th:each="opt : ${oc.options}" class="option-chip">
+                        <input th:type="${oc.singleSelect ? 'radio' : 'checkbox'}"
+                               th:name="${'optionClass_' + oc.id}"
+                               th:value="${opt.id}"
+                               data-option-input="true"
+                               th:checked="${config.selectedOptions != null and config.selectedOptions.contains(opt)}">
+                        <code th:text="${opt.code}" style="font-size:0.8rem; color:#0d47a1;"></code>
+                        <span th:text="${opt.name}">V8 Motor 4.0L</span>
+                    </label>
+                    <p th:if="${oc.options.empty}" style="color:#adb5bd; font-size:0.85rem; margin:0;"
+                       th:text="#{variant.options.noOptions}">No options defined for this class.</p>
+                </div>
+            </div>
+
+            <div style="margin-top:1.25rem;">
+                <button type="submit" class="btn btn-success"
+                        th:text="${config.id != null ? #messages.msg('button.save') : #messages.msg('button.create')}">Save</button>
+                <a th:href="@{/variant/configurations}" class="btn btn-primary" th:text="#{button.cancel}">Cancel</a>
+                <th:block th:if="${config.id != null}">
+                    <a th:href="@{/variant/configurations/{id}/resolve(id=${config.id})}"
+                       class="btn btn-success" style="margin-left:0.5rem;"
+                       th:text="#{variant.config.resolve}">→ Resolve 100% BOM</a>
+                </th:block>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete button for existing configs -->
+    <div th:if="${config.id != null}" class="card" style="border-top:3px solid #dc3545;" sec:authorize="hasAuthority('WRITE')">
+        <h3 th:text="#{variant.config.dangerZone}">Danger Zone</h3>
+        <form th:action="@{/variant/configurations/{id}/delete(id=${config.id})}" method="post"
+              onsubmit="return confirm('Delete this configuration?')">
+            <button type="submit" class="btn btn-danger" th:text="#{button.delete}">Delete Configuration</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('configurationForm');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', function () {
+        form.querySelectorAll('input[data-generated-selected-option="true"]').forEach(el => el.remove());
+
+        const checkedInputs = form.querySelectorAll('input[data-option-input="true"]:checked');
+        checkedInputs.forEach(input => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'selectedOptionIds';
+            hidden.value = input.value;
+            hidden.setAttribute('data-generated-selected-option', 'true');
+            form.appendChild(hidden);
+        });
+    });
+});
+</script>
+</body>
+</html>

@@ -36,10 +36,16 @@ public class DesignStructureService {
 	public DesignStructureNodeDTO buildTree(String rootDesignId) {
 		Design root = designService.getDesign(rootDesignId);
 		return buildNode(root,
-						 /* rev          */   root.getLatestRevision(),   // ← Root: immer aktuellster Stand
+						 /* rev          */   root.getLatestRevision(),
 						 /* structureId  */   null,
 						 /* quantity     */   null,
 						 /* posNumber    */   null,
+						 /* translationX */   null,
+						 /* translationY */   null,
+						 /* translationZ */   null,
+						 /* rotationI    */   null,
+						 /* rotationJ    */   null,
+						 /* rotationK    */   null,
 						 /* depth        */   0,
 						 /* visitedIds   */   new HashSet<>());
 	}
@@ -117,7 +123,9 @@ public class DesignStructureService {
                                     String childId,
                                     Long   childRevisionId,
                                     int    quantity,
-                                    String positionNumber) {
+                                    String positionNumber,
+                                    Double translationX, Double translationY, Double translationZ,
+                                    Double rotationI,    Double rotationJ,    Double rotationK) {
 
         // ── Guard: duplicate ──────────────────────────────────────────────
         if (structureRepo.existsByParentRevisionIdAndChildRevisionId(
@@ -150,6 +158,12 @@ public class DesignStructureService {
                 .childRevisionId(childRevisionId)
                 .quantity(Math.max(1, quantity))
                 .positionNumber(positionNumber)
+                .translationX(translationX)
+                .translationY(translationY)
+                .translationZ(translationZ)
+                .rotationI(rotationI)
+                .rotationJ(rotationJ)
+                .rotationK(rotationK)
                 .createdBy(currentUser)
                 .build();
 
@@ -177,6 +191,28 @@ public class DesignStructureService {
                  structureId, link.getParentId(), link.getChildId());
     }
 
+    /**
+     * Updates the placement (Translation/Rotation) of an existing link.
+     * All six values may be null to clear the placement.
+     */
+    @Transactional
+    public DesignStructure updatePlacement(Long structureId,
+                                           Double translationX, Double translationY, Double translationZ,
+                                           Double rotationI,    Double rotationJ,    Double rotationK) {
+        DesignStructure link = structureRepo.findById(structureId)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Design structure link not found: " + structureId));
+        link.setTranslationX(translationX);
+        link.setTranslationY(translationY);
+        link.setTranslationZ(translationZ);
+        link.setRotationI(rotationI);
+        link.setRotationJ(rotationJ);
+        link.setRotationK(rotationK);
+        DesignStructure saved = structureRepo.save(link);
+        log.info("Placement updated on structureId={}", structureId);
+        return saved;
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // PRIVATE HELPERS
     // ══════════════════════════════════════════════════════════════════════
@@ -192,10 +228,16 @@ public class DesignStructureService {
      * @param visitedIds     guards against infinite loops from bad data
      */
 	private DesignStructureNodeDTO buildNode(Design         design,
-											  DesignRevision rev,             // ← NEU: konkrete Revision statt design.getLatestRevision()
+											  DesignRevision rev,
 											  Long           structureId,
 											  Integer        quantity,
 											  String         positionNumber,
+											  Double         translationX,
+											  Double         translationY,
+											  Double         translationZ,
+											  Double         rotationI,
+											  Double         rotationJ,
+											  Double         rotationK,
 											  int            depth,
 											  Set<String>    visitedIds) {
 
@@ -214,10 +256,14 @@ public class DesignStructureService {
 				.structureId(structureId)
 				.quantity(quantity)
 				.positionNumber(positionNumber)
+				.translationX(translationX)
+				.translationY(translationY)
+				.translationZ(translationZ)
+				.rotationI(rotationI)
+				.rotationJ(rotationJ)
+				.rotationK(rotationK)
 				.depth(depth)
 				.build();
-
-		// Stop recursion: keine Revision → keine weiteren Structure-Links möglich
 		if (rev == null) return node;
 
 		// Stop recursion: Zyklus-Schutz bei fehlerhaften Daten
@@ -248,6 +294,12 @@ public class DesignStructureService {
 						link.getStructureId(),
 						link.getQuantity(),
 						link.getPositionNumber(),
+						link.getTranslationX(),
+						link.getTranslationY(),
+						link.getTranslationZ(),
+						link.getRotationI(),
+						link.getRotationJ(),
+						link.getRotationK(),
 						depth + 1,
 						pathVisited);
 				node.getChildren().add(childNode);

@@ -27,7 +27,7 @@ public class Design extends BaseObject {
     @Size(max = 256)
     private String material;
 	
-	@Column(name = "linked_material_id", length = 10)   // ← NEU
+    @Column(name = "linked_material_id", length = 10)
 	private String linkedMaterialId;
 
     /**

@@ -42,6 +42,24 @@ public class ProductBOM {
     @Column(columnDefinition = "CLOB")
     private String description;
 
+    @Column(name = "source_cim_id", length = 12)
+    private String sourceCimId;
+
+    @Column(name = "source_cim_revision", length = 20)
+    private String sourceCimRevision;
+
+    @Column(name = "source_configuration_id")
+    private Long sourceConfigurationId;
+
+    @Column(name = "source_configuration_name", length = 255)
+    private String sourceConfigurationName;
+
+    @Column(name = "cim_imported_at")
+    private LocalDateTime cimImportedAt;
+
+    @Column(name = "cim_imported_by", length = 100)
+    private String cimImportedBy;
+
     @CreatedDate
     @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
@@ -79,6 +97,15 @@ public class ProductBOM {
     @OrderBy("revision ASC")
     private List<ProductBOMRevision> revisions
             = new ArrayList<>();
+
+    @OneToMany(
+        mappedBy      = "productBOM",
+        cascade       = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch         = FetchType.LAZY
+    )
+    @OrderBy("sortOrder ASC, id ASC")
+    private List<ProductBOMStructureItem> structureItems = new ArrayList<>();
 
     // ── Convenience-Methoden ──────────────────────────────────
 

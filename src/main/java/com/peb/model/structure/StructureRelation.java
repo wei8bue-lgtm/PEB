@@ -1,6 +1,7 @@
 // src/main/java/com/peb/model/structure/StructureRelation.java
 package com.peb.model.structure;
 
+import com.peb.util.BomRelationType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
@@ -76,6 +77,49 @@ public class StructureRelation {
      */
     @Column(name = "bmk_generated_by", length = 100)
     private String bmkGeneratedBy;
+
+    // ── 150% BOM / Variant fields ─────────────────────────────────────────
+
+    /**
+     * Governs when this relation is included in a resolved (100%) BOM.
+     *
+     * Syntax (evaluated by {@link com.peb.service.ConfigurationService}):
+     *   Simple equality :  ENGINE_TYPE=V8
+     *   AND combination :  ENGINE_TYPE=V8 AND COLOR=RED
+     *   OR combination  :  COLOR=RED OR COLOR=BLUE
+     *   Grouped         :  (ENGINE_TYPE=V6 OR ENGINE_TYPE=V8) AND OPTION_AC=TRUE
+     *
+     * Null or empty means the relation is always included (ALWAYS semantics).
+     */
+    @Column(name = "config_rule", length = 500)
+    private String configRule;
+
+    /**
+     * Participation type of this relation in the 150% BOM.
+     * Default ALWAYS ensures full backwards compatibility with existing data.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "relation_type", length = 20, nullable = false,
+            columnDefinition = "varchar2(20 char) default 'ALWAYS' not null check (relation_type in ('ALWAYS','OPTIONAL','VARIANT_SPECIFIC','ALTERNATIVE'))")
+    private BomRelationType relationType = BomRelationType.ALWAYS;
+
+    /**
+     * Logical group name for mutually exclusive alternatives.
+     * All relations sharing the same alternativeGroup under a given parent
+     * are alternatives of each other – exactly one should be chosen per config.
+     *
+     * Example: "MOTOR_MOUNTING" groups the V6 and V8 motor bracket positions.
+     */
+    @Column(name = "alternative_group", length = 50)
+    private String alternativeGroup;
+
+    /**
+     * Optional priority used to deterministically select one candidate
+     * in an alternative group when multiple rules match.
+     * Lower value means higher priority.
+     */
+    @Column(name = "alternative_priority")
+    private Integer alternativePriority;
 
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)

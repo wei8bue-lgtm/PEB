@@ -21,6 +21,9 @@ public enum ObjectType {
     // ── Produkt-Daten ─────────────────────────────────────────────
     PRODUCT_DATA("PD", "Product Data"),
 
+    // ── CIM Integrationsschicht ───────────────────────────────
+    CIM("CI", "CIM"),
+
     // ── Dokumentenmanagement ──────────────────────────────────────
     DOCUMENT_TEMPLATE("DT", "Document Template"),
     DOCUMENT(         "DC", "Document"),

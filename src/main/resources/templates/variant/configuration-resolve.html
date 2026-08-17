@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${config.name} + ' – Resolved BOM – PEB'">Resolved BOM - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .resolved-tree { font-family: monospace; font-size: 0.88rem; }
+        .rtree-node { padding: 0.3rem 0.5rem; border-left: 3px solid #198754; background: #f0fff4; border-radius:3px; margin:0.25rem 0; }
+        .rtree-children { padding-left: 2rem; }
+        .config-summary { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; }
+        .option-tag {
+            background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7;
+            border-radius:20px; padding:0.2rem 0.65rem; font-size:0.82rem; font-family:monospace;
+        }
+        .badge-reltype-always          { background:#d1e7dd; color:#0a3622; border:1px solid #badbcc; }
+        .badge-reltype-optional        { background:#fff3cd; color:#664d03; border:1px solid #ffecb5; }
+        .badge-reltype-variant_specific{ background:#cfe2ff; color:#084298; border:1px solid #b6d4fe; }
+        .badge-reltype-alternative     { background:#e2d9f3; color:#3d0b6d; border:1px solid #c5b8e8; }
+        .rtree-badge { display:inline-block; padding:0.1rem 0.4rem; border-radius:10px; font-size:0.72rem; font-weight:600; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1>✅ <span th:text="#{variant.resolve.heading}">Resolved 100% BOM</span></h1>
+    <div style="margin-left:auto; display:flex; gap:0.5rem;">
+        <a th:href="@{/variant/configurations/{id}(id=${config.id})}" class="btn btn-primary" th:text="#{button.back}">Back</a>
+        <a th:href="@{/variant/configurations}"                        class="btn btn-primary" th:text="#{variant.menu.configurations}">Configurations</a>
+        <a th:href="@{/}"                                              class="btn btn-primary" th:text="#{button.home}">Home</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Configuration summary -->
+    <div class="card">
+        <h2>
+            <span th:text="#{variant.resolve.configLabel}">Configuration:</span>
+            <strong th:text="${config.name}">Config Name</strong>
+            <span th:if="${config.orderNumber}" style="font-weight:normal; font-size:0.85rem; color:#6c757d;">
+                (<span th:text="${config.orderNumber}">ORDER-123</span>)
+            </span>
+        </h2>
+        <p th:text="#{variant.resolve.hint}">
+            Only items whose configuration rules match the selected options are shown.
+        </p>
+        <div class="config-summary">
+            <span th:each="opt : ${config.selectedOptions}" class="option-tag"
+                  th:text="${opt.optionClass.id + '=' + opt.code}">ENGINE_TYPE=V8</span>
+        </div>
+        <div th:if="${config.selectedOptions.empty}" style="color:#adb5bd;" th:text="#{variant.config.noOptionsSelected}">No options selected.</div>
+
+        <!-- Validation warnings -->
+        <div th:if="${validationErrors != null and !validationErrors.empty}"
+             style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:0.75rem 1rem;margin-top:0.75rem;">
+            <strong>⚠️ <span th:text="#{variant.config.validationWarnings}">Configuration is incomplete:</span></strong>
+            <ul style="margin:0.25rem 0 0 1.25rem;">
+                <li th:each="err : ${validationErrors}" th:text="${err}"></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Error during resolution -->
+    <div th:if="${resolveError}"
+         style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:4px;padding:1rem;margin-bottom:1rem;">
+        <strong>Error:</strong> <span th:text="${resolveError}"></span>
+    </div>
+
+    <!-- Resolved tree -->
+    <div class="card" th:if="${resolvedTree != null}">
+        <h3>📦 <span th:text="#{variant.resolve.bomTree}">Resolved BOM Structure</span></h3>
+        <div class="resolved-tree">
+            <div th:replace="~{variant/resolve-node :: resolve-node(node=${resolvedTree}, depth=0)}"></div>
+        </div>
+    </div>
+
+    <div th:if="${resolvedTree == null and resolveError == null}"
+         style="color:#adb5bd;" th:text="#{variant.resolve.noRootObject}">
+        No root object configured. Please edit the configuration and set a Root Object ID.
+    </div>
+
+</div>
+</body>
+</html>

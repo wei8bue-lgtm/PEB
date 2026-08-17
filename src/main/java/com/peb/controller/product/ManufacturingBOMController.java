@@ -10,6 +10,7 @@ import com.peb.repository.product.ProductBOMRepository;
 import com.peb.service.product.ManufacturingBOMService;
 import com.peb.service.product.ManufacturingLifecycleService;
 import com.peb.service.product.OperationPdfService;
+import com.peb.service.product.ProductBOMStructureSnapshotService;
 import com.peb.service.product.RevisionChainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/manufacturing-bom")
@@ -38,6 +41,7 @@ public class ManufacturingBOMController {
     private final OperationPdfService              pdfService;
     private final ManufacturingBOMService          mfgService;
     private final RevisionChainService             revisionChainService;
+        private final ProductBOMStructureSnapshotService snapshotService;
 
     // ── Liste ────────────────────────────────────────────────────
     @GetMapping
@@ -126,6 +130,10 @@ public class ManufacturingBOMController {
                 new ManufacturingOperation());
         model.addAttribute("operationTypes",
                 ManufacturingOperation.OperationType.values());
+        Map<Long, com.peb.model.structure.StructureNode> productBomStructureTrees = new LinkedHashMap<>();
+        bom.getProductBOMs().forEach(productBom ->
+                productBomStructureTrees.put(productBom.getId(), snapshotService.getSnapshotTree(productBom.getId())));
+        model.addAttribute("productBomStructureTrees", productBomStructureTrees);
 
         // ── Revisionskette ────────────────────────────────────
         List<ManufacturingBOMRevision> revisionChain =

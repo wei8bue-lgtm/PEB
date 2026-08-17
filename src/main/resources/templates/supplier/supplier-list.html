@@ -20,10 +20,12 @@
 <div class="header">
     <div class="logo-placeholder">PEB</div>
     <h1 th:text="#{supplier.title}">Lieferantenstammdaten</h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/}" class="btn btn-secondary">← <span th:text="#{button.back}">Zurück</span></a>
-    </div>
+        <div style="margin-left: auto;">
+            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
+            </form>
+        </div>
 </div>
 
 <div class="container">

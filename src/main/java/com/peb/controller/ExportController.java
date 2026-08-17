@@ -57,4 +57,28 @@ public class ExportController {
             .headers(headers)
             .body(xml);
     }
+
+    /**
+     * Export resolved 100% BOM for a specific configuration as XML.
+     * All variant-guarded items that do not match the configuration are omitted.
+     *
+     * GET /api/export/ebom/{objectId}/revisions/{revisionId}/xml/config/{configId}
+     */
+    @GetMapping("/ebom/{objectId}/revisions/{revisionId}/xml/config/{configId}")
+    @PreAuthorize("hasAuthority('READ')")
+    public ResponseEntity<String> exportConfiguredBOM(
+            @PathVariable String objectId,
+            @PathVariable Long   revisionId,
+            @PathVariable Long   configId) throws Exception {
+        String xml = xmlExportService.exportConfiguredBOMToXML(objectId, revisionId, configId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "xml", StandardCharsets.UTF_8));
+        headers.setContentDispositionFormData("attachment",
+                objectId + "_rev" + revisionId + "_config" + configId + "_100pct.xml");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(xml);
+    }
 }

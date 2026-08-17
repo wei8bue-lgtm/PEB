@@ -376,6 +376,9 @@
 							<th title="Vollständiges BMK, generiert vom Agenten" th:title="#{sview.bmkGeneratedTitle}" th:text="#{sview.bmkGeneratedCol}">
 								BMK (generiert)
 							</th>
+							<th style="color:#d8b4fe;" th:text="#{variant.relation.type}">Relation Type</th>
+							<th style="color:#d8b4fe;" th:text="#{variant.relation.configRule}">Config Rule</th>
+							<th style="color:#d8b4fe;" th:text="#{variant.relation.altGroup}">Alt. Group</th>
 							<th sec:authorize="hasAuthority('WRITE')" th:text="#{label.actions}">
 								Aktionen
 							</th>
@@ -466,6 +469,42 @@
                         </small>
                     </div>
 
+                    <!-- Variant / 150% BOM fields -->
+                    <details style="margin-bottom:1rem;">
+                        <summary style="cursor:pointer; font-weight:600; color:#6f42c1; font-size:0.95rem;">
+                            🔀 <span th:text="#{variant.relation.section}">Variant / 150% BOM</span>
+                        </summary>
+                        <div style="margin-top:0.75rem; padding:0.75rem; background:#faf5ff; border:1px solid #d8b4fe; border-radius:6px;">
+                            <div class="form-group">
+                                <label for="relationType" th:text="#{variant.relation.type}">Relation Type</label>
+                                <select id="relationType">
+                                    <option value="ALWAYS"           th:text="#{variant.reltype.always}">ALWAYS – immer dabei</option>
+                                    <option value="OPTIONAL"         th:text="#{variant.reltype.optional}">OPTIONAL – nur wenn Regel zutrifft</option>
+                                    <option value="ALTERNATIVE"      th:text="#{variant.reltype.alternative}">ALTERNATIVE – Alternativ-Gruppe</option>
+                                    <option value="VARIANT_SPECIFIC" th:text="#{variant.reltype.specific}">VARIANT_SPECIFIC</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="configRule" th:text="#{variant.relation.configRule}">Config Rule</label>
+                                <input type="text" id="configRule" maxlength="500"
+                                       placeholder="z.B. ENGINE_TYPE=V8 AND COLOR=RED"
+                                       style="font-family:monospace; width:100%;">
+                                <small style="color:#6c757d;" th:text="#{variant.relation.configRuleHint}">
+                                    Leer = immer dabei. Syntax: KEY=VAL, AND, OR, ( )
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label for="alternativeGroup" th:text="#{variant.relation.altGroup}">Alternative Group</label>
+                                <input type="text" id="alternativeGroup" maxlength="50"
+                                       placeholder="z.B. KUEHLER_GRUPPE"
+                                       style="font-family:monospace; width:100%;">
+                                <small style="color:#6c757d;" th:text="#{variant.relation.altGroupHint}">
+                                    Nur bei ALTERNATIVE. Gleicher Name = gegenseitig ausschließend.
+                                </small>
+                            </div>
+                        </div>
+                    </details>
+
                     <button type="submit" class="btn btn-success"
                             id="submitBtn" th:text="#{button.addToStructure}">
                         Add to Structure
@@ -475,6 +514,57 @@
                         ⚠ Selected component has no revision.
                     </small>
                 </form>
+            </div>
+        </div>
+
+        <!-- ══ Variant / 150% BOM Filter ════════════════════════════
+             Only visible when this BOM is marked as a 150% superset BOM.
+             Links to the configuration resolve page.
+        ══════════════════════════════════════════════════════════════ -->
+        <div th:if="${bomType == 'SUPER_BOM_150'}" class="card" style="margin-top:2rem; border-left:4px solid #6f42c1;">
+            <h3 style="color:#6f42c1;">🔀 <span th:text="#{variant.sview.heading}">150% BOM – Variant Configurations</span></h3>
+            <p style="color:#6c757d; font-size:0.9rem;" th:text="#{variant.sview.hint}">
+                This is a 150% superset BOM. Select a configuration to resolve it to a product-specific 100% BOM.
+            </p>
+
+            <div th:if="${configurations != null and !configurations.empty}"
+                 style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+                <a th:each="cfg : ${configurations}"
+                   th:href="@{/variant/configurations/{id}/resolve(id=${cfg.id})}"
+                   class="btn btn-primary"
+                   style="background:#6f42c1; border-color:#6f42c1;">
+                    ⚙️ <span th:text="${cfg.name}">Config Name</span>
+                    <span th:if="${cfg.orderNumber}"
+                          style="font-size:0.8rem; opacity:0.85;"
+                          th:text="'(' + ${cfg.orderNumber} + ')'"></span>
+                </a>
+            </div>
+            <p th:if="${configurations == null or configurations.empty}"
+               style="color:#adb5bd;" th:text="#{variant.sview.noConfigs}">
+                No configurations defined for this object yet.
+            </p>
+            <a th:href="@{/variant/configurations/new}" class="btn btn-success btn-xs"
+               sec:authorize="hasAuthority('WRITE')"
+               th:text="#{variant.sview.newConfig}">+ New Configuration</a>
+            <a th:href="@{/variant/configurations}" class="btn btn-primary btn-xs"
+               th:text="#{variant.menu.configurations}">All Configurations</a>
+        </div>
+
+        <!-- Hint when BOM type is 100% but configurations exist for this object -->
+        <div th:if="${bomType != 'SUPER_BOM_150' and configurations != null and !configurations.empty}"
+             class="card" style="margin-top:2rem; border-left:4px solid #0d6efd;">
+            <h3>🔀 <span th:text="#{variant.sview.configsExist}">Variant Configurations</span></h3>
+            <p style="font-size:0.9rem; color:#6c757d;" th:text="#{variant.sview.configsExistHint}">
+                Configurations are defined for this object. Mark the BOM as 150% to activate full variant management.
+            </p>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <a th:each="cfg : ${configurations}"
+                   th:href="@{/variant/configurations/{id}/resolve(id=${cfg.id})}"
+                   class="btn btn-primary btn-xs">
+                    ⚙️ <span th:text="${cfg.name}">Config</span>
+                </a>
+                <a th:href="@{/variant/configurations}" class="btn btn-primary btn-xs"
+                   th:text="#{variant.menu.configurations}">All Configurations</a>
             </div>
         </div>
 
@@ -826,7 +916,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
     }
     tr.appendChild(tdRefDes);
 
-    // ── Col 6: BMK ────────────────────────────────────────────────────────
+    // ── Col 7: BMK ────────────────────────────────────────────────────────
     const tdBmk = document.createElement('td');
     const bmkVal = node.bmk;
     if (isRoot) {
@@ -840,7 +930,67 @@ function renderBmkRow(tbody, node, depth, isRoot) {
     }
     tr.appendChild(tdBmk);
 
-    // ── Col 7: Aktionen ───────────────────────────────────────────────────
+    // ── Col 8: Relation Type (variant) ────────────────────────────────────
+    const tdRelType = document.createElement('td');
+    if (isRoot || !node.relationId) {
+        tdRelType.innerHTML = '<span style="color:#bbb;">—</span>';
+    } else {
+        const rt = node.relationType ?? 'ALWAYS';
+        const rtColors = {
+            ALWAYS:           '#d1e7dd',
+            OPTIONAL:         '#fff3cd',
+            VARIANT_SPECIFIC: '#cfe2ff',
+            ALTERNATIVE:      '#e2d9f3'
+        };
+        const bg = rtColors[rt] ?? '#e9ecef';
+        tdRelType.innerHTML =
+            `<span class="badge" style="background:${bg}; border:1px solid #ccc; cursor:pointer;"
+                   onclick="startVariantEdit(this, ${node.relationId}, '${escJs(rt)}',
+                            '${escJs(node.configRule ?? '')}',
+                            '${escJs(node.alternativeGroup ?? '')}')"
+                   title="Klicken zum Bearbeiten">
+                 ${escHtml(rt)}
+             </span>`;
+    }
+    tr.appendChild(tdRelType);
+
+    // ── Col 9: Config Rule (variant) ──────────────────────────────────────
+    const tdRule = document.createElement('td');
+    if (isRoot || !node.relationId) {
+        tdRule.innerHTML = '<span style="color:#bbb;">—</span>';
+    } else {
+        const rule = node.configRule ?? '';
+        tdRule.innerHTML = rule
+            ? `<code style="font-size:0.78rem; color:#0d47a1; background:#e8f0fe;
+                            padding:0.1rem 0.35rem; border-radius:3px; cursor:pointer;"
+                     onclick="startVariantEdit(this.closest('tr'), ${node.relationId},
+                              '${escJs(node.relationType ?? 'ALWAYS')}',
+                              '${escJs(rule)}',
+                              '${escJs(node.alternativeGroup ?? '')}')"
+                     title="Klicken zum Bearbeiten">${escHtml(rule)}</code>`
+            : `<span style="color:#adb5bd; font-size:0.78rem; cursor:pointer;"
+                     onclick="startVariantEdit(this.closest('tr'), ${node.relationId},
+                              '${escJs(node.relationType ?? 'ALWAYS')}',
+                              '${escJs(rule)}',
+                              '${escJs(node.alternativeGroup ?? '')}')"
+                     title="Klicken zum Bearbeiten">—</span>`;
+    }
+    tr.appendChild(tdRule);
+
+    // ── Col 10: Alternative Group (variant) ────────────────────────────────
+    const tdAltGrp = document.createElement('td');
+    if (isRoot || !node.relationId) {
+        tdAltGrp.innerHTML = '<span style="color:#bbb;">—</span>';
+    } else {
+        const ag = node.alternativeGroup ?? '';
+        tdAltGrp.innerHTML = ag
+            ? `<code style="font-size:0.78rem; color:#6f42c1; background:#f3e8ff;
+                            padding:0.1rem 0.35rem; border-radius:3px;">${escHtml(ag)}</code>`
+            : `<span style="color:#adb5bd; font-size:0.78rem;">—</span>`;
+    }
+    tr.appendChild(tdAltGrp);
+
+    // ── Col 11: Aktionen ───────────────────────────────────────────────────
     const tdAct = document.createElement('td');
     if (!isRoot && node.relationId) {
         const refDesVal = node.referenceDesignator ?? '';
@@ -1002,6 +1152,95 @@ function statusBadgeClass(status) {
     if (status === 'RELEASED') return 'badge-status-released';
     if (status === 'OBSOLETE') return 'badge-status-obsolete';
     return '';
+}
+
+// ─────────────────────────────────────────────────────────────
+// VARIANT INLINE EDIT (Config Rule / Relation Type / Alt Group)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Öffnet ein kleines Popup-Formular direkt unter der angeklickten Zeile,
+ * um relationType / configRule / alternativeGroup zu bearbeiten.
+ */
+function startVariantEdit(triggerEl, relationId, currentType, currentRule, currentAltGrp) {
+    // Vorhandenes Popup entfernen
+    document.querySelectorAll('.variant-edit-popup').forEach(p => p.remove());
+
+    const tr = triggerEl.closest('tr');
+    const popup = document.createElement('tr');
+    popup.className = 'variant-edit-popup';
+    popup.style.cssText = 'background:#faf5ff;';
+
+    const colSpan = tr.cells.length;
+    const td = document.createElement('td');
+    td.colSpan = colSpan;
+    td.style.cssText = 'padding:0.75rem 1rem; border-bottom:2px solid #d8b4fe;';
+    td.innerHTML = `
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+            <div>
+                <label style="font-size:0.8rem; color:#6f42c1; font-weight:600;">Relation Type</label><br>
+                <select id="ve_relationType" style="font-size:0.85rem;">
+                    <option value="ALWAYS"           ${currentType==='ALWAYS'           ? 'selected':''}>ALWAYS</option>
+                    <option value="OPTIONAL"         ${currentType==='OPTIONAL'         ? 'selected':''}>OPTIONAL</option>
+                    <option value="ALTERNATIVE"      ${currentType==='ALTERNATIVE'      ? 'selected':''}>ALTERNATIVE</option>
+                    <option value="VARIANT_SPECIFIC" ${currentType==='VARIANT_SPECIFIC' ? 'selected':''}>VARIANT_SPECIFIC</option>
+                </select>
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label style="font-size:0.8rem; color:#6f42c1; font-weight:600;">Config Rule</label><br>
+                <input id="ve_configRule" type="text" value="${escHtml(currentRule)}"
+                       placeholder="ENGINE_TYPE=V8 AND COLOR=RED"
+                       style="font-family:monospace; font-size:0.82rem; width:100%; padding:0.25rem 0.4rem; border:1px solid #d8b4fe; border-radius:4px;">
+            </div>
+            <div>
+                <label style="font-size:0.8rem; color:#6f42c1; font-weight:600;">Alternative Group</label><br>
+                <input id="ve_altGroup" type="text" value="${escHtml(currentAltGrp)}"
+                       placeholder="KUEHLER_GRUPPE"
+                       style="font-family:monospace; font-size:0.82rem; padding:0.25rem 0.4rem; border:1px solid #d8b4fe; border-radius:4px; width:160px;">
+            </div>
+            <div style="display:flex; gap:0.4rem; align-items:flex-end;">
+                <button class="btn btn-success btn-xs" onclick="saveVariantRule(${relationId}, this)">✓ Speichern</button>
+                <button class="btn btn-xs" style="background:#6c757d;color:#fff;"
+                        onclick="this.closest('.variant-edit-popup').remove()">✕</button>
+                <span id="ve_spinner_${relationId}" style="display:none;">⏳</span>
+            </div>
+        </div>`;
+    popup.appendChild(td);
+    tr.insertAdjacentElement('afterend', popup);
+    document.getElementById('ve_configRule').focus();
+}
+
+function saveVariantRule(relationId, btn) {
+    const spinner  = document.getElementById('ve_spinner_' + relationId);
+    const relType  = document.getElementById('ve_relationType').value;
+    const rule     = document.getElementById('ve_configRule').value.trim();
+    const altGroup = document.getElementById('ve_altGroup').value.trim();
+
+    spinner.style.display = 'inline';
+    btn.disabled = true;
+
+    fetch('/api/v1/variant/relations/' + relationId + '/rule', {
+        method:  'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            [CSRF_HEADER]: CSRF_TOKEN
+        },
+        body: JSON.stringify({
+            relationType:     relType,
+            configRule:       rule     || null,
+            alternativeGroup: altGroup || null
+        })
+    })
+    .then(r => {
+        if (!r.ok) return r.text().then(t => { throw new Error(t); });
+        // Seite neu laden um aktualisierten Baum zu zeigen
+        window.location.reload();
+    })
+    .catch(err => {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        alert('Fehler beim Speichern: ' + err.message);
+    });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1228,7 +1467,10 @@ function initAddForm() {
             quantity:           parseInt(
                                   document.getElementById('quantity').value),
             positionNumber:     document.getElementById('positionNumber').value || null,
-            referenceDesignator: document.getElementById('referenceDesignator').value || null
+            referenceDesignator: document.getElementById('referenceDesignator').value || null,
+            relationType:       document.getElementById('relationType').value || null,
+            configRule:         document.getElementById('configRule').value || null,
+            alternativeGroup:   document.getElementById('alternativeGroup').value || null
         };
 
         fetch('/structure/add', {

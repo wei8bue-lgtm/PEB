@@ -77,6 +77,14 @@ public class DesignStructure {
     @Column(name = "POSITION_NUMBER", length = 50)
     private String positionNumber;
 
+    // ── Placement (in-context) ────────────────────────────────────────────
+    @Column(name = "TRANSLATION_X") private Double translationX;
+    @Column(name = "TRANSLATION_Y") private Double translationY;
+    @Column(name = "TRANSLATION_Z") private Double translationZ;
+    @Column(name = "ROTATION_I")    private Double rotationI;
+    @Column(name = "ROTATION_J")    private Double rotationJ;
+    @Column(name = "ROTATION_K")    private Double rotationK;
+
     // ── Audit ─────────────────────────────────────────────────────────────
     @CreationTimestamp
     @Column(name = "CREATED_DATE", updatable = false)

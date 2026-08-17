@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="cim-tree-node(node, isRoot)" class="tree-node">
+        <div class="node-header">
+            <span style="font-weight:bold;" class="mono" th:text="${node.cimId}">CI00000001</span>
+            <span th:text="${node.name}">CIM Object</span>
+            <span style="color:#6c757d;" th:if="${node.revision != null}"
+                  th:text="${' Rev. ' + node.revision}">Rev. 01</span>
+            <span class="status-badge"
+                  th:classappend="${node.releaseStatus == 'WORKING'} ? 'status-working' : (${node.releaseStatus == 'RELEASED'} ? 'status-released' : 'status-obsolete')"
+                  th:text="${node.releaseStatus != null ? node.releaseStatus : 'UNKNOWN'}">
+                WORKING
+            </span>
+            <span th:if="${!isRoot and node.quantity != null}" style="color:#6c757d;">
+                (<span th:text="#{tree.qty}">Qty</span>: <span th:text="${node.quantity}">1</span>)
+            </span>
+            <span th:if="${!isRoot and node.positionNumber != null}" style="color:#6c757d;">
+                [<span th:text="#{tree.pos}">Pos</span>: <span th:text="${node.positionNumber}">10</span>]
+            </span>
+            <span th:if="${!isRoot and node.referenceDesignator != null and !#strings.isEmpty(node.referenceDesignator)}" style="color:#6c757d;">
+                [RefDes: <span class="mono" th:text="${node.referenceDesignator}">=101</span>]
+            </span>
+            <span th:if="${!isRoot and node.bmk != null and !#strings.isEmpty(node.bmk)}" style="color:#6c757d;">
+                [BMK: <span class="mono" th:text="${node.bmk}">=101+M-B301A</span>]
+            </span>
+            <span class="node-actions">
+                <a th:href="@{/cim/{id}(id=${node.cimId})}" class="btn btn-primary btn-sm" th:text="#{button.view}">View</a>
+            </span>
+        </div>
+        <div style="margin:.35rem 0 0 0; color:#6c757d;"
+             th:if="${node.sourceMaeObjectId != null or node.relationType != null or node.configRule != null or node.alternativeGroup != null or node.usageContext != null}">
+            <span th:if="${node.sourceMaeObjectId != null}">
+                Source MAE: <span class="mono" th:text="${node.sourceMaeObjectId + (node.sourceMaeObjectType != null ? ' (' + node.sourceMaeObjectType + ')' : '')}">MA00000001 (MA)</span>
+            </span>
+            <span th:if="${node.relationType != null}" th:text="${' | Relation: ' + node.relationType}"> | Relation: ALWAYS</span>
+            <span th:if="${node.alternativeGroup != null}" th:text="${' | AltGroup: ' + node.alternativeGroup}"> | AltGroup: GROUP_A</span>
+            <span th:if="${node.alternativePriority != null}" th:text="${' | AltPriority: ' + node.alternativePriority}"> | AltPriority: 10</span>
+            <span th:if="${node.configRule != null and !#strings.isEmpty(node.configRule)}" th:text="${' | Rule: ' + node.configRule}"> | Rule: ENGINE=V8</span>
+            <span th:if="${node.relationType == null and node.usageContext != null}" th:text="${' | Context: ' + node.usageContext}"> | Context: ALWAYS</span>
+        </div>
+        <div th:if="${!node.children.isEmpty()}" class="tree-children">
+            <div th:each="child : ${node.children}">
+                <div th:replace="~{fragments/cim-tree-node :: cim-tree-node(node=${child}, isRoot=${false})}"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

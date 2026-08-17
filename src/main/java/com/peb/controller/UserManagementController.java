@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -174,6 +175,20 @@ public class UserManagementController {
     @ResponseBody
     public ResponseEntity<List<PebUser>> apiGetUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/api/admin/users/{id}/department")
+    @ResponseBody
+    public ResponseEntity<?> apiGetUserDepartment(@PathVariable Long id) {
+        return userService.findById(id)
+                .<ResponseEntity<?>>map(user -> {
+                    Map<String, Object> payload = new LinkedHashMap<>();
+                    payload.put("id", user.getId());
+                    payload.put("username", user.getUsername());
+                    payload.put("department", user.getDepartment());
+                    return ResponseEntity.ok(payload);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/api/admin/users/{id}/role")

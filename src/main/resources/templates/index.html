@@ -78,12 +78,29 @@
 			<a th:href="@{/designs}" class="btn btn-primary">
 				📐 <span th:text="#{menu.designs}">Designs</span>
 			</a>
+			<a th:href="@{/designs}" class="btn btn-primary">
+				📐 <span th:text="#{menu.edesigns}">E-Designs</span>
+			</a>
+			<a th:href="@{/designs}" class="btn btn-primary">
+				📐 <span th:text="#{menu.sdesigns}">S-Designs</span>
+			</a>
 			<a th:href="@{/drawings}" class="btn btn-primary">
 				📏 <span th:text="#{menu.drawings}">Drawings</span>
 			</a>
 			<a th:href="@{/ebom}" class="btn btn-primary">
-				🧾 <span th:text="#{menu.ebom}">MAE BOM</span>
+				🧾 <span th:text="#{menu.ebom}">eBOM</span>
 			</a>
+            <a th:href="@{/cim}" class="btn btn-primary">
+                🧩 <span th:text="#{menu.cim}">CIM Integration</span>
+            </a>
+
+<!--             <div class="card" style="margin-top:1rem; border-left:4px solid #0ea5e9; background:#f0f9ff;">
+                <h3 style="margin-top:0;" th:text="#{cim.demoTitle}">CIM Demo Flow</h3>
+                <p style="margin:.25rem 0;" th:text="#{cim.demoStep1}">1. Create CIM from MAE</p>
+                <p style="margin:.25rem 0;" th:text="#{cim.demoStep2}">2. Validate and Release</p>
+                <p style="margin:.25rem 0 .75rem 0;" th:text="#{cim.demoStep3}">3. Import to Manufacturing</p>
+                <a th:href="@{/cim}" class="btn btn-success" th:text="#{cim.demoButton}">Open CIM Demo</a>
+            </div> -->
 			
             <hr style="margin:.75rem 0; border-color:#dee2e6;">
 
@@ -136,6 +153,10 @@
                 <a th:href="@{/admin/users}"
                    class="btn btn-admin-action">
                     👥 <span th:text="#{menu.userManagement}">Benutzerverwaltung</span>
+                </a>
+                <a th:href="@{/admin/monitoring}"
+                   class="btn btn-admin-action">
+                    📈 <span th:text="#{menu.monitoring}">Monitoring</span>
                 </a>
                 <button type="button" id="reindexSearchBtn" class="btn btn-admin-action">
                     🔄 <span th:text="#{menu.reindexSearch}">Suchindex neu aufbauen</span>

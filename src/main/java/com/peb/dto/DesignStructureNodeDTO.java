@@ -26,6 +26,12 @@ public class DesignStructureNodeDTO {
     private Long    structureId;
     private Integer quantity;
     private String  positionNumber;
+    private Double  translationX;
+    private Double  translationY;
+    private Double  translationZ;
+    private Double  rotationI;
+    private Double  rotationJ;
+    private Double  rotationK;
     private int     depth;
 
     @Builder.Default

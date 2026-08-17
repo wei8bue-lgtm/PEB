@@ -138,6 +138,55 @@ public class DialogflowCxAgentClient {
         return parseAgentResponse(response.body());
     }
 
+    /**
+     * Generischer Chat-Aufruf für Intent-Parsing.
+     * Liefert den ersten Text-Block aus der Agent-Antwort zurück.
+     */
+    public String detectIntentText(String prompt, String username, String languageCode) throws IOException {
+
+        if (!isAvailable()) {
+            throw new IllegalStateException(
+                    "KI-Agent nicht verfügbar. " +
+                    "Mögliche Ursachen: " +
+                    "(1) Service Account Key fehlt, " +
+                    "(2) GCP Project ID nicht konfiguriert, " +
+                    "(3) peb.chat.llm-enabled=false");
+        }
+
+        String sessionId = "peb-chat-" + UUID.randomUUID();
+        String endpoint = buildEndpointUrl(sessionId);
+        String body = buildTextRequestBody(prompt, languageCode == null || languageCode.isBlank() ? "de" : languageCode);
+
+        log.info("Sende Chat-Intent Prompt an Gemini Agent. Session: {}, User: {}", sessionId, username);
+
+        String bearerToken = getAccessToken();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .timeout(Duration.ofMillis(timeoutMs))
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Authorization", "Bearer " + bearerToken)
+                .header("X-Goog-User-Project", projectId)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Agent Request unterbrochen", e);
+        }
+
+        if (response.statusCode() != 200) {
+            throw new IOException(
+                    "Gemini Agent HTTP " + response.statusCode() +
+                            ": " + truncate(response.body()));
+        }
+
+        return extractFirstTextFromDetectIntentResponse(response.body());
+    }
+
     // ── Private Helpers (identisch zur vorherigen Version) ────
 
     private String buildEndpointUrl(String sessionId) {
@@ -170,7 +219,29 @@ public class DialogflowCxAgentClient {
         return objectMapper.writeValueAsString(root);
     }
 
+    private String buildTextRequestBody(String queryText, String languageCode)
+            throws IOException {
+
+        ObjectNode root = objectMapper.createObjectNode();
+        ObjectNode queryInput = objectMapper.createObjectNode();
+        ObjectNode text = objectMapper.createObjectNode();
+
+        text.put("text", queryText);
+        text.put("languageCode", languageCode);
+        queryInput.set("text", text);
+        root.set("queryInput", queryInput);
+
+        return objectMapper.writeValueAsString(root);
+    }
+
     private Map<String, String> parseAgentResponse(String body)
+            throws IOException {
+
+        String agentText = extractFirstTextFromDetectIntentResponse(body);
+        return extractBmkMap(agentText);
+        }
+
+        private String extractFirstTextFromDetectIntentResponse(String body)
             throws IOException {
 
         JsonNode root          = objectMapper.readTree(body);
@@ -190,7 +261,7 @@ public class DialogflowCxAgentClient {
             throw new IOException("Agent-Antwort enthält keinen Text.");
         }
 
-        return extractBmkMap(agentText);
+        return agentText;
     }
 
     private Map<String, String> extractBmkMap(String text)

@@ -94,6 +94,48 @@
         .btn-remove:hover    { background: #b02a37; }
         .btn-remove:disabled { opacity: 0.6; cursor: default; }
 
+        .btn-placement {
+            background: #6c757d;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2rem 0.45rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+        .btn-placement:hover    { background: #5a6268; }
+        .btn-placement.has-data { background: #0066cc; }
+        .btn-placement.has-data:hover { background: #0052a3; }
+
+        /* Placement modal */
+        #placementModal {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        #placementModal.open { display: flex; }
+        #placementModal .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            width: min(520px, 92vw);
+            box-shadow: 0 8px 32px rgba(0,0,0,.25);
+        }
+        #placementModal h3 { margin: 0 0 1rem; }
+        #placementModal .grid3 {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        #placementModal label { font-size: 0.85rem; display:block; margin-bottom:2px; }
+        #placementModal input { width:100%; box-sizing:border-box; padding:0.35rem 0.5rem;
+                                border:1px solid #ced4da; border-radius:4px; }
+
         .alert-warning {
             background: #fff3cd;
             color: #856404;
@@ -211,6 +253,17 @@
                     Working 🚩
                 </span>
 
+                <!-- Placement badge (only when at least one value set) -->
+                <span class="node-badge"
+                      th:if="${node.depth > 0
+                              and (node.translationX != null
+                                   or node.translationY != null
+                                   or node.translationZ != null
+                                   or node.rotationI != null
+                                   or node.rotationJ != null
+                                   or node.rotationK != null)}"
+                      title="Placement gesetzt">📐</span>
+
                 <!-- Actions -->
                 <div class="node-actions">
 
@@ -236,6 +289,28 @@
                                 this.dataset.childName,
                                 this)"
                             th:title="#{design.removeFromStructureTitle}" title="Remove from structure">✕</button>
+
+                    <!-- Edit Placement (only non-root, WRITE authority) -->
+                    <button th:if="${node.depth > 0}"
+                            sec:authorize="hasAuthority('WRITE')"
+                            th:classappend="${(node.translationX != null
+                                              or node.translationY != null
+                                              or node.translationZ != null
+                                              or node.rotationI != null
+                                              or node.rotationJ != null
+                                              or node.rotationK != null)
+                                             ? 'has-data' : ''}"
+                            class="btn-placement"
+                            th:data-structure-id="${node.structureId}"
+                            th:data-child-name="${node.name}"
+                            th:data-tx="${node.translationX}"
+                            th:data-ty="${node.translationY}"
+                            th:data-tz="${node.translationZ}"
+                            th:data-ri="${node.rotationI}"
+                            th:data-rj="${node.rotationJ}"
+                            th:data-rk="${node.rotationK}"
+                            onclick="openPlacementModal(this)"
+                            title="Placement bearbeiten">📐</button>
                 </div>
             </div>
         </div>
@@ -302,6 +377,41 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Translation / Rotation (optional) -->
+                <details style="margin-top:0.75rem;">
+                    <summary style="cursor:pointer; color:#6c757d; font-size:0.9rem;"
+                             th:text="#{label.translationRotationOptional}">
+                        ▸ Translation &amp; Rotation (optional)
+                    </summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr);
+                                gap:0.75rem; margin-top:0.75rem;">
+                        <div class="form-group" style="margin:0;">
+                            <label for="translationX" th:text="#{label.translationX}">Translation X</label>
+                            <input type="number" step="any" id="translationX" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label for="translationY" th:text="#{label.translationY}">Translation Y</label>
+                            <input type="number" step="any" id="translationY" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label for="translationZ" th:text="#{label.translationZ}">Translation Z</label>
+                            <input type="number" step="any" id="translationZ" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label for="rotationI" th:text="#{label.rotationI}">Rotation I</label>
+                            <input type="number" step="any" id="rotationI" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label for="rotationJ" th:text="#{label.rotationJ}">Rotation J</label>
+                            <input type="number" step="any" id="rotationJ" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label for="rotationK" th:text="#{label.rotationK}">Rotation K</label>
+                            <input type="number" step="any" id="rotationK" class="form-control">
+                        </div>
+                    </div>
+                </details>
             </form>
         </div>
     </div>
@@ -320,6 +430,32 @@
     </div>
 
 </div><!-- /container -->
+
+<!-- ══ Placement Modal ═══════════════════════════════════════ -->
+<div id="placementModal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+        <h3>📐 <span id="pmTitle">Placement</span></h3>
+        <div class="grid3">
+            <div><label th:text="#{label.translationX}">Translation X</label>
+                 <input type="number" step="any" id="pmTx"></div>
+            <div><label th:text="#{label.translationY}">Translation Y</label>
+                 <input type="number" step="any" id="pmTy"></div>
+            <div><label th:text="#{label.translationZ}">Translation Z</label>
+                 <input type="number" step="any" id="pmTz"></div>
+            <div><label th:text="#{label.rotationI}">Rotation I</label>
+                 <input type="number" step="any" id="pmRi"></div>
+            <div><label th:text="#{label.rotationJ}">Rotation J</label>
+                 <input type="number" step="any" id="pmRj"></div>
+            <div><label th:text="#{label.rotationK}">Rotation K</label>
+                 <input type="number" step="any" id="pmRk"></div>
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+            <button id="pmSave"   class="btn btn-success" onclick="savePlacement()">💾 Speichern</button>
+            <button id="pmCancel" class="btn btn-secondary" onclick="closePlacementModal()">✖ Abbrechen</button>
+        </div>
+        <p id="pmError" style="color:#dc3545; margin:0.5rem 0 0; display:none;"></p>
+    </div>
+</div>
 
 <!-- ══ Scripts ═══════════════════════════════════════════════ -->
 <script th:inline="javascript">
@@ -422,6 +558,14 @@
         }
     });
 
+    /* ── Helper ───────────────────────────────────────────── */
+    function parseFloatOrNull(id) {
+        const el = document.getElementById(id);
+        if (!el || el.value.trim() === '') return null;
+        const v = parseFloat(el.value);
+        return isNaN(v) ? null : v;
+    }
+
     /* ── Submit ───────────────────────────────────────────── */
     addChildForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -444,7 +588,13 @@
                 document.getElementById('quantity').value, 10) || 1,
             positionNumber:
                 document.getElementById('positionNumber')
-                        .value.trim() || null
+                        .value.trim() || null,
+            translationX: parseFloatOrNull('translationX'),
+            translationY: parseFloatOrNull('translationY'),
+            translationZ: parseFloatOrNull('translationZ'),
+            rotationI:    parseFloatOrNull('rotationI'),
+            rotationJ:    parseFloatOrNull('rotationJ'),
+            rotationK:    parseFloatOrNull('rotationK')
         };
 
         submitBtn.disabled    = true;
@@ -496,6 +646,71 @@
     };
 
 })();
+
+/* ── Placement Modal ─────────────────────────────────────── */
+let _pmStructureId = null;
+
+function openPlacementModal(btn) {
+    _pmStructureId = btn.dataset.structureId;
+    document.getElementById('pmTitle').textContent =
+        btn.dataset.childName + ' – Placement';
+    document.getElementById('pmTx').value = btn.dataset.tx !== 'null' ? (btn.dataset.tx || '') : '';
+    document.getElementById('pmTy').value = btn.dataset.ty !== 'null' ? (btn.dataset.ty || '') : '';
+    document.getElementById('pmTz').value = btn.dataset.tz !== 'null' ? (btn.dataset.tz || '') : '';
+    document.getElementById('pmRi').value = btn.dataset.ri !== 'null' ? (btn.dataset.ri || '') : '';
+    document.getElementById('pmRj').value = btn.dataset.rj !== 'null' ? (btn.dataset.rj || '') : '';
+    document.getElementById('pmRk').value = btn.dataset.rk !== 'null' ? (btn.dataset.rk || '') : '';
+    document.getElementById('pmError').style.display = 'none';
+    document.getElementById('placementModal').classList.add('open');
+}
+
+function closePlacementModal() {
+    document.getElementById('placementModal').classList.remove('open');
+    _pmStructureId = null;
+}
+
+function parseFloatField(id) {
+    const v = document.getElementById(id).value.trim();
+    return v === '' ? null : parseFloat(v);
+}
+
+function savePlacement() {
+    const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    const saveBtn = document.getElementById('pmSave');
+    const errEl   = document.getElementById('pmError');
+
+    saveBtn.disabled = true;
+    errEl.style.display = 'none';
+
+    fetch('/designs/structure/' + _pmStructureId + '/placement', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+        body: JSON.stringify({
+            translationX: parseFloatField('pmTx'),
+            translationY: parseFloatField('pmTy'),
+            translationZ: parseFloatField('pmTz'),
+            rotationI:    parseFloatField('pmRi'),
+            rotationJ:    parseFloatField('pmRj'),
+            rotationK:    parseFloatField('pmRk')
+        })
+    })
+    .then(r => {
+        if (!r.ok) return r.text().then(t => { throw new Error(t); });
+        window.location.reload();
+    })
+    .catch(err => {
+        errEl.textContent    = 'Fehler: ' + err.message;
+        errEl.style.display  = 'block';
+        saveBtn.disabled     = false;
+    });
+}
+
+/* Close modal on backdrop click */
+document.getElementById('placementModal')
+        .addEventListener('click', function (e) {
+            if (e.target === this) closePlacementModal();
+        });
 </script>
 
 </body>

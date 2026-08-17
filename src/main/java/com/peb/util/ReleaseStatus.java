@@ -5,6 +5,7 @@ package com.peb.util;
  */
 public enum ReleaseStatus {
     WORKING("Working", "🚩"),      // Yellow flag
+    IN_REVIEW("In Review", "🟨"),
     RELEASED("Released", "🏁"),    // Checkered flag
     OBSOLETE("Obsolete", "🚩");    // Red flag
 

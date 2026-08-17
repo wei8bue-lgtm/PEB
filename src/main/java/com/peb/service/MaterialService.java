@@ -151,6 +151,10 @@ public class MaterialService {
         rev.setCreatedBy(currentUser());
         MaterialRevision saved = materialRevisionRepository.save(rev);
         m.getRevisions().add(saved); // NEU: haelt In-Memory-Graph konsistent (wichtig fuer createMaterial -> Suchindexierung)
+
+        // Suchindex auf neue "latest revision" synchronisieren
+        searchIndexService.index(ObjectType.MATERIAL, m);
+
         return MaterialRevisionDTO.from(saved);
     }
 
@@ -184,6 +188,10 @@ public class MaterialService {
         rev.setReleasedBy(currentUser());
         rev.setReleasedDate(LocalDateTime.now());
         MaterialRevision saved = materialRevisionRepository.save(rev);
+
+        // Suchindex aktualisieren, damit releaseStatus/revision in der Suche korrekt sind
+        searchIndexService.index(ObjectType.MATERIAL, rev.getMaterial());
+
         log.info("Material-Revision {} ({}) freigegeben", materialId, rev.getRevision());
         return MaterialRevisionDTO.from(saved);
     }

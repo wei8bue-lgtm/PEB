@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{admin.monitoring.title}">System Monitoring - PEB</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1f2a37;
+            margin-top: 6px;
+        }
+        .metric-sub {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .chart-wrap {
+            margin-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+        .chart {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #f9fafb 0%, #eef2f7 100%);
+        }
+        .legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            color: #6b7280;
+        }
+        .connection-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .connection-table th,
+        .connection-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        .tag-ok {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .tag-warn {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
+
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+        <div class="user-info">
+            <span class="user-icon">👤</span>
+            <span sec:authentication="name">Benutzer</span>
+            <span class="role-badge role-admin" th:text="#{role.admin}">Admin</span>
+        </div>
+
+        <a th:href="@{/}" class="btn btn-secondary">← Home</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-header">
+        <h2 th:text="#{admin.monitoring.heading}">System Monitoring</h2>
+        <span id="statusBadge" class="tag-ok" th:text="#{admin.monitoring.live}">Live</span>
+    </div>
+
+    <div class="monitor-grid">
+        <div class="card">
+            <div class="metric-sub" th:text="#{admin.monitoring.cpuProcess}">Process CPU</div>
+            <div id="cpuProcessValue" class="metric-value">- %</div>
+            <div class="chart-wrap">
+                <canvas id="cpuProcessChart" class="chart" width="360" height="120"></canvas>
+                <div class="legend"><span>0%</span><span>100%</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="metric-sub" th:text="#{admin.monitoring.cpuSystem}">System CPU</div>
+            <div id="cpuSystemValue" class="metric-value">- %</div>
+            <div class="chart-wrap">
+                <canvas id="cpuSystemChart" class="chart" width="360" height="120"></canvas>
+                <div class="legend"><span>0%</span><span>100%</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="metric-sub" th:text="#{admin.monitoring.heap}">Heap</div>
+            <div id="heapValue" class="metric-value">- MB</div>
+            <div class="chart-wrap">
+                <canvas id="heapChart" class="chart" width="360" height="120"></canvas>
+                <div class="legend"><span>Used</span><span>Max</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="metric-sub" th:text="#{admin.monitoring.sessions}">Active HTTP Sessions</div>
+            <div id="sessionsValue" class="metric-value">-</div>
+            <div class="metric-sub" id="updatedAt">-</div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+        <h3 th:text="#{admin.monitoring.connections}">Active Connections</h3>
+        <table class="connection-table">
+            <thead>
+            <tr>
+                <th th:text="#{admin.monitoring.connActive}">Active</th>
+                <th th:text="#{admin.monitoring.connIdle}">Idle</th>
+                <th th:text="#{admin.monitoring.connTotal}">Total</th>
+                <th th:text="#{admin.monitoring.connAwaiting}">Awaiting</th>
+                <th th:text="#{common.status}">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td id="connActive">-</td>
+                <td id="connIdle">-</td>
+                <td id="connTotal">-</td>
+                <td id="connAwaiting">-</td>
+                <td><span id="connState" class="tag-ok">OK</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    (function () {
+        const points = 30;
+        const pollingMs = 5000;
+
+        const labels = {
+            loadError: /*[[#{admin.monitoring.loadError}]]*/ 'Monitoring data could not be loaded',
+            noData: /*[[#{admin.monitoring.noData}]]*/ 'No data'
+        };
+
+        const series = {
+            cpuProcess: [],
+            cpuSystem: [],
+            heapUsed: []
+        };
+
+        function push(arr, value) {
+            arr.push(value);
+            while (arr.length > points) arr.shift();
+        }
+
+        function text(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        function setConnState(active, total, awaiting) {
+            const el = document.getElementById('connState');
+            if (!el) return;
+
+            const safeActive = Number(active || 0);
+            const safeTotal = Number(total || 0);
+            const safeAwaiting = Number(awaiting || 0);
+            const ratio = safeTotal > 0 ? (safeActive / safeTotal) : 0;
+
+            if (safeAwaiting > 0 || ratio > 0.9) {
+                el.className = 'tag-warn';
+                el.textContent = 'HIGH';
+            } else {
+                el.className = 'tag-ok';
+                el.textContent = 'OK';
+            }
+        }
+
+        function draw(canvasId, data, maxValue, color) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.strokeStyle = '#d1d5db';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, h - 1);
+            ctx.lineTo(w, h - 1);
+            ctx.stroke();
+
+            const valid = data.filter(v => typeof v === 'number' && !Number.isNaN(v));
+            if (valid.length === 0) {
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(labels.noData, 10, 20);
+                return;
+            }
+
+            const upper = Math.max(maxValue, Math.max(...valid), 1);
+            const step = data.length > 1 ? w / (data.length - 1) : w;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            data.forEach((v, i) => {
+                const safe = (typeof v === 'number' && !Number.isNaN(v)) ? v : 0;
+                const x = i * step;
+                const y = h - (safe / upper) * (h - 8) - 4;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        async function tick() {
+            try {
+                const response = await fetch('/api/admin/monitoring/snapshot');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+
+                const payload = await response.json();
+                const metrics = payload.metrics || {};
+                const connections = payload.connections || {};
+
+                const cpuProcess = Number(metrics.processCpuPercent);
+                const cpuSystem = Number(metrics.systemCpuPercent);
+                const heapUsed = Number(metrics.heapUsedMb);
+                const heapMax = Number(metrics.heapMaxMb);
+
+                push(series.cpuProcess, Number.isFinite(cpuProcess) ? cpuProcess : NaN);
+                push(series.cpuSystem, Number.isFinite(cpuSystem) ? cpuSystem : NaN);
+                push(series.heapUsed, Number.isFinite(heapUsed) ? heapUsed : NaN);
+
+                text('cpuProcessValue', Number.isFinite(cpuProcess) ? cpuProcess.toFixed(2) + ' %' : '- %');
+                text('cpuSystemValue', Number.isFinite(cpuSystem) ? cpuSystem.toFixed(2) + ' %' : '- %');
+
+                if (Number.isFinite(heapUsed) && Number.isFinite(heapMax)) {
+                    text('heapValue', heapUsed.toFixed(2) + ' / ' + heapMax.toFixed(2) + ' MB');
+                } else if (Number.isFinite(heapUsed)) {
+                    text('heapValue', heapUsed.toFixed(2) + ' MB');
+                } else {
+                    text('heapValue', '- MB');
+                }
+
+                const sessions = Number(metrics.activeHttpSessions);
+                text('sessionsValue', Number.isFinite(sessions) ? sessions.toFixed(0) : '-');
+
+                text('connActive', String(connections.active ?? '-'));
+                text('connIdle', String(connections.idle ?? '-'));
+                text('connTotal', String(connections.total ?? '-'));
+                text('connAwaiting', String(connections.awaiting ?? '-'));
+                setConnState(connections.active, connections.total, connections.awaiting);
+
+                draw('cpuProcessChart', series.cpuProcess, 100, '#2563eb');
+                draw('cpuSystemChart', series.cpuSystem, 100, '#0891b2');
+                draw('heapChart', series.heapUsed, Number.isFinite(heapMax) ? heapMax : 1, '#7c3aed');
+
+                const ts = Number(payload.timestamp);
+                text('updatedAt', Number.isFinite(ts)
+                    ? new Date(ts).toLocaleString()
+                    : '-');
+
+                const statusBadge = document.getElementById('statusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'tag-ok';
+                    statusBadge.textContent = 'Live';
+                }
+            } catch (e) {
+                const statusBadge = document.getElementById('statusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'tag-warn';
+                    statusBadge.textContent = labels.loadError;
+                }
+            }
+        }
+
+        tick();
+        setInterval(tick, pollingMs);
+    })();
+</script>
+</body>
+</html>

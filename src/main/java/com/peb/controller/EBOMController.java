@@ -47,13 +47,7 @@ public class EBOMController {
     @PreAuthorize("hasAuthority('WRITE')")
     public String newEBOMForm(Model model) {
         model.addAttribute("ebomObject", new EBOMObjectDTO());
-        
-        // Filter out DESIGN and DRAWING from ObjectType enum
-        List<ObjectType> ebomTypes = Arrays.stream(ObjectType.values())
-            .filter(type -> type != ObjectType.DESIGN && type != ObjectType.DRAWING)
-            .collect(Collectors.toList());
-        
-        model.addAttribute("objectTypes", ebomTypes);
+        model.addAttribute("objectTypes", getAllowedEbomTypes());
         model.addAttribute("designs", designService.getAllDesigns());
         model.addAttribute("suppliers", supplierService.getReleasedActiveSuppliers());
         return "ebom-form";
@@ -76,12 +70,8 @@ public class EBOMController {
         } catch (Exception e) {
             model.addAttribute("error", "Failed to create eBOM object: " + e.getMessage());
             model.addAttribute("ebomObject", ebomDTO);
-            
-            // Re-add objectTypes and designs on error
-            List<ObjectType> ebomTypes = Arrays.stream(ObjectType.values())
-                .filter(type -> type != ObjectType.DESIGN && type != ObjectType.DRAWING)
-                .collect(Collectors.toList());
-            model.addAttribute("objectTypes", ebomTypes);
+
+            model.addAttribute("objectTypes", getAllowedEbomTypes());
             model.addAttribute("designs", designService.getAllDesigns());
             model.addAttribute("suppliers", supplierService.getReleasedActiveSuppliers());
             
@@ -137,8 +127,20 @@ public class EBOMController {
     public String updateEBOM(@PathVariable String id, @ModelAttribute EBOMObjectDTO ebomDTO) {
         ebomService.updateEBOMObject(id, ebomDTO.getName(), ebomDTO.getDepartment(),
                                      ebomDTO.getMass(), ebomDTO.getMaterial(), ebomDTO.getSupplier(),
-                                     ebomDTO.getLinkedDesignId());
+                                     ebomDTO.getLinkedDesignId(), ebomDTO.getBomType());
         return "redirect:/ebom/" + id;
+    }
+
+    private List<ObjectType> getAllowedEbomTypes() {
+        return Arrays.stream(ObjectType.values())
+                .filter(type -> type == ObjectType.MACHINE
+                             || type == ObjectType.SYSTEM
+                             || type == ObjectType.SUBSYSTEM
+                             || type == ObjectType.MODULE
+                             || type == ObjectType.SUBMODULE
+                             || type == ObjectType.PART
+                             || type == ObjectType.AUXILIARY)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/{id}/delete")

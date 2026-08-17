@@ -8,6 +8,7 @@ import com.peb.repository.product.ManufacturingBOMRepository;
 import com.peb.repository.product.ProductBOMRepository;
 import com.peb.repository.product.ProductDataRepository;
 import com.peb.service.product.ProductBOMService;
+import com.peb.service.product.ProductBOMStructureSnapshotService;
 import com.peb.service.product.RevisionChainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +30,7 @@ public class ProductBOMController {
     private final ProductDataRepository      pdRepo;
     private final ManufacturingBOMRepository mfgRepo;
     private final RevisionChainService       revisionChainService;
+        private final ProductBOMStructureSnapshotService snapshotService;
 
     // ── Liste ────────────────────────────────────────────────────
     @GetMapping
@@ -109,6 +111,7 @@ public class ProductBOMController {
 
 		// ── Revisionskette ────────────────────────────────────────
 		model.addAttribute("revisionChain", bom.getRevisions());
+                model.addAttribute("importedStructureTree", snapshotService.getSnapshotTree(id));
 
 		return "product-bom/detail";
 	}

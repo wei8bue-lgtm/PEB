@@ -1,5 +1,6 @@
 package com.peb.dto;
 
+import com.peb.util.BomType;
 import com.peb.util.ObjectType;
 import lombok.Data;
 
@@ -12,4 +13,5 @@ public class EBOMObjectDTO {
     private String material;
     private String supplier;
     private String linkedDesignId;
+    private BomType bomType;
 }

@@ -9,6 +9,7 @@ import com.peb.model.ebom.*;
 import com.peb.model.structure.StructureNode;
 import com.peb.model.structure.StructureRelation;
 import com.peb.service.*;
+import com.peb.util.BomType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +43,9 @@ public class StructureController {
     private final EBOMService      ebomService;
     private final DesignService    designService;
     private final DrawingService   drawingService;
-	private final DocumentService         documentService;         // ← NEU
-	private final DocumentTemplateService documentTemplateService; // ← NEU
+	private final DocumentService         documentService;
+	private final DocumentTemplateService documentTemplateService;
+	private final ConfigurationService    configurationService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // GET /structure/{objectId}
@@ -109,6 +111,14 @@ public class StructureController {
 			model.addAttribute("allowedTypes", allowedTypes);
 		}
 
+		// ── Variant / 150% BOM context ────────────────────────────────────
+		if (isEbomObject) {
+			EBOMObject ebomObject = (EBOMObject) mainObject;
+			model.addAttribute("bomType", ebomObject.getBomType().name());
+			model.addAttribute("configurations",
+					configurationService.getConfigurationsForObject(objectId));
+		}
+
 		return "structure-view";
 	}
 
@@ -136,7 +146,11 @@ public class StructureController {
                     dto.getChildRevisionId(),
                     dto.getQuantity(),
                     dto.getPositionNumber(),
-                    dto.getReferenceDesignator()   // ← NEW (Punkt 11)
+                    dto.getReferenceDesignator(),
+                    dto.getRelationType(),
+                    dto.getConfigRule(),
+                    dto.getAlternativeGroup(),
+                    dto.getAlternativePriority()
             );
             return ResponseEntity.ok(relation);
 

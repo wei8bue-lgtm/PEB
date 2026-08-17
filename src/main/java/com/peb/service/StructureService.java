@@ -150,6 +150,13 @@ public class StructureService {
 			childNode.setRelationId(child.getRelationId());                  // ← NEU
 			childNode.setReferenceDesignator(child.getReferenceDesignator()); // ← NEU
 			childNode.setBmk(child.getBmk());                                // ← NEU
+			// Variant / 150% BOM fields
+			if (child.getRelationType() != null) {
+				childNode.setRelationType(child.getRelationType().name());
+			}
+			childNode.setConfigRule(child.getConfigRule());
+			childNode.setAlternativeGroup(child.getAlternativeGroup());
+			childNode.setAlternativePriority(child.getAlternativePriority());
 			// ────────────────────────────────────────────────────────────────
 
 			childNode.setQuantity(child.getQuantity());
@@ -292,6 +299,21 @@ public class StructureService {
 			Integer quantity,   String positionNumber,
 			String referenceDesignator) {          // ← NEU
 
+		return addToStructure(parentId, parentRevisionId, childId, childRevisionId,
+				quantity, positionNumber, referenceDesignator, null, null, null, null);
+	}
+
+	@Transactional
+	public StructureRelation addToStructure(
+			String parentId,    Long parentRevisionId,
+			String childId,     Long childRevisionId,
+			Integer quantity,   String positionNumber,
+			String referenceDesignator,
+			String relationType,
+			String configRule,
+			String alternativeGroup,
+			Integer alternativePriority) {
+
 		validateStructureRelation(parentId, childId);
 
 		List<StructureRelation> existing =
@@ -313,10 +335,20 @@ public class StructureService {
 		relation.setChildRevisionId(childRevisionId);
 		relation.setQuantity(quantity != null ? quantity : 1);
 		relation.setPositionNumber(positionNumber);
-		relation.setReferenceDesignator(referenceDesignator);   // ← NEU
+		relation.setReferenceDesignator(referenceDesignator);
 
-		log.info("Added structure relation: {} → {} (refDes: {})",
-				 parentId, childId, referenceDesignator);
+		// Variant fields
+		if (relationType != null && !relationType.isBlank()) {
+			try {
+				relation.setRelationType(com.peb.util.BomRelationType.valueOf(relationType));
+			} catch (IllegalArgumentException ignored) { /* ungültiger Wert → Default ALWAYS */ }
+		}
+		relation.setConfigRule(configRule);
+		relation.setAlternativeGroup(alternativeGroup);
+		relation.setAlternativePriority(alternativePriority);
+
+		log.info("Added structure relation: {} → {} (refDes: {}, rule: {}, altGroup: {}, altPriority: {})",
+				 parentId, childId, referenceDesignator, configRule, alternativeGroup, alternativePriority);
 		return structureRelationRepository.save(relation);
 	}
 }

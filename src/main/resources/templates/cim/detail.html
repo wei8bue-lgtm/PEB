@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${cimObject.id + ' - ' + #messages.msg('cim.heading')}">CIM Detail</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <style>
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        @media(max-width:980px){ .grid { grid-template-columns:1fr; } }
+        .import-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start; }
+        @media(max-width:980px){ .import-grid { grid-template-columns:1fr; } }
+        .cim-tree {
+            background:#f8fbff;
+            border:1px solid #d9e7f5;
+            border-radius:8px;
+            padding:1rem;
+        }
+        .cim-parent-list {
+            margin:0;
+            padding-left:1.25rem;
+        }
+        .resolved-tree { font-family: monospace; font-size: 0.88rem; }
+        .rtree-node { padding: 0.3rem 0.5rem; border-left: 3px solid #198754; background: #f0fff4; border-radius:3px; margin:0.25rem 0; }
+        .rtree-badge { display:inline-block; padding:0.1rem 0.4rem; border-radius:10px; font-size:0.72rem; font-weight:600; }
+        .badge-reltype-always { background:#d1e7dd; color:#0a3622; border:1px solid #badbcc; }
+        .badge-reltype-optional { background:#fff3cd; color:#664d03; border:1px solid #ffecb5; }
+        .badge-reltype-variant_specific { background:#cfe2ff; color:#084298; border:1px solid #b6d4fe; }
+        .badge-reltype-alternative { background:#e2d9f3; color:#3d0b6d; border:1px solid #c5b8e8; }
+        .config-summary { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem; }
+        .option-tag { background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; border-radius:20px; padding:0.2rem 0.65rem; font-size:0.82rem; font-family:monospace; }
+    </style>
+</head>
+<body class="cim-page">
+<div class="header">
+    <div class="logo-placeholder">PEB</div>
+    <h1 th:text="${cimObject.name}">CIM Object</h1>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a th:href="@{/cim}" class="btn btn-primary" th:text="#{button.backToList}">Back</a>
+    </div>
+</div>
+
+<div class="container">
+    <div th:if="${successMessage}" class="card" style="background:#d4edda; border-color:#c3e6cb;">
+        <p style="margin:0; color:#155724;" th:text="${successMessage}">Success</p>
+    </div>
+    <div th:if="${errorMessage}" class="card" style="background:#f8d7da; border-color:#f5c6cb;">
+        <p style="margin:0; color:#721c24;" th:text="${errorMessage}">Error</p>
+    </div>
+
+    <div class="card">
+        <h2 th:text="#{cim.masterData}">CIM Master Data</h2>
+        <table style="width:100%; border-collapse:collapse;">
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa; width:220px;" th:text="#{cim.column.id}">CIM ID</th><td class="mono" th:text="${cimObject.id}" style="padding:.5rem;">CI00000001</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.name}">Name</th><td style="padding:.5rem;" th:text="${cimObject.name}">Name</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.department}">Department</th><td style="padding:.5rem;" th:text="${cimObject.department}">Dept</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.lifecycle}">Lifecycle</th><td style="padding:.5rem;" th:text="${cimObject.lifecycleState}">DRAFT</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.sourceMae}">Source MAE</th><td class="mono" style="padding:.5rem;" th:text="${cimObject.sourceMaeObjectId + ' (' + cimObject.sourceMaeObjectType + ')'}">MA00000001</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.currentRevision}">Current Revision</th><td style="padding:.5rem;" th:text="${latestRevision != null ? latestRevision.revision + ' / ' + latestRevision.releaseStatus : #messages.msg('common.unknown')}">01 / WORKING</td></tr>
+            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.sourceMaeName}">Source MAE Name</th><td style="padding:.5rem;" th:text="${maeObject != null ? maeObject.name : #messages.msg('common.unknown')}">MAE Name</td></tr>
+        </table>
+
+        <div sec:authorize="hasAuthority('WRITE')" style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;" th:if="${latestRevision != null}">
+            <form th:action="@{/cim/{id}/sync(id=${cimObject.id})}" method="post">
+                <button class="btn btn-primary" type="submit" th:text="#{cim.action.sync}">Sync from MAE</button>
+            </form>
+            <form th:action="@{/cim/revisions/{revId}/validate(revId=${latestRevision.revisionId})}" method="post">
+                <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
+                <button class="btn btn-primary" type="submit" th:text="#{cim.action.validate}">Validate</button>
+            </form>
+            <form th:if="${latestRevision.releaseStatus.name() == 'WORKING'}"
+                  th:action="@{/cim/revisions/{revId}/review(revId=${latestRevision.revisionId})}" method="post">
+                <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
+                <button class="btn btn-primary" style="background:#fd7e14; border-color:#fd7e14;" type="submit" th:text="#{cim.action.review}">Submit Review</button>
+            </form>
+            <form th:if="${latestRevision.releaseStatus.name() == 'WORKING' or latestRevision.releaseStatus.name() == 'IN_REVIEW'}"
+                  th:action="@{/cim/revisions/{revId}/release(revId=${latestRevision.revisionId})}" method="post" style="display:flex; gap:.3rem;">
+                <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
+                <input type="text" name="releaseComment" th:placeholder="#{cim.releaseComment}" style="min-width:260px;"/>
+                <button class="btn btn-success" type="submit" th:text="#{cim.action.release}">Release</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>CIM Structure Context</h3>
+        <div th:if="${not #lists.isEmpty(parentRelations)}" style="margin-bottom:1rem;">
+            <strong>Parent Context</strong>
+            <ul class="cim-parent-list">
+                <li th:each="rel : ${parentRelations}" style="margin:.35rem 0;">
+                    <span class="mono" th:text="${rel.parentCimRevision != null ? rel.parentCimRevision.cimObject.id : 'N/A'}">CIM parent</span>
+                    <span th:if="${rel.parentCimRevision != null and rel.parentCimRevision.cimObject != null}"
+                          th:text="${' - ' + rel.parentCimRevision.cimObject.name}">parent name</span>
+                    <span th:if="${rel.positionNumber != null}" th:text="${' [' + #messages.msg('tree.pos') + ': ' + rel.positionNumber + ']'}">[Pos: 10]</span>
+                </li>
+            </ul>
+        </div>
+        <div th:if="${structureTree == null}" style="color:#6c757d;">
+            No CIM structure available.
+        </div>
+        <div th:if="${structureTree != null}" class="cim-tree">
+            <div th:replace="~{fragments/cim-tree-node :: cim-tree-node(node=${structureTree}, isRoot=${true})}"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3 th:text="#{cim.revisions}">Revisions</h3>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                    <th style="padding:.5rem; text-align:left;" th:text="#{label.rev}">Rev</th>
+                    <th style="padding:.5rem; text-align:left;" th:text="#{label.status}">Status</th>
+                    <th style="padding:.5rem; text-align:left;" th:text="#{label.date}">Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${revisions}" style="border-bottom:1px solid #eee;">
+                    <td style="padding:.5rem;" th:text="${r.revision}">01</td>
+                    <td style="padding:.5rem;" th:text="${r.releaseStatus}">WORKING</td>
+                    <td style="padding:.5rem;" th:text="${r.createdDate != null ? #temporals.format(r.createdDate, 'dd.MM.yyyy HH:mm:ss') : #messages.msg('common.unknown')}">N/A</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 th:text="#{cim.validations}">Validations</h3>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.rule}">Rule</th>
+                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.severity}">Severity</th>
+                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.blocking}">Blocking</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(validations)}"><td colspan="3" style="padding:.5rem; color:#6c757d;" th:text="#{cim.noValidations}">No validations</td></tr>
+                <tr th:each="v : ${validations}" style="border-bottom:1px solid #eee;">
+                    <td style="padding:.5rem;" th:text="${v.ruleId + ' - ' + v.message}">Rule</td>
+                    <td style="padding:.5rem;" th:text="${v.severity}">ERROR</td>
+                    <td style="padding:.5rem;" th:text="${v.blocking}">true</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" sec:authorize="hasAuthority('WRITE')" th:if="${latestRevision != null}">
+        <h3 th:text="#{cim.importHeading}">Import to Manufacturing</h3>
+        <div class="import-grid">
+            <div>
+                <form th:if="${!#lists.isEmpty(sourceConfigurations)}" th:action="@{/cim/{id}(id=${cimObject.id})}" method="get" style="margin-bottom:1rem;">
+                    <label th:text="#{cim.import.configuration}">Source MAE Configuration</label>
+                    <select name="selectedConfigId" onchange="this.form.submit()" style="max-width:480px;">
+                        <option value="" th:text="#{cim.import.selectConfiguration}">-- Select configuration --</option>
+                        <option th:each="cfg : ${sourceConfigurations}"
+                                th:value="${cfg.id}"
+                                th:selected="${selectedConfigurationId != null and selectedConfigurationId == cfg.id}"
+                                th:text="${cfg.name + (cfg.orderNumber != null and !#strings.isEmpty(cfg.orderNumber) ? ' (' + cfg.orderNumber + ')' : '')}">
+                            Config A
+                        </option>
+                    </select>
+                    <p style="margin:.5rem 0 0 0; color:#6c757d;" th:text="#{cim.import.configurationHint}">
+                        Select the source MAE configuration to resolve the 100% BOM before import.
+                    </p>
+                </form>
+
+                <div th:if="${#lists.isEmpty(sourceConfigurations)}" style="margin-bottom:1rem; color:#6c757d;" th:text="#{cim.import.noConfigurations}">
+                    No source MAE configurations are defined. The full released CIM structure will be used.
+                </div>
+
+                <div th:if="${selectedConfiguration != null}" style="margin-bottom:1rem;">
+                    <strong th:text="#{variant.resolve.configLabel}">Configuration:</strong>
+                    <span th:text="${selectedConfiguration.name}">Config Name</span>
+                    <div class="config-summary" th:if="${selectedConfiguration.selectedOptions != null and !selectedConfiguration.selectedOptions.empty}">
+                        <span th:each="opt : ${selectedConfiguration.selectedOptions}" class="option-tag"
+                              th:text="${opt.optionClass.id + '=' + opt.code}">POWER=LOW</span>
+                    </div>
+                </div>
+
+                <div th:if="${configurationValidationErrors != null and !configurationValidationErrors.empty}"
+                     style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <strong>⚠️ Configuration is incomplete:</strong>
+                    <ul style="margin:0.25rem 0 0 1.25rem;">
+                        <li th:each="err : ${configurationValidationErrors}" th:text="${err}"></li>
+                    </ul>
+                </div>
+
+                <div th:if="${configurationResolveError != null and !#strings.isEmpty(configurationResolveError)}"
+                     style="background:#f8d7da;border:1px solid #dc3545;border-radius:4px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <strong th:text="#{cim.import.conflictHeading}">Variant resolution conflict:</strong>
+                    <div style="margin-top:.25rem;" th:text="${configurationResolveError}">Ambiguous alternative group...</div>
+                    <div style="margin-top:.35rem;" th:if="${configurationResolveConflictGroup != null}">
+                        <strong th:text="#{cim.import.conflictGroupLabel}">Affected alternative group:</strong>
+                        <span class="mono" th:text="${configurationResolveConflictGroup}">GROUP_A</span>
+                        <span th:if="${configurationResolveConflictPriority != null}" style="color:#6c757d;"
+                              th:text="${' (priority=' + configurationResolveConflictPriority + ')'}">(priority=10)</span>
+                    </div>
+                    <div style="margin-top:.35rem;" th:if="${configurationResolveConflictCandidates != null and !configurationResolveConflictCandidates.empty}">
+                        <strong th:text="#{cim.import.conflictCandidatesLabel}">Conflicting candidates:</strong>
+                        <ul style="margin:0.25rem 0 0 1.25rem;">
+                            <li th:each="cand : ${configurationResolveConflictCandidates}" class="mono" th:text="${cand}">PT00000001 [priority=10, pos=0010, rule=ENGINE=V8]</li>
+                        </ul>
+                    </div>
+                    <div style="margin-top:.25rem; color:#6c757d;" th:text="#{cim.import.conflictHint}">
+                        Please assign unique alternative priorities in the affected alternative group before import.
+                    </div>
+                </div>
+
+                <form th:action="@{/cim/revisions/{revId}/import(revId=${latestRevision.revisionId})}" method="post" style="display:grid; grid-template-columns: 1fr 1fr; gap:.6rem;">
+                    <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
+                    <input type="hidden" name="configurationId" th:value="${selectedConfigurationId}"/>
+                    <div>
+                        <label th:text="#{cim.importMode}">Import Mode</label>
+                        <select name="importMode" required>
+                            <option th:each="m : ${importModes}" th:value="${m}" th:text="${m}">INITIAL</option>
+                        </select>
+                    </div>
+                    <div></div>
+                    <div>
+                        <label th:text="#{cim.productDataName}">Product Data Name</label>
+                        <input type="text" name="productDataName" th:value="${'PD from ' + cimObject.id + (selectedConfiguration != null ? ' - ' + selectedConfiguration.name : '')}"/>
+                    </div>
+                    <div>
+                        <label th:text="#{cim.productBomName}">Product BOM Name</label>
+                        <input type="text" name="productBomName" th:value="${'PBOM from ' + cimObject.id + (selectedConfiguration != null ? ' - ' + selectedConfiguration.name : '')}"/>
+                    </div>
+                    <div>
+                        <label th:text="#{cim.manufacturingBomName}">Manufacturing BOM Name</label>
+                        <input type="text" name="manufacturingBomName" th:value="${'MBOM from ' + cimObject.id + (selectedConfiguration != null ? ' - ' + selectedConfiguration.name : '')}"/>
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button type="submit" class="btn btn-success"
+                                th:disabled="${(!#lists.isEmpty(sourceConfigurations) and selectedConfigurationId == null) or (configurationResolveError != null and !#strings.isEmpty(configurationResolveError))}"
+                                th:text="#{cim.action.import}">Import</button>
+                    </div>
+                </form>
+            </div>
+
+            <div>
+                <h4 th:text="#{cim.import.resolvedHeading}">Resolved 100% Structure</h4>
+                <p style="color:#6c757d; margin-top:0;" th:text="#{cim.import.resolvedHint}">
+                    Preview of the structure that will be transferred to manufacturing for the selected configuration.
+                </p>
+                <div th:if="${selectedConfiguration == null and !#lists.isEmpty(sourceConfigurations)}" style="color:#6c757d;">
+                    <span th:text="#{cim.import.selectConfigurationFirst}">Select a configuration to preview the resolved structure.</span>
+                </div>
+                <div th:if="${configurationResolveError != null and !#strings.isEmpty(configurationResolveError)}"
+                     style="color:#dc3545; margin-bottom:.5rem;"
+                     th:text="#{cim.import.noResolvedDueConflict}">
+                    The resolved structure preview is unavailable until the variant conflict is fixed.
+                </div>
+                <div th:if="${resolvedImportTree != null}" class="resolved-tree">
+                    <div th:replace="~{variant/resolve-node :: resolve-node(node=${resolvedImportTree}, depth=0)}"></div>
+                </div>
+                <div th:if="${resolvedImportTree == null and #lists.isEmpty(sourceConfigurations)}" style="color:#6c757d;" th:text="#{cim.import.noResolvedPreview}">
+                    No configuration-specific preview is required because no source MAE configurations exist.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 th:text="#{cim.links}">Manufacturing Links</h3>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+            <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
+                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.target}">Target</th>
+                <th style="padding:.5rem; text-align:left;" th:text="#{label.id}">ID</th>
+                <th style="padding:.5rem; text-align:left;" th:text="#{cim.import.configuration}">Configuration</th>
+                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.tokens}">Frozen Tokens</th>
+                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.mode}">Mode</th>
+                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.result}">Result</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(manufacturingLinks)}"><td colspan="6" style="padding:.5rem; color:#6c757d;" th:text="#{cim.noLinks}">No links</td></tr>
+            <tr th:each="l : ${manufacturingLinks}" style="border-bottom:1px solid #eee;">
+                <td style="padding:.5rem;" th:text="${l.targetType}">PRODUCT_DATA</td>
+                <td style="padding:.5rem;" class="mono" th:text="${l.targetId}">PD0001</td>
+                <td style="padding:.5rem;" th:text="${l.configurationName != null ? l.configurationName + ' (#' + l.configurationId + ')' : '—'}">Config</td>
+                <td style="padding:.5rem;" class="mono" th:text="${l.selectedOptionTokens != null ? l.selectedOptionTokens : '—'}">ENGINE=V8,COLOR=RED</td>
+                <td style="padding:.5rem;" th:text="${l.importMode}">INITIAL</td>
+                <td style="padding:.5rem;">
+                    <div th:text="${l.importResult}">SUCCESS</div>
+                    <div style="font-size:.8rem; color:#6c757d;" th:if="${l.message != null}" th:text="${l.message}">Imported from CIM...</div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

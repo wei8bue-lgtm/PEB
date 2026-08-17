@@ -14,6 +14,7 @@ import com.peb.repository.SubmoduleRepository;
 import com.peb.repository.SubsystemRepository;
 import com.peb.repository.SupplierRepository;
 import com.peb.repository.SystemRepository;
+import com.peb.repository.cim.CimObjectRepository;
 import com.peb.repository.product.ProductDataRepository;
 import com.peb.util.ObjectType;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,9 @@ public class IDGeneratorService {
     // ── NEU: Lieferantenmanagement ──────────────────────────────────
     private final SupplierRepository supplierRepository;
 
+        // ── NEU: CIM Integrationsschicht ────────────────────────────────
+        private final CimObjectRepository cimObjectRepository;
+
     @Transactional
     public synchronized String generateId(ObjectType objectType) {
         long sequence = getNextSequence(objectType);
@@ -66,6 +70,8 @@ public class IDGeneratorService {
 
             case PRODUCT_DATA ->
                     productDataRepository.findMaxSequence();
+            case CIM ->
+                    cimObjectRepository.findMaxSequence();
             case DOCUMENT_TEMPLATE ->
                     documentTemplateRepository.findMaxSequence();
             case DOCUMENT ->

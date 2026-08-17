@@ -41,4 +41,17 @@ public class StructureNode {
      * e.g. "=102+M-B301A".
      */
     private String bmk;
+
+    // ── 150% BOM / Variant fields ─────────────────────────────
+    /** Participation type in the 150% BOM (ALWAYS / OPTIONAL / …). */
+    private String relationType;
+
+    /** Configuration rule expression that guards this node, e.g. "ENGINE_TYPE=V8". */
+    private String configRule;
+
+    /** Alternative group name for mutually-exclusive siblings. */
+    private String alternativeGroup;
+
+    /** Lower value = higher selection priority inside an alternative group. */
+    private Integer alternativePriority;
 }

@@ -122,6 +122,7 @@
                         <tr>
                             <th th:text="#{label.username}">Benutzername</th>
                             <th th:text="#{label.displayName}">Anzeigename</th>
+                            <th th:text="#{label.department}">Abteilung</th>
                             <th th:text="#{label.email}">E-Mail</th>
                             <th th:text="#{label.role}">Rolle</th>
                             <th th:text="#{common.status}">Status</th>
@@ -131,7 +132,7 @@
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(users)}">
-                            <td colspan="7" class="no-data" th:text="#{admin.noUsersFound}">
+                            <td colspan="8" class="no-data" th:text="#{admin.noUsersFound}">
                                 Keine Benutzer gefunden.
                             </td>
                         </tr>
@@ -144,6 +145,7 @@
                                 <strong th:text="${user.username}">-</strong>
                             </td>
                             <td th:text="${user.displayName ?: '-'}">-</td>
+                            <td th:text="${user.department ?: '-'}">-</td>
                             <td>
                                 <a th:if="${user.email}"
                                    th:href="'mailto:' + ${user.email}"

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/*
+  Fragment: resolve-node
+  Recursively renders a StructureNode for the resolved 100% BOM view.
+  Usage: th:replace="~{variant/resolve-node :: resolve-node(node=${node}, depth=0)}"
+*/-->
+<div th:fragment="resolve-node(node, depth)">
+    <div class="rtree-node"
+         th:style="'margin-left: ' + (${depth} * 1.5) + 'rem;'">
+
+        <!-- Object type badge -->
+        <span style="color:#6c757d; font-size:0.78rem; margin-right:0.4rem;"
+              th:text="${node.objectType}">Part</span>
+
+        <!-- Object ID + Name -->
+        <strong th:text="${node.objectId}">PT00000001</strong>
+        <span th:text="${' – ' + node.name}"> – Part Name</span>
+
+        <!-- Qty -->
+        <span th:if="${node.quantity != null and node.quantity > 1}"
+              style="color:#6c757d; font-size:0.82rem; margin-left:0.4rem;"
+              th:text="'×' + ${node.quantity}">×2</span>
+
+        <!-- Revision / status -->
+        <span th:if="${node.revision}"
+              style="font-size:0.78rem; color:#495057; margin-left:0.4rem;"
+              th:text="'Rev. ' + ${node.revision}">Rev. A</span>
+
+        <!-- Relation type badge -->
+        <span th:if="${node.relationType != null and node.relationType != 'ALWAYS'}"
+              class="rtree-badge"
+              th:classappend="'badge-reltype-' + ${#strings.toLowerCase(node.relationType)}"
+              th:text="${node.relationType}">OPTIONAL</span>
+
+        <!-- Config rule (if present) -->
+        <span th:if="${node.configRule}"
+              style="font-size:0.75rem; color:#0d47a1; background:#e8f0fe;
+                     padding:0.1rem 0.4rem; border-radius:4px; margin-left:0.4rem; font-family:monospace;"
+              th:text="${node.configRule}">ENGINE_TYPE=V8</span>
+
+    </div>
+
+    <!-- Children (recursive) -->
+    <div th:if="${!node.children.empty}">
+        <div th:each="child : ${node.children}">
+            <div th:replace="~{variant/resolve-node :: resolve-node(node=${child}, depth=${depth + 1})}"></div>
+        </div>
+    </div>
+</div>
+</html>
