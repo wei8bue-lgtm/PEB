@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "name": "color",
+    "type": "sem",
+    "brand": "dremel",
+    "description": "semantic color tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": []
+  },
+  "sem": {
+    "color": {
+      "gradient": {
+        "horizontal": {
+          "$value": {
+            "type": "linear",
+            "angle": 90,
+            "color": "background"
+          },
+          "$type": "gradient",
+          "figma-type": "var.string"
+        },
+        "vertical": {
+          "$value": {
+            "type": "linear",
+            "angle": 180,
+            "color": "background"
+          },
+          "$type": "gradient",
+          "figma-type": "var.string"
+        },
+        "horizontal-inverted": {
+          "$value": {
+            "type": "linear",
+            "angle": -90,
+            "color": "background"
+          },
+          "$type": "gradient",
+          "figma-type": "var.string"
+        },
+        "vertical-inverted": {
+          "$value": {
+            "type": "linear",
+            "angle": 0,
+            "color": "background"
+          },
+          "$type": "gradient",
+          "figma-type": "var.string"
+        }
+      }
+    }
+  }
+}

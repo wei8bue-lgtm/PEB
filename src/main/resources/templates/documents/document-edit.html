@@ -7,19 +7,14 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="#{document.editTitle}">Dokument bearbeiten - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <style>.app-layout{display:flex;align-items:flex-start}.app-layout__content{flex:1 1 auto;min-width:0}.card form .form-group{margin-bottom:1.25rem}.a-text-area{margin-top:1.5rem}.a-text-area label{position:static!important;display:block;margin-bottom:.35rem}.a-text-area textarea{pointer-events:auto!important;overflow-y:auto!important;width:100%;box-sizing:border-box;resize:vertical}</style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{document.editHeading}">Dokument bearbeiten</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/documents/{id}(id=${documentId})}" class="btn btn-primary" th:text="#{button.backToDocument}">
-                Zurück zum Dokument
-            </a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{document.heading})}"></div>
 
-    <div class="container">
+    <div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
         <div class="card">
             <h2>
                 <span th:text="#{document.editHeadingShort}">Dokument bearbeiten</span>
@@ -32,19 +27,19 @@
             <form th:action="@{/documents/{id}(id=${documentId})}"
                   th:object="${document}" method="post">
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}"
                            required maxlength="255">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}"
                            maxlength="100">
                 </div>
 
-                <div class="form-group">
+                <div class="a-text-area">
                     <label for="description" th:text="#{label.description}">Beschreibung</label>
                     <textarea id="description" th:field="*{description}"
                               maxlength="1000" rows="3"></textarea>
@@ -62,7 +57,7 @@
                     </small>
                 </div>
 
-				<div class="form-group">
+                <div class="form-group a-text-field">
 					<label for="attribute1" th:text="#{label.attribute1}">Attribute 1</label>
 					<input type="text" id="attribute1" th:field="*{attribute1}"
 						   th:readonly="${attributesLocked}"
@@ -70,7 +65,7 @@
 					<small class="help-text" th:text="#{document.attr1Help}">Wert für {{Attribute1}} im Template</small>
 				</div>
 
-				<div class="form-group">
+                <div class="form-group a-text-field">
 					<label for="attribute2" th:text="#{label.attribute2}">Attribute 2</label>
 					<input type="text" id="attribute2" th:field="*{attribute2}"
 						   th:readonly="${attributesLocked}"
@@ -88,22 +83,26 @@
                 <input type="hidden" th:field="*{templateId}">
 
                 <div style="margin-top:2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Änderungen speichern</button>
-                    <a th:href="@{/documents/{id}(id=${documentId})}"
-                       class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                          <button type="submit" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-save"></i><span class="a-button__label" th:text="#{button.saveChanges}">Änderungen speichern</span></button>
+                          <button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/documents/{id}(id=${documentId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i><span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span></button>
                 </div>
             </form>
         </div>
 
-        <div class="card">
+<!--         <div class="card">
             <h3 th:text="#{docTemplate.notesHeading}">Hinweise</h3>
-            <ul>
-                <li th:text="#{document.editNote1}">Änderungen an den Attributen werden in die aktuelle Working-Revision übernommen.</li>
-                <li th:text="#{document.editNote2}">Nach dem Speichern: neues vorausgefülltes Template herunterladen, lokal bearbeiten und wieder hochladen.</li>
-                <li th:text="#{document.editNote3}">Freigegebene (RELEASED) oder veraltete (OBSOLETE) Revisionen bleiben unverändert.</li>
-            </ul>
-        </div>
+            <div class="a-text-area">
+                <textarea id="documentEditNotes" readonly tabindex="0"
+                          th:text="|#{document.editNote1}\n#{document.editNote2}\n#{document.editNote3}|">Änderungen an den Attributen werden übernommen.</textarea>
+            </div>
+        </div> -->
+		
+		<div class="a-text-area">
+			<textarea id="1" readonly tabindex="0" th:text="|#{docTemplate.notesHeading}&#10;#{document.editNote1}&#10;#{document.editNote2}&#10;#{document.editNote3}|">
+			</textarea>
+		</div>
     </div>
+    </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
     <style>
         .btn-secondary { background:#6c757d; color:white; }

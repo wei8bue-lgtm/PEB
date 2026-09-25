@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Material ' + ${material.id} + ' - PEB'"></title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
@@ -18,41 +20,55 @@
         .badge-bad  { color:#c5221f; font-weight:600; }
         .badge-na   { color:#5f6368; }
 
-        /* Revisions-Status-Badge, analog zur Design-Detailansicht */
-        .rev-table th, .rev-table td { padding:.9rem 1.5rem; }
-        .rev-status {
-            display:inline-flex; align-items:center; gap:.4rem;
-            padding:.3rem .9rem; border-radius:999px; font-weight:600; font-size:.85rem;
-            white-space:nowrap;
-        }
-        .rev-status-WORKING  { background:#f1f3f4; color:#3c4043; }
-        .rev-status-RELEASED { background:#e6f4ea; color:#137333; }
-        .rev-status-OBSOLETE { background:#fce8e6; color:#c5221f; }
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
+        .a-text-area { margin-top:1.5rem; }
+        .a-text-area textarea { pointer-events:auto !important; overflow-y:auto !important; -webkit-user-select:text; user-select:text; cursor:text; width:100%; box-sizing:border-box; min-height:160px; max-height:300px; resize:vertical; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="'Material ' + ${material.id} + ' – ' + ${material.name}"></h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/materials}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{material.title})}"></div>
 
+<div class="app-layout">
+    <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+    <div class="app-layout__content">
+        <div class="frontend-kit__example-wrapper -secondary">
+            <div class="e-container" style="margin:1rem auto;">
+                <div class="frontend-kit__example-wrapper -primary">
 <div class="container">
 
     <!-- Stammdaten -->
     <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
             <h3 th:text="#{material.masterData}">Stammdaten</h3>
-            <a sec:authorize="hasAuthority('WRITE')" th:href="@{'/materials/' + ${material.id} + '/edit'}" class="btn btn-secondary" th:text="#{button.edit}">Bearbeiten</a>
+            <div style="display:flex;gap:.75rem;align-items:center;">
+                <button type="button" class="a-button a-button--primary"
+                        th:onclick="|window.location.href='@{/materials}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.backToList}">Zur Liste</span>
+                </button>
+                <button sec:authorize="hasAuthority('WRITE')" type="button" class="a-button a-button--primary"
+                        th:onclick="|window.location.href='@{/materials/{id}/edit(id=${material.id})}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i>
+                    <span class="a-button__label" th:text="#{button.edit}">Bearbeiten</span>
+                </button>
+            </div>
         </div>
         <dl class="kv-grid">
             <dt th:text="#{label.materialGroup}">Werkstoffgruppe</dt><dd th:text="${material.materialGroup} ?: '–'"></dd>
             <dt th:text="#{label.specification}">Spezifikation</dt><dd th:text="${material.specification} ?: '–'"></dd>
-            <dt th:text="#{common.status}">Status</dt><dd th:text="${material.status}"></dd>
+            <dt th:text="#{common.status}">Status</dt>
+            <dd class="-with-icon-and-label" th:switch="${material.status}">
+                <i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                <i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
+                <i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                <i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
+                <span th:if="${material.status != null and material.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
+                <span th:if="${material.status != null and material.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
+                <span th:if="${material.status != null and material.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
+                <span th:if="${material.status != null and material.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+            </dd>
             <dt th:text="#{label.unitOfMeasure}">Mengeneinheit</dt><dd th:text="${material.unitOfMeasure} ?: '–'"></dd>
             <dt th:text="#{label.density}">Dichte</dt><dd th:text="${material.densityKgM3} ? ${material.densityKgM3} + ' kg/m³' : '–'"></dd>
             <dt th:text="#{label.tensileStrength}">Zugfestigkeit</dt><dd th:text="${material.tensileStrengthMpa} ? ${material.tensileStrengthMpa} + ' MPa' : '–'"></dd>
@@ -64,29 +80,86 @@
         <p th:if="${material.description}" th:text="${material.description}" style="margin-top:1rem;color:#555"></p>
     </div>
 
-    <!-- ECLASS -->
-    <div class="card" style="padding:.75rem 1rem">
-        <div th:if="${classification != null}">
-            <span th:text="#{eclass.classifiedAs(${classification.eclassCode}, ${classification.eclassName})}"></span>
+    <!-- ECLASS-Klassifizierung -->
+    <div class="card">
+        <h3 th:text="'🏷️ ' + #{eclass.classificationHeading}">🏷️ ECLASS-Klassifizierung</h3>
+        <div style="display:flex; gap:.5rem;" sec:authorize="hasAuthority('WRITE')">
+            <button type="button" class="a-button a-button--primary"
+                    th:onclick="|window.location.href='@{'/eclass/classify/MATERIAL/' + ${material.id}}'|">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                <span class="a-button__label"
+                      th:text="${classification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span>
+            </button>
+            <button type="button" class="a-button a-button--primary"
+                    th:onclick="|window.location.href='@{'/eclass/similar/MATERIAL/' + ${material.id}}'|">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-handlewithcare"></i>
+                <span class="a-button__label" th:text="#{button.similar}">Ähnliche</span>
+            </button>
         </div>
-        <a th:href="@{'/eclass/classify/MATERIAL/' + ${material.id}}" th:text="#{eclass.editClassification}">🏷️ ECLASS-Klassifizierung bearbeiten</a>
-        &nbsp;|&nbsp;
-        <a th:href="@{'/eclass/similar/MATERIAL/' + ${material.id}}" th:text="#{eclass.showSimilar}">🔄 Ähnliche Objekte anzeigen</a>
+
+        <div th:if="${classification != null}">
+            <table class="m-table" aria-label="ECLASS-Klassifizierung">
+                <tr>
+                    <th th:text="#{eclass.code}">ECLASS-Code</th>
+                    <td>
+                        <strong th:text="${classification.eclassCode}"></strong>
+                        &nbsp;
+                        <a th:href="@{'/eclass/objects/' + ${classification.eclassCode}}"
+                           style="font-size:.85rem; color:#1a73e8;" th:text="#{eclass.allObjectsOfCode}">
+                            Alle Objekte dieses Codes
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th th:text="#{eclass.designation}">Bezeichnung</th>
+                    <td th:text="${classification.eclassName}"></td>
+                </tr>
+                <tr>
+                    <th th:text="#{label.version}">Version</th>
+                    <td th:text="${classification.eclassVersion}"></td>
+                </tr>
+                <tr th:if="${classification.eclassIrdi != null}">
+                    <th>IRDI</th>
+                    <td><code style="font-size:.85rem;" th:text="${classification.eclassIrdi}"></code></td>
+                </tr>
+            </table>
+
+            <div th:if="${!classification.propertyValues.empty}" style="margin-top:.75rem;">
+                <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;" th:text="#{eclass.propertyValues}">Merkmalswerte</h4>
+                <table class="m-table" aria-label="Merkmalswerte">
+                    <tr th:each="entry : ${classification.propertyValues}">
+                        <th style="width:50%;" th:text="${classification.propertyNames[entry.key]}"></th>
+                        <td>
+                            <span th:text="${entry.value}"></span>
+                            <span th:if="${classification.propertyUnits[entry.key] != null}"
+                                  style="color:#888; font-size:.85rem;"
+                                  th:text="' ' + ${classification.propertyUnits[entry.key]}"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div th:unless="${classification != null}"
+             style="color:#888; display:flex; align-items:center; gap:.75rem; padding:.5rem 0;">
+            <span style="font-size:1.5rem; opacity:.4;">🏷️</span>
+            <span th:text="#{eclass.objectNotClassified}">Dieses Material ist noch nicht ECLASS-klassifiziert.</span>
+        </div>
     </div>
 
     <!-- Revisionen -->
     <div class="card">
         <h3 th:text="#{material.revisions}">Revisionen</h3>
-        <table class="table rev-table">
+        <table class="m-table" aria-label="Material revisions">
             <thead><tr><th th:text="#{label.rev}">Rev.</th><th th:text="#{common.status}">Status</th><th th:text="#{label.change}">Änderung</th><th th:text="#{lifecycle.history.createdBy}">Erstellt von</th><th th:text="#{label.date}">Datum</th><th></th></tr></thead>
             <tbody>
             <tr th:each="r : ${revisions}">
                 <td th:text="${r.revision}"></td>
-                <td>
-                    <span class="rev-status" th:classappend="'rev-status-' + ${r.releaseStatus.name()}">
-                        <span th:text="${r.releaseStatus.icon}"></span>
-                        <span th:text="${r.releaseStatus.displayName}"></span>
-                    </span>
+                <td class="-with-icon-and-label">
+                    <i th:if="${r.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                    <i th:if="${r.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                    <i th:if="${r.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                    <span th:text="${r.releaseStatus.displayName}">Working</span>
                 </td>
                 <td th:text="${r.changeDescription}"></td>
                 <td th:text="${r.createdBy}"></td>
@@ -97,7 +170,10 @@
                           th:action="@{'/materials/revisions/' + ${r.id} + '/release'}" method="post" style="display:inline">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
                         <input type="hidden" name="materialId" th:value="${material.id}"/>
-                        <button type="submit" class="btn btn-secondary" th:text="#{button.release}">Freigeben</button>
+                        <button type="submit" class="a-button a-button--primary -small">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-checkmark"></i>
+                            <span class="a-button__label" th:text="#{button.release}">Freigeben</span>
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -111,7 +187,10 @@
                 <input type="text" name="revision" placeholder="z.B. B" required style="width:80px"></div>
             <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.changeDescription}">Änderungsbeschreibung</label>
                 <input type="text" name="changeDescription" style="width:300px"></div>
-            <button type="submit" class="btn btn-primary" th:text="#{button.createRevision}">Revision anlegen</button>
+            <button type="submit" class="a-button a-button--primary">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                <span class="a-button__label" th:text="#{button.createRevision}">Revision anlegen</span>
+            </button>
         </form>
     </div>
 
@@ -149,55 +228,24 @@
                 <input type="date" name="nextReviewDate"
                        th:value="${material.compliance != null ? material.compliance.nextReviewDate : ''}">
             </div>
-            <div style="margin-top:.75rem">
+            <div class="a-text-area">
                 <label style="display:block;font-size:.85rem;color:#555;margin-bottom:.25rem" th:text="#{compliance.notes}">Notizen</label>
-                <textarea name="notes" rows="3" style="width:100%"
+                <textarea name="notes" rows="3"
                           th:text="${material.compliance != null ? material.compliance.notes : ''}"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:.75rem" th:text="#{button.saveCompliance}">Compliance-Daten speichern</button>
+            <button type="submit" class="a-button a-button--primary" style="margin-top:.75rem">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
+                <span class="a-button__label" th:text="#{button.saveCompliance}">Compliance-Daten speichern</span>
+            </button>
         </form>
     </div>
 
-    <!-- Lieferanten / AVL -->
-<!--     <div class="card">
-        <h3>Lieferanten (Approved Vendor List)</h3>
-        <table class="table">
-            <thead><tr><th>Lieferant</th><th>Teilenummer</th><th>Preis</th><th>Lieferzeit</th><th>Freigegeben</th><th>Bevorzugt</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="s : ${suppliers}">
-                <td th:text="${s.supplierName}"></td>
-                <td th:text="${s.supplierPartNumber}"></td>
-                <td th:text="${s.price} ? ${s.price} + ' ' + ${s.currency} : '–'"></td>
-                <td th:text="${s.leadTimeDays} ? ${s.leadTimeDays} + ' Tage' : '–'"></td>
-                <td th:text="${s.approved} ? '✓' : '–'"></td>
-                <td th:text="${s.preferred} ? '★' : '–'"></td>
-                <td>
-                    <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/suppliers/' + ${s.id} + '/delete'}" method="post" style="display:inline"
-                          onsubmit="return confirm('Lieferant wirklich entfernen?')">
-                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-                        <input type="hidden" name="materialId" th:value="${material.id}"/>
-                        <button type="submit" class="btn btn-danger">Entfernen</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <form sec:authorize="hasAuthority('WRITE')" th:action="@{'/materials/' + ${material.id} + '/suppliers'}" method="post"
-              style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
-            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-            <div><label style="display:block;font-size:.8rem;color:#888">Lieferant *</label><input type="text" name="supplierName" required></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Teilenummer</label><input type="text" name="supplierPartNumber"></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Preis</label><input type="number" step="0.0001" name="price" style="width:100px"></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Währung</label><input type="text" name="currency" value="EUR" style="width:60px"></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Lieferzeit (Tage)</label><input type="number" name="leadTimeDays" style="width:90px"></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Freigegeben</label>
-                <select name="approved"><option value="false">Nein</option><option value="true">Ja</option></select></div>
-            <div><label style="display:block;font-size:.8rem;color:#888">Bevorzugt</label>
-                <select name="preferred"><option value="false">Nein</option><option value="true">Ja</option></select></div>
-            <button type="submit" class="btn btn-primary">Lieferant hinzufügen</button>
-        </form>
-    </div> -->
+</div>
+                </div>
+            </div>
+        </div>
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
 </div>
 </body>
 </html>

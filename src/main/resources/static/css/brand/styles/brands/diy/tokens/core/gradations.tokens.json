@@ -1,0 +1,1203 @@
+{
+  "meta": {
+    "name": "gradations",
+    "type": "core",
+    "brand": "diy",
+    "description": "core gradation tokens for brand diy",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": []
+  },
+  "core": {
+    "yellow": {
+      "yellow 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_00_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-00"
+      },
+      "yellow 05": {
+        "$type": "color",
+        "$value": "#171000",
+        "id": "g_00_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-05"
+      },
+      "yellow 10": {
+        "$type": "color",
+        "$value": "#231a00",
+        "id": "g_00_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-10"
+      },
+      "yellow 15": {
+        "$type": "color",
+        "$value": "#2f2400",
+        "id": "g_00_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-15"
+      },
+      "yellow 20": {
+        "$type": "color",
+        "$value": "#3c2e00",
+        "id": "g_00_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-20"
+      },
+      "yellow 25": {
+        "$type": "color",
+        "$value": "#493900",
+        "id": "g_00_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-25"
+      },
+      "yellow 30": {
+        "$type": "color",
+        "$value": "#564400",
+        "id": "g_00_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-30"
+      },
+      "yellow 35": {
+        "$type": "color",
+        "$value": "#644f00",
+        "id": "g_00_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-35"
+      },
+      "yellow 40": {
+        "$type": "color",
+        "$value": "#725b00",
+        "id": "g_00_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-40"
+      },
+      "yellow 45": {
+        "$type": "color",
+        "$value": "#806700",
+        "id": "g_00_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-45"
+      },
+      "yellow 50": {
+        "$type": "color",
+        "$value": "#8f7300",
+        "id": "g_00_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-50"
+      },
+      "yellow 55": {
+        "$type": "color",
+        "$value": "#9e7f00",
+        "id": "g_00_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-55"
+      },
+      "yellow 60": {
+        "$type": "color",
+        "$value": "#ad8c00",
+        "id": "g_00_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-60"
+      },
+      "yellow 65": {
+        "$type": "color",
+        "$value": "#bd9900",
+        "id": "g_00_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-65"
+      },
+      "yellow 70": {
+        "$type": "color",
+        "$value": "#cda600",
+        "id": "g_00_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-70"
+      },
+      "yellow 75": {
+        "$type": "color",
+        "$value": "#deb300",
+        "id": "g_00_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-75"
+      },
+      "yellow 80": {
+        "$type": "color",
+        "$value": "#eec100",
+        "id": "g_00_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-80"
+      },
+      "yellow 85": {
+        "$type": "color",
+        "$value": "#ffcf00",
+        "id": "g_00_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-85"
+      },
+      "yellow 90": {
+        "$type": "color",
+        "$value": "#ffdf95",
+        "id": "g_00_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-90"
+      },
+      "yellow 95": {
+        "$type": "color",
+        "$value": "#ffefd1",
+        "id": "g_00_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-95"
+      },
+      "yellow 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_00_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-yellow-100"
+      }
+    },
+    "gray": {
+      "gray 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_01_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-00"
+      },
+      "gray 05": {
+        "$type": "color",
+        "$value": "#101112",
+        "id": "g_01_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-05"
+      },
+      "gray 10": {
+        "$type": "color",
+        "$value": "#1a1c1d",
+        "id": "g_01_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-10"
+      },
+      "gray 15": {
+        "$type": "color",
+        "$value": "#232628",
+        "id": "g_01_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-15"
+      },
+      "gray 20": {
+        "$type": "color",
+        "$value": "#2e3033",
+        "id": "g_01_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-20"
+      },
+      "gray 25": {
+        "$type": "color",
+        "$value": "#383b3e",
+        "id": "g_01_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-25"
+      },
+      "gray 30": {
+        "$type": "color",
+        "$value": "#43464a",
+        "id": "g_01_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-30"
+      },
+      "gray 35": {
+        "$type": "color",
+        "$value": "#4e5256",
+        "id": "g_01_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-35"
+      },
+      "gray 40": {
+        "$type": "color",
+        "$value": "#595e62",
+        "id": "g_01_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-40"
+      },
+      "gray 45": {
+        "$type": "color",
+        "$value": "#656a6f",
+        "id": "g_01_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-45"
+      },
+      "gray 50": {
+        "$type": "color",
+        "$value": "#71767c",
+        "id": "g_01_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-50"
+      },
+      "gray 55": {
+        "$type": "color",
+        "$value": "#7d8389",
+        "id": "g_01_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-55"
+      },
+      "gray 60": {
+        "$type": "color",
+        "$value": "#8a9097",
+        "id": "g_01_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-60"
+      },
+      "gray 65": {
+        "$type": "color",
+        "$value": "#979ea4",
+        "id": "g_01_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-65"
+      },
+      "gray 70": {
+        "$type": "color",
+        "$value": "#a4abb3",
+        "id": "g_01_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-70"
+      },
+      "gray 75": {
+        "$type": "color",
+        "$value": "#b2b9c0",
+        "id": "g_01_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-75"
+      },
+      "gray 80": {
+        "$type": "color",
+        "$value": "#c1c7cc",
+        "id": "g_01_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-80"
+      },
+      "gray 85": {
+        "$type": "color",
+        "$value": "#d0d4d8",
+        "id": "g_01_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-85"
+      },
+      "gray 90": {
+        "$type": "color",
+        "$value": "#e0e2e5",
+        "id": "g_01_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-90"
+      },
+      "gray 95": {
+        "$type": "color",
+        "$value": "#eff1f2",
+        "id": "g_01_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-95"
+      },
+      "gray 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_01_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-gray-100"
+      }
+    },
+    "green": {
+      "green 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_02_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-00"
+      },
+      "green 05": {
+        "$type": "color",
+        "$value": "#001507",
+        "id": "g_02_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-05"
+      },
+      "green 10": {
+        "$type": "color",
+        "$value": "#00210e",
+        "id": "g_02_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-10"
+      },
+      "green 15": {
+        "$type": "color",
+        "$value": "#002c14",
+        "id": "g_02_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-15"
+      },
+      "green 20": {
+        "$type": "color",
+        "$value": "#00381b",
+        "id": "g_02_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-20"
+      },
+      "green 25": {
+        "$type": "color",
+        "$value": "#004523",
+        "id": "g_02_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-25"
+      },
+      "green 30": {
+        "$type": "color",
+        "$value": "#00512a",
+        "id": "g_02_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-30"
+      },
+      "green 35": {
+        "$type": "color",
+        "$value": "#005f32",
+        "id": "g_02_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-35"
+      },
+      "green 40": {
+        "$type": "color",
+        "$value": "#006c3a",
+        "id": "g_02_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-40"
+      },
+      "green 45": {
+        "$type": "color",
+        "$value": "#007a42",
+        "id": "g_02_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-45"
+      },
+      "green 50": {
+        "$type": "color",
+        "$value": "#00884a",
+        "id": "g_02_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-50"
+      },
+      "green 55": {
+        "$type": "color",
+        "$value": "#219557",
+        "id": "g_02_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-55"
+      },
+      "green 60": {
+        "$type": "color",
+        "$value": "#37a264",
+        "id": "g_02_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-60"
+      },
+      "green 65": {
+        "$type": "color",
+        "$value": "#4ab073",
+        "id": "g_02_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-65"
+      },
+      "green 70": {
+        "$type": "color",
+        "$value": "#5ebd82",
+        "id": "g_02_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-70"
+      },
+      "green 75": {
+        "$type": "color",
+        "$value": "#72ca92",
+        "id": "g_02_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-75"
+      },
+      "green 80": {
+        "$type": "color",
+        "$value": "#86d7a2",
+        "id": "g_02_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-80"
+      },
+      "green 85": {
+        "$type": "color",
+        "$value": "#9be4b3",
+        "id": "g_02_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-85"
+      },
+      "green 90": {
+        "$type": "color",
+        "$value": "#b8efc9",
+        "id": "g_02_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-90"
+      },
+      "green 95": {
+        "$type": "color",
+        "$value": "#e2f5e7",
+        "id": "g_02_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-95"
+      },
+      "green 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_02_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-green-100"
+      }
+    },
+    "turquoise": {
+      "turquoise 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_03_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-00"
+      },
+      "turquoise 05": {
+        "$type": "color",
+        "$value": "#011413",
+        "id": "g_03_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-05"
+      },
+      "turquoise 10": {
+        "$type": "color",
+        "$value": "#02201e",
+        "id": "g_03_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-10"
+      },
+      "turquoise 15": {
+        "$type": "color",
+        "$value": "#032b28",
+        "id": "g_03_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-15"
+      },
+      "turquoise 20": {
+        "$type": "color",
+        "$value": "#053634",
+        "id": "g_03_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-20"
+      },
+      "turquoise 25": {
+        "$type": "color",
+        "$value": "#07423f",
+        "id": "g_03_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-25"
+      },
+      "turquoise 30": {
+        "$type": "color",
+        "$value": "#0a4f4b",
+        "id": "g_03_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-30"
+      },
+      "turquoise 35": {
+        "$type": "color",
+        "$value": "#0e5b57",
+        "id": "g_03_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-35"
+      },
+      "turquoise 40": {
+        "$type": "color",
+        "$value": "#116864",
+        "id": "g_03_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-40"
+      },
+      "turquoise 45": {
+        "$type": "color",
+        "$value": "#147671",
+        "id": "g_03_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-45"
+      },
+      "turquoise 50": {
+        "$type": "color",
+        "$value": "#18837e",
+        "id": "g_03_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-50"
+      },
+      "turquoise 55": {
+        "$type": "color",
+        "$value": "#2e908b",
+        "id": "g_03_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-55"
+      },
+      "turquoise 60": {
+        "$type": "color",
+        "$value": "#419e98",
+        "id": "g_03_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-60"
+      },
+      "turquoise 65": {
+        "$type": "color",
+        "$value": "#54aba5",
+        "id": "g_03_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-65"
+      },
+      "turquoise 70": {
+        "$type": "color",
+        "$value": "#66b8b2",
+        "id": "g_03_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-70"
+      },
+      "turquoise 75": {
+        "$type": "color",
+        "$value": "#79c5c0",
+        "id": "g_03_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-75"
+      },
+      "turquoise 80": {
+        "$type": "color",
+        "$value": "#8dd2cd",
+        "id": "g_03_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-80"
+      },
+      "turquoise 85": {
+        "$type": "color",
+        "$value": "#a1dfdb",
+        "id": "g_03_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-85"
+      },
+      "turquoise 90": {
+        "$type": "color",
+        "$value": "#b6ede8",
+        "id": "g_03_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-90"
+      },
+      "turquoise 95": {
+        "$type": "color",
+        "$value": "#def5f3",
+        "id": "g_03_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-95"
+      },
+      "turquoise 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_03_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-turquoise-100"
+      }
+    },
+    "blue": {
+      "blue 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_04_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-00"
+      },
+      "blue 05": {
+        "$type": "color",
+        "$value": "#001222",
+        "id": "g_04_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-05"
+      },
+      "blue 10": {
+        "$type": "color",
+        "$value": "#001d33",
+        "id": "g_04_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-10"
+      },
+      "blue 15": {
+        "$type": "color",
+        "$value": "#002742",
+        "id": "g_04_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-15"
+      },
+      "blue 20": {
+        "$type": "color",
+        "$value": "#003253",
+        "id": "g_04_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-20"
+      },
+      "blue 25": {
+        "$type": "color",
+        "$value": "#003e64",
+        "id": "g_04_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-25"
+      },
+      "blue 30": {
+        "$type": "color",
+        "$value": "#004975",
+        "id": "g_04_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-30"
+      },
+      "blue 35": {
+        "$type": "color",
+        "$value": "#005587",
+        "id": "g_04_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-35"
+      },
+      "blue 40": {
+        "$type": "color",
+        "$value": "#00629a",
+        "id": "g_04_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-40"
+      },
+      "blue 45": {
+        "$type": "color",
+        "$value": "#006ead",
+        "id": "g_04_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-45"
+      },
+      "blue 50": {
+        "$type": "color",
+        "$value": "#007bc0",
+        "id": "g_04_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-50"
+      },
+      "blue 55": {
+        "$type": "color",
+        "$value": "#0088d4",
+        "id": "g_04_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-55"
+      },
+      "blue 60": {
+        "$type": "color",
+        "$value": "#0096e8",
+        "id": "g_04_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-60"
+      },
+      "blue 65": {
+        "$type": "color",
+        "$value": "#00a4fd",
+        "id": "g_04_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-65"
+      },
+      "blue 70": {
+        "$type": "color",
+        "$value": "#56b0ff",
+        "id": "g_04_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-70"
+      },
+      "blue 75": {
+        "$type": "color",
+        "$value": "#7ebdff",
+        "id": "g_04_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-75"
+      },
+      "blue 80": {
+        "$type": "color",
+        "$value": "#9dc9ff",
+        "id": "g_04_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-80"
+      },
+      "blue 85": {
+        "$type": "color",
+        "$value": "#b8d6ff",
+        "id": "g_04_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-85"
+      },
+      "blue 90": {
+        "$type": "color",
+        "$value": "#d1e4ff",
+        "id": "g_04_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-90"
+      },
+      "blue 95": {
+        "$type": "color",
+        "$value": "#e8f1ff",
+        "id": "g_04_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-95"
+      },
+      "blue 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_04_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-blue-100"
+      }
+    },
+    "purple": {
+      "purple 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_05_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-00"
+      },
+      "purple 05": {
+        "$type": "color",
+        "$value": "#230421",
+        "id": "g_05_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-05"
+      },
+      "purple 10": {
+        "$type": "color",
+        "$value": "#340731",
+        "id": "g_05_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-10"
+      },
+      "purple 15": {
+        "$type": "color",
+        "$value": "#440c41",
+        "id": "g_05_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-15"
+      },
+      "purple 20": {
+        "$type": "color",
+        "$value": "#551151",
+        "id": "g_05_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-20"
+      },
+      "purple 25": {
+        "$type": "color",
+        "$value": "#671761",
+        "id": "g_05_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-25"
+      },
+      "purple 30": {
+        "$type": "color",
+        "$value": "#791d73",
+        "id": "g_05_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-30"
+      },
+      "purple 35": {
+        "$type": "color",
+        "$value": "#8b2284",
+        "id": "g_05_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-35"
+      },
+      "purple 40": {
+        "$type": "color",
+        "$value": "#9e2896",
+        "id": "g_05_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-40"
+      },
+      "purple 45": {
+        "$type": "color",
+        "$value": "#b12ea9",
+        "id": "g_05_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-45"
+      },
+      "purple 50": {
+        "$type": "color",
+        "$value": "#c535bc",
+        "id": "g_05_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-50"
+      },
+      "purple 55": {
+        "$type": "color",
+        "$value": "#d543cb",
+        "id": "g_05_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-55"
+      },
+      "purple 60": {
+        "$type": "color",
+        "$value": "#e552da",
+        "id": "g_05_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-60"
+      },
+      "purple 65": {
+        "$type": "color",
+        "$value": "#e472db",
+        "id": "g_05_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-65"
+      },
+      "purple 70": {
+        "$type": "color",
+        "$value": "#e48cdd",
+        "id": "g_05_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-70"
+      },
+      "purple 75": {
+        "$type": "color",
+        "$value": "#e5a2df",
+        "id": "g_05_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-75"
+      },
+      "purple 80": {
+        "$type": "color",
+        "$value": "#e8b6e3",
+        "id": "g_05_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-80"
+      },
+      "purple 85": {
+        "$type": "color",
+        "$value": "#ebcae8",
+        "id": "g_05_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-85"
+      },
+      "purple 90": {
+        "$type": "color",
+        "$value": "#f0dcee",
+        "id": "g_05_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-90"
+      },
+      "purple 95": {
+        "$type": "color",
+        "$value": "#f7eef6",
+        "id": "g_05_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-95"
+      },
+      "purple 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_05_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-purple-100"
+      }
+    },
+    "red": {
+      "red 00": {
+        "$type": "color",
+        "$value": "#000000",
+        "id": "g_06_00",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-00"
+      },
+      "red 05": {
+        "$type": "color",
+        "$value": "#2d0000",
+        "id": "g_06_01",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-05"
+      },
+      "red 10": {
+        "$type": "color",
+        "$value": "#410000",
+        "id": "g_06_02",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-10"
+      },
+      "red 15": {
+        "$type": "color",
+        "$value": "#540001",
+        "id": "g_06_03",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-15"
+      },
+      "red 20": {
+        "$type": "color",
+        "$value": "#680001",
+        "id": "g_06_04",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-20"
+      },
+      "red 25": {
+        "$type": "color",
+        "$value": "#7d0002",
+        "id": "g_06_05",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-25"
+      },
+      "red 30": {
+        "$type": "color",
+        "$value": "#920002",
+        "id": "g_06_06",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-30"
+      },
+      "red 35": {
+        "$type": "color",
+        "$value": "#a80003",
+        "id": "g_06_07",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-35"
+      },
+      "red 40": {
+        "$type": "color",
+        "$value": "#be0004",
+        "id": "g_06_08",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-40"
+      },
+      "red 45": {
+        "$type": "color",
+        "$value": "#d50005",
+        "id": "g_06_09",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-45"
+      },
+      "red 50": {
+        "$type": "color",
+        "$value": "#ed0007",
+        "id": "g_06_10",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-50"
+      },
+      "red 55": {
+        "$type": "color",
+        "$value": "#ff2124",
+        "id": "g_06_11",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-55"
+      },
+      "red 60": {
+        "$type": "color",
+        "$value": "#ff5152",
+        "id": "g_06_12",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-60"
+      },
+      "red 65": {
+        "$type": "color",
+        "$value": "#ff6e6f",
+        "id": "g_06_13",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-65"
+      },
+      "red 70": {
+        "$type": "color",
+        "$value": "#ff8787",
+        "id": "g_06_14",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-70"
+      },
+      "red 75": {
+        "$type": "color",
+        "$value": "#ff9d9d",
+        "id": "g_06_15",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-75"
+      },
+      "red 80": {
+        "$type": "color",
+        "$value": "#ffb2b2",
+        "id": "g_06_16",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-80"
+      },
+      "red 85": {
+        "$type": "color",
+        "$value": "#ffc6c6",
+        "id": "g_06_17",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-85"
+      },
+      "red 90": {
+        "$type": "color",
+        "$value": "#ffd9d9",
+        "id": "g_06_18",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-90"
+      },
+      "red 95": {
+        "$type": "color",
+        "$value": "#ffecec",
+        "id": "g_06_19",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-95"
+      },
+      "red 100": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "id": "g_06_20",
+        "gradation": "individual",
+        "opacity": "unset",
+        "var": "g-red-100"
+      }
+    }
+  }
+}

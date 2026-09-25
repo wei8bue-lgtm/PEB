@@ -7,9 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${ebomObject.name} + ' - PEB'">eBOM Object - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
         .btn-sm { font-size:0.875rem; padding:0.25rem 0.5rem; }
 
         /* ── Thumbnail Card ─────────────────────────────── */
@@ -99,15 +103,9 @@
 <body>
 
 <!-- ══ Header ════════════════════════════════════════════════ -->
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="${ebomObject.name}">eBOM Object Name</h1>
-    <div style="margin-left: auto;">
-        <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{ebom.title})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
     <!-- ══ Details-Karte ═══════════════════════════════════════ -->
     <div class="card">
@@ -117,27 +115,18 @@
                 Object Details
             </h2>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <a th:href="@{/ebom/{id}/edit(id=${ebomObject.id})}"
-                   class="btn btn-primary"
-                   sec:authorize="hasAuthority('WRITE')" th:text="'✏️ ' + #{button.edit}">
-                    ✏️ Edit
-                </a>
-                <a th:href="@{/structure/{id}(id=${ebomObject.id})}"
-                   class="btn btn-primary" th:text="#{button.viewStructure}">
-                    🔗 View Structure
-                </a>
+                <button type="button" class="a-button a-button--primary" sec:authorize="hasAuthority('WRITE')" th:onclick="|window.location.href='@{/ebom/{id}/edit(id=${ebomObject.id})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i><span class="a-button__label" th:text="#{button.edit}">Edit</span></button>
+                <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/structure/{id}(id=${ebomObject.id})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-structure"></i><span class="a-button__label" th:text="#{button.viewStructure}">View Structure</span></button>
                 <form th:action="@{/ebom/{id}/delete(id=${ebomObject.id})}"
                       method="post" style="display:inline;"
                       th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('ebom.confirmDeleteObject'))}');|"
                       sec:authorize="hasAuthority('DELETE')">
-                    <button type="submit" class="btn btn-danger" th:text="'🗑️ ' + #{button.delete}">
-                        🗑️ Delete
-                    </button>
+                    <button type="submit" class="a-button a-button--destructive-primary"><i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i><span class="a-button__label" th:text="#{button.delete}">Delete</span></button>
                 </form>
             </div>
         </div>
 
-        <table style="width:100%; border-collapse:collapse;">
+        <table class="m-table" aria-label="eBOM details">
             <tr>
                 <th style="width:200px; padding:0.5rem; text-align:left;
                            background:#f8f9fa;" th:text="#{label.type}">Type</th>
@@ -233,19 +222,10 @@
             <div style="display:flex; gap:0.5rem; align-items:center;">
 
                 <!-- Vollbild: öffnet Thumbnail-Endpunkt des verlinkten Designs -->
-                <a th:href="@{/designs/{id}/thumbnail(id=${linkedDesign.id})}"
-                   target="_blank"
-                   class="btn btn-primary btn-sm"
-                   id="thumbnailOpenBtn" th:text="#{button.fullscreen}">
-                    Vollbild ↗
-                </a>
+                <button type="button" class="a-button a-button--primary -small" id="thumbnailOpenBtn" th:onclick="|window.open('@{/designs/{id}/thumbnail(id=${linkedDesign.id})}', '_blank')|"><i class="a-icon a-button__icon boschicon-bosch-ic-fullscreen"></i><span class="a-button__label" th:text="#{button.fullscreen}">Vollbild</span></button>
 
                 <!-- Direkt zur Design-Detailseite -->
-                <a th:href="@{/designs/{id}(id=${linkedDesign.id})}"
-                   class="btn btn-primary btn-sm"
-                   th:title="#{ebom.toLinkedDesignTitle}" title="Zum verlinkten Design" th:text="#{button.designShort}">
-                    🔗 Design
-                </a>
+                <button type="button" class="a-button a-button--primary -small" th:onclick="|window.location.href='@{/designs/{id}(id=${linkedDesign.id})}'|" th:title="#{ebom.toLinkedDesignTitle}" title="Zum verlinkten Design"><i class="a-icon a-button__icon boschicon-bosch-ic-mechanic"></i><span class="a-button__label" th:text="#{button.designShort}">Design</span></button>
             </div>
         </div>
 
@@ -281,13 +261,7 @@
                     <span th:text="#{ebom.noThumbnailHintTrail}">hinzufügen (jpeg / jpg / bmp / png)</span>
                 </p>
                 <!-- Link zu Datasets des verlinkten Designs -->
-                <a th:if="${linkedDesign.latestRevision != null}"
-                   th:href="@{/datasets/manage/DESIGN/{id}(
-                               id=${linkedDesign.latestRevision.revisionId})}"
-                   class="btn btn-primary btn-sm"
-                   style="margin-top:0.5rem;" th:text="#{button.addDatasetInDesign}">
-                    📎 Dataset im Design hinzufügen
-                </a>
+                <button th:if="${linkedDesign.latestRevision != null}" type="button" class="a-button a-button--primary" style="margin-top:0.5rem;" th:onclick="|window.location.href='@{/datasets/manage/DESIGN/{id}(id=${linkedDesign.latestRevision.revisionId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-document-test"></i><span class="a-button__label" th:text="#{button.addDatasetInDesign}">Dataset im Design hinzufügen</span></button>
             </div>
         </div>
 
@@ -338,7 +312,7 @@
     <!-- ══ Synchronization Status ══════════════════════════════ -->
     <div class="card" th:if="${linkedDesign != null}">
         <h3 th:text="#{ebom.syncStatus}">Synchronization Status</h3>
-        <table style="width:100%; border-collapse:collapse;">
+        <table class="m-table" aria-label="Synchronization status">
             <tr>
                 <th style="width:200px; padding:0.5rem; text-align:left;
                            background:#f8f9fa;" th:text="#{ebom.massFromDesign}">Mass (from Design)</th>
@@ -390,8 +364,8 @@
                                   id=${ebomObject.id})}"
                       method="post" style="display:inline;"
                       th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('ebom.confirmReleaseFull'))}');|">
-                    <button type="submit" class="btn btn-success">
-                        🏁 <span th:text="#{button.release}">Release Revision</span>
+                    <button type="submit" class="a-button a-button--primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-checkmark"></i><span class="a-button__label" th:text="#{button.release}">Release Revision</span>
                     </button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
@@ -405,8 +379,8 @@
                 <form th:action="@{/api/workflows/ebom/{id}/revise(
                                   id=${ebomObject.id})}"
                       method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-primary" th:text="#{button.reviseCreateNew}">
-                        📝 Revise (Create New Revision)
+                    <button type="submit" class="a-button a-button--primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-document-save-to"></i><span class="a-button__label" th:text="#{button.reviseCreateNew}">Revise (Create New Revision)</span>
                     </button>
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
@@ -440,8 +414,7 @@
             No revisions found.
         </div>
 
-        <table th:unless="${ebomObject.revisions.empty}"
-               style="width:100%; border-collapse:collapse;">
+        <table th:unless="${ebomObject.revisions.empty}" class="m-table" aria-label="eBOM revisions">
             <thead>
                 <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
                     <th style="padding:0.75rem; text-align:left;" th:text="#{label.revision}">Revision</th>
@@ -458,18 +431,11 @@
                     <td style="padding:0.75rem;"
                         th:text="${revision.revision}">01</td>
 
-                    <td style="padding:0.75rem;">
-                        <span class="status-badge"
-                              th:classappend="
-                                ${revision.releaseStatus.name() == 'WORKING'}
-                                ? 'status-working'
-                                : (${revision.releaseStatus.name() == 'RELEASED'}
-                                   ? 'status-released'
-                                   : 'status-obsolete')"
-                              th:text="${revision.releaseStatus.displayName
-                                         + ' ' + revision.releaseStatus.icon}">
-                            Working 🚩
-                        </span>
+                    <td class="-with-icon-and-label">
+                        <i th:if="${revision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                        <i th:if="${revision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                        <i th:if="${revision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                        <span th:text="${revision.releaseStatus.displayName}">Working</span>
                     </td>
 
                     <td style="padding:0.75rem;"
@@ -482,11 +448,7 @@
                         th:text="${revision.createdBy}">admin</td>
 
                     <td style="padding:0.75rem;">
-                        <a th:href="@{/datasets/manage/EBOM/{id}(
-                                        id=${revision.revisionId})}"
-                           class="btn btn-primary btn-sm" th:text="#{button.datasetShort} + 's'">
-                            📎 Datasets
-                        </a>
+                        <button type="button" class="a-button a-button--primary -small" th:onclick="|window.location.href='@{/datasets/manage/EBOM/{id}(id=${revision.revisionId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-document-test"></i><span class="a-button__label" th:text="#{button.datasetShort} + 's'">Datasets</span></button>
                     </td>
                 </tr>
             </tbody>
@@ -501,18 +463,8 @@
 
         <div th:if="${ebomObject.latestRevision != null}">
             <div style="display:flex; gap:1rem; margin-top:1rem;">
-                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(
-                               id=${ebomObject.id},
-                               revId=${ebomObject.latestRevision.revisionId})}"
-                   class="btn btn-primary" download th:text="#{button.exportXmlSimple}">
-                    📄 Export XML (Simple)
-                </a>
-                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(
-                               id=${ebomObject.id},
-                               revId=${ebomObject.latestRevision.revisionId})}"
-                   class="btn btn-success" download th:text="#{button.exportXmlDetailed}">
-                    📋 Export XML (Detailed with Attributes)
-                </a>
+                <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/api/export/ebom/{id}/revisions/{revId}/xml(id=${ebomObject.id},revId=${ebomObject.latestRevision.revisionId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-download"></i><span class="a-button__label" th:text="#{button.exportXmlSimple}">Export XML (Simple)</span></button>
+                <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(id=${ebomObject.id},revId=${ebomObject.latestRevision.revisionId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-download"></i><span class="a-button__label" th:text="#{button.exportXmlDetailed}">Export XML (Detailed)</span></button>
             </div>
             <div style="margin-top:1rem; padding:1rem;
                         background:#f8f9fa; border-radius:4px;">
@@ -537,8 +489,6 @@
             No revision available for export. Create a revision first.
         </div>
     </div>
-
-</div><!-- /container -->
 
 <!-- ══ Scripts ═══════════════════════════════════════════════ -->
 <script>
@@ -582,25 +532,18 @@
 </script>
 
 <!-- ══ ECLASS-Klassifizierung ════════════════════════════════ -->
-<div class="card" style="border-left: 4px solid #1a73e8;">
+<div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;">
         <h3 style="margin:0;" th:text="'🏷️ ' + #{eclass.classificationHeading}">🏷️ ECLASS-Klassifizierung</h3>
         <div style="display:flex; gap:.5rem;" sec:authorize="hasAuthority('WRITE')">
-            <a th:href="@{'/eclass/classify/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}"
-               class="btn btn-primary btn-sm">
-                <span th:text="${eclassClassification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span>
-            </a>
-            <a th:if="${eclassClassification != null}"
-               th:href="@{'/eclass/similar/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}"
-               class="btn btn-secondary btn-sm" th:title="#{button.similarTitle}" title="Ähnliche Objekte finden" th:text="#{button.similar}">
-                🔄 Ähnliche
-            </a>
+            <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/eclass/classify/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label" th:text="${eclassClassification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span></button>
+            <button th:if="${eclassClassification != null}" type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/eclass/similar/' + ${ebomObject.objectType} + '/' + ${ebomObject.id}}'|" th:title="#{button.similarTitle}" title="Ähnliche Objekte finden"><i class="a-icon a-button__icon boschicon-bosch-ic-handlewithcare"></i><span class="a-button__label" th:text="#{button.similar}">Ähnliche</span></button>
         </div>
     </div>
 
     <!-- Klassifizierung vorhanden -->
     <div th:if="${eclassClassification != null}">
-        <table style="width:100%; border-collapse:collapse;">
+        <table class="m-table" aria-label="ECLASS classification">
             <tr>
                 <th style="width:180px; padding:.4rem; background:#f8f9fa;" th:text="#{eclass.code}">ECLASS-Code</th>
                 <td style="padding:.4rem;">
@@ -632,7 +575,7 @@
         <div th:if="${!eclassClassification.propertyValues.empty}"
              style="margin-top:.75rem;">
             <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;" th:text="#{eclass.propertyValues}">Merkmalswerte</h4>
-            <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
+            <table class="m-table" aria-label="ECLASS properties">
                 <tr th:each="entry : ${eclassClassification.propertyValues}">
                     <th style="width:50%; padding:.3rem .5rem; background:#f8f9fa; font-weight:500;"
                         th:text="${eclassClassification.propertyNames[entry.key]}"></th>
@@ -654,6 +597,10 @@
         <span th:text="#{eclass.objectNotClassified}">Dieses Objekt ist noch nicht ECLASS-klassifiziert.</span>
     </div>
 </div>
+
+</div></div></div></div></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</div></div>
 
 </body>
 </html>

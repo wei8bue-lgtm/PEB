@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Controller for Drawing operations
@@ -29,10 +30,28 @@ public class DrawingController {
     // ── List ──────────────────────────────────────────────────────────────────
 
     @GetMapping
-    public String listDrawings(Model model) {
+    public String listDrawings(
+            @RequestParam(required = false) String search,
+            Model model) {
         List<Drawing> drawings = drawingService.getAllDrawings();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase(Locale.ROOT);
+            drawings = drawings.stream()
+                    .filter(d -> contains(d.getId(), term)
+                            || contains(d.getName(), term)
+                            || contains(d.getDepartment(), term)
+                            || contains(d.getCreatedBy(), term))
+                    .toList();
+        }
+
+        model.addAttribute("search", search);
         model.addAttribute("drawings", drawings);
         return "drawing-list";
+    }
+
+    private static boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     // ── New Form ──────────────────────────────────────────────────────────────

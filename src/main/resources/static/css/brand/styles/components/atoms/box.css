@@ -1,0 +1,1 @@
+.a-box{display:inline-block;outline:.0625rem solid var(--floating-outline)}.a-box--modal{align-items:center;backdrop-filter:blur(var(--sem__background-blur__dim));background-color:var(--dimmer-background);display:none;height:100vh;justify-content:center;left:0;position:fixed;top:0;width:100vw}.a-box--modal.-show{display:flex}body.-unscrollable{overflow:hidden}

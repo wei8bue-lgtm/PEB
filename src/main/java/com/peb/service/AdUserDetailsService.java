@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -49,8 +50,8 @@ public class AdUserDetailsService implements UserDetailsContextMapper {
 
         // ── Whitelist-Prüfung ─────────────────────────────────
         PebUser pebUser = userRepository
-                .findByUsernameIgnoreCase(normalizedUsername)
-                .orElse(null);
+            .findByUsernameIgnoreCase(normalizedUsername)
+            .orElseGet(() -> findLegacyDeUser(normalizedUsername));
 
         if (pebUser == null) {
             pebUser = new PebUser(
@@ -145,13 +146,26 @@ public class AdUserDetailsService implements UserDetailsContextMapper {
 
     private String extractUsername(String username) {
         if (username == null) return "";
-        if (username.contains("@"))
-            return username.substring(0, username.indexOf("@"))
-                          .toLowerCase().trim();
-        if (username.contains("\\"))
-            return username.substring(username.lastIndexOf("\\") + 1)
-                          .toLowerCase().trim();
-        return username.toLowerCase().trim();
+        String value = username.trim();
+        int separator = value.indexOf('\\');
+        if (separator > 0 && separator < value.length() - 1) {
+            return value.substring(0, separator).trim().toUpperCase(Locale.ROOT)
+                    + "\\"
+                    + value.substring(separator + 1).trim().toLowerCase(Locale.ROOT);
+        }
+        if (value.contains("@")) {
+            return value.substring(0, value.indexOf("@"))
+                    .toLowerCase(Locale.ROOT).trim();
+        }
+        return value.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private PebUser findLegacyDeUser(String normalizedUsername) {
+        if (!normalizedUsername.startsWith("DE\\")) {
+            return null;
+        }
+        return userRepository.findByUsernameIgnoreCase(
+            normalizedUsername.substring("DE\\".length())).orElse(null);
     }
 
     private String getAttr(DirContextOperations ctx,

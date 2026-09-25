@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "name": "asset",
+    "type": "sem",
+    "brand": "dremel",
+    "description": "semantic asset tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": []
+  },
+  "sem": {
+    "asset": {
+      "themes": [
+        {
+          "$value": "dremel--light-mode",
+          "colorMode": "light.tokens.json",
+          "importName": "light",
+          "var": "--theme",
+          "figma-type": "var.string"
+        }
+      ],
+      "supergraphic": {
+        "$type": "file",
+        "$description": "super graphic as SVG to be used in header components",
+        "figma-type": "var.string",
+        "$value": "url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbGw9JyMwMDU5OUUnLz48L3N2Zz4=)"
+      }
+    }
+  }
+}

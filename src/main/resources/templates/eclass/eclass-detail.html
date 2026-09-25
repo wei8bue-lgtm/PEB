@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{eclass.detailTitle}">ECLASS Klassen-Detail - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout { display: flex; align-items: flex-start; }
+        .app-layout__content { flex: 1 1 auto; min-width: 0; }
         .irdi-badge {
             font-family: monospace; background: #f8f9fa; border: 1px solid #dee2e6;
             padding: .15rem .5rem; border-radius: 3px; font-size: .85rem;
@@ -25,16 +29,9 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="#{eclass.detailHeading}">ECLASS Klassen-Detail</h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/eclass}" class="btn btn-secondary">← <span th:text="#{button.catalog}">Katalog</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{eclass.detailHeading})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
     <!-- Hierarchie-Pfad -->
     <div class="card">
@@ -62,7 +59,7 @@
         </div>
 
         <!-- Hauptattribute -->
-        <table class="table">
+        <table class="m-table">
             <tr>
                 <th th:text="#{eclass.code}">ECLASS-Code</th>
                 <td><strong th:text="${eclassClass.code}"></strong></td>
@@ -94,15 +91,17 @@
         </table>
 
         <!-- Objekte dieser Klasse -->
-        <a th:href="@{'/eclass/objects/' + ${eclassClass.code}}" class="btn btn-secondary" th:text="#{eclass.showAllObjectsOfClass}">
-            🔍 Alle Objekte dieser Klasse anzeigen
-        </a>
+        <button type="button" class="a-button a-button--primary"
+                th:onclick="|window.location.href='@{'/eclass/objects/' + ${eclassClass.code}}'|">
+            <i class="a-icon a-button__icon boschicon-bosch-ic-search"></i>
+            <span class="a-button__label" th:text="#{eclass.showAllObjectsOfClass}">Alle Objekte dieser Klasse anzeigen</span>
+        </button>
     </div>
 
     <!-- Merkmale / Properties -->
     <div class="card" th:if="${eclassClass.properties != null and !eclassClass.properties.empty}">
         <h3><span th:text="#{eclass.propertiesHeading}">Merkmale</span> (<span th:text="${eclassClass.properties.size()}"></span>)</h3>
-        <table class="table prop-table">
+        <table class="m-table prop-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -131,5 +130,6 @@
     </div>
 
 </div>
+ </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 </body>
 </html>

@@ -1,81 +1,149 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
-    <title th:text="#{ebom.listTitle}">MAE BOM - PEB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{app.title}">SEP4Eng - Synchronous Engineering Platform</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .ebom-section {
+            margin-bottom: 1.5rem;
+        }
+        .ebom-section h4 {
+            margin-bottom: 0.5rem;
+            color: var(--color-primary, #005691);
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{ebom.listHeading}">MAE BOM Management</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
+
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{ebom.listHeading})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin:1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
+            <div class="container">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3 style="margin:0" th:text="#{ebom.allObjects}">All MAE BOM Objects</h3>
+                        <sec:authorize access="hasAuthority('WRITE')">
+                            <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/ebom/new}'|">
+                                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                                <span class="a-button__label" th:text="#{button.newEbomObject}">+ Create New MAE BOM Object</span>
+                            </button>
+                        </sec:authorize>
+                    </div>
+
+                    <!-- Machines -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.machines}">Machines</h4>
+                        <p th:if="${machines.empty}" style="color:#888;" th:text="#{ebom.noMachines}">No machines found.</p>
+                        <ul th:unless="${machines.empty}">
+                            <li th:each="m : ${machines}">
+                                <a th:href="@{'/ebom/' + ${m.id}}" th:text="${m.id + ' - ' + m.name}">MA00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Systems -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.systems}">Systems</h4>
+                        <p th:if="${systems.empty}" style="color:#888;" th:text="#{ebom.noSystems}">No systems found.</p>
+                        <ul th:unless="${systems.empty}">
+                            <li th:each="s : ${systems}">
+                                <a th:href="@{'/ebom/' + ${s.id}}" th:text="${s.id + ' - ' + s.name}">SY00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Subsystems -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.subsystems}">Subsystems</h4>
+                        <p th:if="${subsystems.empty}" style="color:#888;" th:text="#{ebom.noSubsystems}">No subsystems found.</p>
+                        <ul th:unless="${subsystems.empty}">
+                            <li th:each="su : ${subsystems}">
+                                <a th:href="@{'/ebom/' + ${su.id}}" th:text="${su.id + ' - ' + su.name}">SU00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Modules -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.modules}">Modules</h4>
+                        <p th:if="${modules.empty}" style="color:#888;" th:text="#{ebom.noModules}">No modules found.</p>
+                        <ul th:unless="${modules.empty}">
+                            <li th:each="mo : ${modules}">
+                                <a th:href="@{'/ebom/' + ${mo.id}}" th:text="${mo.id + ' - ' + mo.name}">MO00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Submodules -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.submodules}">Submodules</h4>
+                        <p th:if="${submodules.empty}" style="color:#888;" th:text="#{ebom.noSubmodules}">No submodules found.</p>
+                        <ul th:unless="${submodules.empty}">
+                            <li th:each="mu : ${submodules}">
+                                <a th:href="@{'/ebom/' + ${mu.id}}" th:text="${mu.id + ' - ' + mu.name}">MU00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Parts -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.parts}">Parts</h4>
+                        <p th:if="${parts.empty}" style="color:#888;" th:text="#{ebom.noParts}">No parts found.</p>
+                        <ul th:unless="${parts.empty}">
+                            <li th:each="p : ${parts}">
+                                <a th:href="@{'/ebom/' + ${p.id}}" th:text="${p.id + ' - ' + p.name}">PT00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Auxiliaries -->
+                    <div class="ebom-section">
+                        <h4 th:text="#{ebom.auxiliaries}">Auxiliaries</h4>
+                        <p th:if="${auxiliaries.empty}" style="color:#888;" th:text="#{ebom.noAuxiliaries}">No auxiliaries found.</p>
+                        <ul th:unless="${auxiliaries.empty}">
+                            <li th:each="ax : ${auxiliaries}">
+                                <a th:href="@{'/ebom/' + ${ax.id}}" th:text="${ax.id + ' - ' + ax.name}">AX00000001</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
         </div>
     </div>
-    <div class="container">
-        <div class="card">
-            <h2 th:text="#{ebom.allObjects}">All MAE BOM Objects</h2>
-            <a th:href="@{/ebom/new}" class="btn btn-success" th:text="#{button.newEbomObject}">+ Create New MAE BOM Object</a>
-            
-            <h3 th:text="#{ebom.machines}">Machines</h3>
-            <p th:if="${machines.empty}" th:text="#{ebom.noMachines}">No machines found.</p>
-            <ul th:unless="${machines.empty}">
-                <li th:each="m : ${machines}">
-                    <a th:href="@{/ebom/{id}(id=${m.id})}" th:text="${m.id + ' - ' + m.name}">MA00000001</a>
-                </li>
-            </ul>
 
-            <h3 th:text="#{ebom.systems}">Systems</h3>
-            <p th:if="${systems.empty}" th:text="#{ebom.noSystems}">No systems found.</p>
-            <ul th:unless="${systems.empty}">
-                <li th:each="s : ${systems}">
-                    <a th:href="@{/ebom/{id}(id=${s.id})}" th:text="${s.id + ' - ' + s.name}">SY00000001</a>
-                </li>
-            </ul>
-			
-			<h3 th:text="#{ebom.subsystems}">Subsystems</h3>
-            <p th:if="${subsystems.empty}" th:text="#{ebom.noSubsystems}">No subsystems found.</p>
-            <ul th:unless="${subsystems.empty}">
-                <li th:each="su : ${subsystems}">
-                    <a th:href="@{/ebom/{id}(id=${su.id})}" th:text="${su.id + ' - ' + su.name}">SU00000001</a>
-                </li>
-            </ul>
-			
-			<h3 th:text="#{ebom.modules}">Modules</h3>
-            <p th:if="${modules.empty}" th:text="#{ebom.noModules}">No modules found.</p>
-            <ul th:unless="${modules.empty}">
-                <li th:each="mo : ${modules}">
-                    <a th:href="@{/ebom/{id}(id=${mo.id})}" th:text="${mo.id + ' - ' + mo.name}">MO00000001</a>
-                </li>
-            </ul>
-			
-			<h3 th:text="#{ebom.submodules}">Submodules</h3>
-            <p th:if="${submodules.empty}" th:text="#{ebom.noSubmodules}">No submodules found.</p>
-            <ul th:unless="${submodules.empty}">
-                <li th:each="mu : ${submodules}">
-                    <a th:href="@{/ebom/{id}(id=${mu.id})}" th:text="${mu.id + ' - ' + mu.name}">MU00000001</a>
-                </li>
-            </ul>
-
-            <h3 th:text="#{ebom.parts}">Parts</h3>
-            <p th:if="${parts.empty}" th:text="#{ebom.noParts}">No parts found.</p>
-            <ul th:unless="${parts.empty}">
-                <li th:each="p : ${parts}">
-                    <a th:href="@{/ebom/{id}(id=${p.id})}" th:text="${p.id + ' - ' + p.name}">PT00000001</a>
-                </li>
-            </ul>
-			
-			<h3 th:text="#{ebom.auxiliaries}">Auxiliaries</h3>
-            <p th:if="${auxiliaries.empty}" th:text="#{ebom.noAuxiliaries}">No auxiliaries found.</p>
-            <ul th:unless="${auxiliaries.empty}">
-                <li th:each="ax : ${auxiliaries}">
-                    <a th:href="@{/ebom/{id}(id=${ax.id})}" th:text="${ax.id + ' - ' + ax.name}">AX00000001</a>
-                </li>
-            </ul>
-        </div>
-    </div>
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

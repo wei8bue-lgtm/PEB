@@ -7,46 +7,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Lieferant ' + ${supplier.id} + ' - PEB'"></title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
         .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1.5rem; font-size:.9rem; }
         .kv-grid dt { color:#888; }
         .kv-grid dd { margin:0 0 .5rem 0; font-weight:600; }
-
-        /* Revisions-Status-Badge, analog zur Material-Detailansicht */
-        .rev-table th, .rev-table td { padding:.9rem 1.5rem; }
-        .rev-status {
-            display:inline-flex; align-items:center; gap:.4rem;
-            padding:.3rem .9rem; border-radius:999px; font-weight:600; font-size:.85rem;
-            white-space:nowrap;
-        }
-        .rev-status-WORKING  { background:#f1f3f4; color:#3c4043; }
-        .rev-status-RELEASED { background:#e6f4ea; color:#137333; }
-        .rev-status-OBSOLETE { background:#fce8e6; color:#c5221f; }
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="'Lieferant ' + ${supplier.id} + ' – ' + ${supplier.name}"></h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/suppliers}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{supplier.title})}"></div>
 
+<div class="app-layout">
+    <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+    <div class="app-layout__content">
+        <div class="frontend-kit__example-wrapper -secondary">
+            <div class="e-container" style="margin:1rem auto;">
+                <div class="frontend-kit__example-wrapper -primary">
 <div class="container">
 
     <!-- Stammdaten -->
     <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
             <h3 th:text="#{material.masterData}">Stammdaten</h3>
-            <a sec:authorize="hasAuthority('WRITE')" th:href="@{'/suppliers/' + ${supplier.id} + '/edit'}" class="btn btn-secondary" th:text="#{button.edit}">Bearbeiten</a>
+            <div style="display:flex;gap:.75rem;align-items:center;">
+				
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/suppliers}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+				<span class="a-button__label" th:text="#{button.backToList}">Zur Liste</span>
+			</button>
+			
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/suppliers/' + ${supplier.id} + '/edit'}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i>
+				<span class="a-button__label" th:text="#{button.edit}">Bearbeiten</span>
+			</button>
+				
+            </div>
         </div>
         <dl class="kv-grid">
-            <dt th:text="#{common.status}">Status</dt><dd th:text="${supplier.status}"></dd>
+            <dt th:text="#{common.status}">Status</dt>
+            <dd class="-with-icon-and-label" th:switch="${supplier.status}">
+                <i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                <i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
+                <i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                <i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
+                <span th:if="${supplier.status != null and supplier.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
+                <span th:if="${supplier.status != null and supplier.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
+                <span th:if="${supplier.status != null and supplier.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
+                <span th:if="${supplier.status != null and supplier.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+            </dd>
             <dt th:text="#{label.releasedRevision}">Freigegebene Revision</dt><dd th:text="${supplier.releasedRevision} ?: #{common.none}">keine</dd>
             <dt th:text="#{label.address}">Adresse</dt>
             <dd th:text="(${supplier.street} ?: '') + ', ' + (${supplier.zipCode} ?: '') + ' ' + (${supplier.city} ?: '') + ', ' + (${supplier.country} ?: '')"></dd>
@@ -62,16 +76,16 @@
     <!-- Revisionen -->
     <div class="card">
         <h3 th:text="#{material.revisions}">Revisionen</h3>
-        <table class="table rev-table">
+        <table class="m-table" aria-label="Supplier revisions">
             <thead><tr><th th:text="#{label.rev}">Rev.</th><th th:text="#{common.status}">Status</th><th th:text="#{label.change}">Änderung</th><th th:text="#{lifecycle.history.createdBy}">Erstellt von</th><th th:text="#{label.date}">Datum</th><th></th></tr></thead>
             <tbody>
             <tr th:each="r : ${revisions}">
                 <td th:text="${r.revision}"></td>
-                <td>
-                    <span class="rev-status" th:classappend="'rev-status-' + ${r.releaseStatus.name()}">
-                        <span th:text="${r.releaseStatus.icon}"></span>
-                        <span th:text="${r.releaseStatus.displayName}"></span>
-                    </span>
+                <td class="-with-icon-and-label">
+                    <i th:if="${r.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                    <i th:if="${r.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                    <i th:if="${r.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                    <span th:text="${r.releaseStatus.displayName}">Working</span>
                 </td>
                 <td th:text="${r.changeDescription}"></td>
                 <td th:text="${r.createdBy}"></td>
@@ -82,7 +96,10 @@
                           th:action="@{'/suppliers/revisions/' + ${r.id} + '/release'}" method="post" style="display:inline">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
                         <input type="hidden" name="supplierId" th:value="${supplier.id}"/>
-                        <button type="submit" class="btn btn-secondary" th:text="#{button.release}">Freigeben</button>
+                        <button type="submit" class="a-button a-button--primary -small">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-checkmark"></i>
+                            <span class="a-button__label" th:text="#{button.release}">Freigeben</span>
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -96,10 +113,19 @@
                 <input type="text" name="revision" placeholder="z.B. B" required style="width:80px"></div>
             <div><label style="display:block;font-size:.8rem;color:#888" th:text="#{label.changeDescription}">Änderungsbeschreibung</label>
                 <input type="text" name="changeDescription" style="width:300px"></div>
-            <button type="submit" class="btn btn-primary" th:text="#{button.createRevision}">Revision anlegen</button>
+            <button type="submit" class="a-button a-button--primary">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                <span class="a-button__label" th:text="#{button.createRevision}">Revision anlegen</span>
+            </button>
         </form>
     </div>
 
+</div>
+                </div>
+            </div>
+        </div>
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
 </div>
 </body>
 </html>

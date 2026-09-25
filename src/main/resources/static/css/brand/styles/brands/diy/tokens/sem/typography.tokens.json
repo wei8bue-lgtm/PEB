@@ -1,0 +1,617 @@
+{
+  "meta": {
+    "name": "typography",
+    "type": "sem",
+    "brand": "diy",
+    "description": "semantic typography tokens for brand diy",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.font-family",
+      "core.font-size",
+      "core.font-weight",
+      "core.line-height",
+      "sem.letter-spacing",
+      "sem.text-case"
+    ]
+  },
+  "sem": {
+    "typography": {
+      "regular": {
+        "6xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.115}",
+            "fontSize": "{core.font-size.500}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "5xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.120}",
+            "fontSize": "{core.font-size.400}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "4xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.125}",
+            "fontSize": "{core.font-size.300}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "3xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.130}",
+            "fontSize": "{core.font-size.250}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "2xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.135}",
+            "fontSize": "{core.font-size.200}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.140}",
+            "fontSize": "{core.font-size.150}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "l": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.125}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "m": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.100}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "sm": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.157}",
+            "fontSize": "{core.font-size.87}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "s": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.75}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        }
+      },
+      "bold": {
+        "6xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.115}",
+            "fontSize": "{core.font-size.500}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "5xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.120}",
+            "fontSize": "{core.font-size.400}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "4xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.125}",
+            "fontSize": "{core.font-size.300}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "3xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.130}",
+            "fontSize": "{core.font-size.250}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "2xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.135}",
+            "fontSize": "{core.font-size.200}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.140}",
+            "fontSize": "{core.font-size.150}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "l": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.125}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "m": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.100}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "sm": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.157}",
+            "fontSize": "{core.font-size.87}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "s": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.75}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        }
+      },
+      "italic": {
+        "6xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.115}",
+            "fontSize": "{core.font-size.500}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "5xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.120}",
+            "fontSize": "{core.font-size.400}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "4xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.125}",
+            "fontSize": "{core.font-size.300}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "3xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.130}",
+            "fontSize": "{core.font-size.250}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "2xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.135}",
+            "fontSize": "{core.font-size.200}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.140}",
+            "fontSize": "{core.font-size.150}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "l": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.125}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "m": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.100}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "sm": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.157}",
+            "fontSize": "{core.font-size.87}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "s": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.regular}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.75}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        }
+      },
+      "bold-italic": {
+        "6xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.115}",
+            "fontSize": "{core.font-size.500}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "5xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.120}",
+            "fontSize": "{core.font-size.400}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "4xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.125}",
+            "fontSize": "{core.font-size.300}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "3xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.130}",
+            "fontSize": "{core.font-size.250}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "2xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.135}",
+            "fontSize": "{core.font-size.200}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.140}",
+            "fontSize": "{core.font-size.150}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "l": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.125}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "m": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.100}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "sm": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.157}",
+            "fontSize": "{core.font-size.87}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "s": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "italic",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.75}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        }
+      },
+      "medium": {
+        "xl": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.140}",
+            "fontSize": "{core.font-size.150}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "l": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.125}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "m": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.100}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "sm": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.157}",
+            "fontSize": "{core.font-size.87}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        },
+        "s": {
+          "$value": {
+            "fontFamily": "{core.font-family.primary}",
+            "fontWeight": "{core.font-weight.bold}",
+            "fontStyle": "normal",
+            "lineHeight": "{core.line-height.150}",
+            "fontSize": "{core.font-size.75}",
+            "letterSpacing": "{sem.letter-spacing}",
+            "textCase": "{sem.text-case}"
+          },
+          "$type": "typography",
+          "figma-type": "var.number"
+        }
+      }
+    }
+  }
+}

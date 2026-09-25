@@ -1,0 +1,650 @@
+{
+  "comp": {
+    "widget": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.widget.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/widget.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.widget.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "widget",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "value-modificator": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.value-modificator.border-radius.container}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/value-modificator.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.value-modificator.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "value-modificator",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "tooltip": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.tooltip.border-radius.container}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/tooltip.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.tooltip.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "tooltip",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "toast": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.toast.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/toast.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.toast.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "toast",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "tile": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.tile.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/tile.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.tile.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "tile",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "text-field": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.text-field.border-radius.container}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/text-field.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.text-field.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "text-field",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "story-teaser": {
+      "asset": {
+        "border-radius": {
+          "container": {
+            "key": "{comp.story-teaser.asset.border-radius.container}",
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/story-teaser.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.2}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.story-teaser.asset.border-radius.container}"
+            },
+            "name": "container",
+            "attributes": {},
+            "path": [
+              "comp",
+              "story-teaser",
+              "asset",
+              "border-radius",
+              "container"
+            ]
+          }
+        }
+      }
+    },
+    "scrollbar": {
+      "border-radius": {
+        "thumb": {
+          "key": "{comp.scrollbar.border-radius.thumb}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/scrollbar.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.scrollbar.border-radius.thumb}"
+          },
+          "name": "thumb",
+          "attributes": {},
+          "path": [
+            "comp",
+            "scrollbar",
+            "border-radius",
+            "thumb"
+          ]
+        }
+      }
+    },
+    "popover": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.popover.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/popover.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.popover.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "popover",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "page-video": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.page-video.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/page-video.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.page-video.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "page-video",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "modal": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.modal.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/modal.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.modal.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "modal",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "menu-group": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.menu-group.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/menu-group.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.menu-group.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "menu-group",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "image": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.image.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/image.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.image.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "image",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "header": {
+      "supergraphic-offset": {
+        "key": "{comp.header.supergraphic-offset}",
+        "$value": "{sem.dimension.supergraphic-height}",
+        "$type": "dimension",
+        "figma-type": "var.number",
+        "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/header.tokens.json",
+        "isSource": true,
+        "original": {
+          "$value": "{sem.dimension.supergraphic-height}",
+          "$type": "dimension",
+          "figma-type": "var.number",
+          "key": "{comp.header.supergraphic-offset}"
+        },
+        "name": "supergraphic-offset",
+        "attributes": {},
+        "path": [
+          "comp",
+          "header",
+          "supergraphic-offset"
+        ]
+      }
+    },
+    "event-teaser": {
+      "date-block": {
+        "border-radius": {
+          "container": {
+            "key": "{comp.event-teaser.date-block.border-radius.container}",
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/event-teaser.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.1}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.event-teaser.date-block.border-radius.container}"
+            },
+            "name": "container",
+            "attributes": {},
+            "path": [
+              "comp",
+              "event-teaser",
+              "date-block",
+              "border-radius",
+              "container"
+            ]
+          }
+        }
+      }
+    },
+    "dropdown": {
+      "border-radius": {
+        "field": {
+          "key": "{comp.dropdown.border-radius.field}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dropdown.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.dropdown.border-radius.field}"
+          },
+          "name": "field",
+          "attributes": {},
+          "path": [
+            "comp",
+            "dropdown",
+            "border-radius",
+            "field"
+          ]
+        },
+        "flyout": {
+          "top-left": {
+            "key": "{comp.dropdown.border-radius.flyout.top-left}",
+            "$value": "{sem.border-radius.0}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dropdown.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.0}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.dropdown.border-radius.flyout.top-left}"
+            },
+            "name": "top-left",
+            "attributes": {},
+            "path": [
+              "comp",
+              "dropdown",
+              "border-radius",
+              "flyout",
+              "top-left"
+            ]
+          },
+          "top-right": {
+            "key": "{comp.dropdown.border-radius.flyout.top-right}",
+            "$value": "{sem.border-radius.0}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dropdown.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.0}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.dropdown.border-radius.flyout.top-right}"
+            },
+            "name": "top-right",
+            "attributes": {},
+            "path": [
+              "comp",
+              "dropdown",
+              "border-radius",
+              "flyout",
+              "top-right"
+            ]
+          },
+          "bottom-right": {
+            "key": "{comp.dropdown.border-radius.flyout.bottom-right}",
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dropdown.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.2}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.dropdown.border-radius.flyout.bottom-right}"
+            },
+            "name": "bottom-right",
+            "attributes": {},
+            "path": [
+              "comp",
+              "dropdown",
+              "border-radius",
+              "flyout",
+              "bottom-right"
+            ]
+          },
+          "bottom-left": {
+            "key": "{comp.dropdown.border-radius.flyout.bottom-left}",
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dropdown.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.2}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.dropdown.border-radius.flyout.bottom-left}"
+            },
+            "name": "bottom-left",
+            "attributes": {},
+            "path": [
+              "comp",
+              "dropdown",
+              "border-radius",
+              "flyout",
+              "bottom-left"
+            ]
+          }
+        }
+      }
+    },
+    "dialog": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.dialog.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/dialog.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.dialog.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "dialog",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "checkbox": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.checkbox.border-radius.container}",
+          "$value": "{sem.border-radius.1}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/checkbox.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.checkbox.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "checkbox",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "chat": {
+      "message": {
+        "border-radius": {
+          "container": {
+            "key": "{comp.chat.message.border-radius.container}",
+            "$value": "{sem.border-radius.1}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/chat.tokens.json",
+            "isSource": true,
+            "original": {
+              "$value": "{sem.border-radius.1}",
+              "$type": "borderRadius",
+              "figma-type": "var.number",
+              "key": "{comp.chat.message.border-radius.container}"
+            },
+            "name": "container",
+            "attributes": {},
+            "path": [
+              "comp",
+              "chat",
+              "message",
+              "border-radius",
+              "container"
+            ]
+          }
+        }
+      }
+    },
+    "card": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.card.border-radius.container}",
+          "$value": "{sem.border-radius.2}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/card.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.2}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.card.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "card",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    },
+    "button": {
+      "border-radius": {
+        "container": {
+          "key": "{comp.button.border-radius.container}",
+          "$value": "{sem.border-radius.3}",
+          "$type": "borderRadius",
+          "figma-type": "var.number",
+          "filePath": "/Users/SOP2SF/Desktop/_PROJECTS/bdds.tokens-npm/src/tokens/comp/button.tokens.json",
+          "isSource": true,
+          "original": {
+            "$value": "{sem.border-radius.3}",
+            "$type": "borderRadius",
+            "figma-type": "var.number",
+            "key": "{comp.button.border-radius.container}"
+          },
+          "name": "container",
+          "attributes": {},
+          "path": [
+            "comp",
+            "button",
+            "border-radius",
+            "container"
+          ]
+        }
+      }
+    }
+  }
+}

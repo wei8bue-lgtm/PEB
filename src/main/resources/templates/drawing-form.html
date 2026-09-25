@@ -3,20 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{drawing.createTitle}">Create Drawing - PEB</title>
+    <title th:text="#{drawing.createTitle}">reate Drawing - SEP4Eng</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .card form .a-text-field {
+            margin-bottom: 1.25rem;
+        }
+        .a-text-area {
+            margin-top: 1.5rem;
+        }
+        .a-text-area textarea {
+            pointer-events: auto !important;
+            overflow-y: auto !important;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 160px;
+            max-height: 300px;
+            resize: vertical;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{drawing.createHeading}">Create New Drawing</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/drawings}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{drawing.heading})}"></div>
 
+    <div class="app-layout">
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+        <div class="app-layout__content">
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
     <div class="container">
         <div class="card">
             <h2 th:text="#{drawing.info}">Drawing Information</h2>
@@ -26,7 +56,7 @@
             </div>
 
             <form th:action="@{/drawings}" th:object="${drawing}" method="post">
-                <div class="form-group">
+                <div class="a-text-field">
                     <label for="name" th:text="#{label.drawingName}">Drawing Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256" 
                            th:placeholder="#{drawing.namePlaceholder}"
@@ -36,7 +66,7 @@
                     </small>
                 </div>
 
-                <div class="form-group">
+                <div class="a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128" 
                            th:placeholder="#{drawing.departmentPlaceholder}"
@@ -47,13 +77,24 @@
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.createDrawing}">Create Drawing</button>
-                    <a th:href="@{/drawings}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
+                    <button type="submit" class="a-button a-button--primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                        <span class="a-button__label" th:text="#{button.createDrawing}">Create Drawing</span>
+                    </button>
+					
+					<button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/drawings}'|">
+						<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+						<span class="a-button__label" th:text="#{button.cancel}">Cancel</span>
+					</button>
+<!--                     <a th:href="@{/drawings}" class="a-button a-button--destructive-primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                        <span class="a-button__label" th:text="#{button.cancel}">Cancel</span>
+                    </a> -->
                 </div>
             </form>
         </div>
 
-        <div class="card">
+<!--         <div class="card">
             <h3 th:text="#{drawing.formInfo}">Information</h3>
             <ul>
                 <li th:text="#{drawing.formInfo.item1}">Drawing name is required (max 256 characters)</li>
@@ -63,6 +104,18 @@
                 <li th:text="#{drawing.formInfo.item5}">After creation, you can attach files (PDF, images, etc.) as datasets</li>
                 <li th:text="#{drawing.formInfo.item6}">Drawings can be linked to any level in the eBOM structure</li>
             </ul>
+        </div> -->
+		
+		<div class="a-text-area">
+			<textarea id="1" readonly tabindex="0" th:text="|#{drawing.formInfo}&#10;#{drawing.formInfo.item1}&#10;#{drawing.formInfo.item2}&#10;#{drawing.formInfo.item3}&#10;#{drawing.formInfo.item4}&#10;#{drawing.formInfo.item5}|">
+			</textarea>
+		</div>
+    </div>
+    </div>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="~{fragments/footer :: footer}"></div>
         </div>
     </div>
 

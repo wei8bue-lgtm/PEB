@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "name": "text-case",
+    "type": "sem",
+    "brand": "pro",
+    "description": "semantic text-case tokens for brand pro",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.text-case"
+    ]
+  },
+  "sem": {
+    "text-case": {
+      "uppercase": {
+        "$value": "{core.text-case.uppercase}",
+        "$type": "textCase",
+        "figma-type": "var.string"
+      },
+      "none": {
+        "$value": "{core.text-case.none}",
+        "$type": "textCase",
+        "figma-type": "var.string"
+      }
+    }
+  }
+}

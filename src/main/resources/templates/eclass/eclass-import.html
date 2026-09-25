@@ -7,9 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{eclass.importTitle}">ECLASS XML Import - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+        .app-layout { display: flex; align-items: flex-start; }
+        .app-layout__content { flex: 1 1 auto; min-width: 0; }
         .upload-zone {
             border: 2px dashed #ced4da; border-radius: 8px; padding: 2.5rem;
             text-align: center; cursor: pointer; transition: border-color .2s, background .2s;
@@ -47,16 +51,9 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="#{eclass.importHeading}">ECLASS XML Import</h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/eclass}" class="btn btn-secondary">← <span th:text="#{button.catalog}">Katalog</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{eclass.importHeading})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
     <!-- Flash Messages -->
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
@@ -131,11 +128,16 @@
             </div>
 
             <div style="margin-top:1.5rem;display:flex;gap:.75rem">
-                <button type="submit" class="btn btn-primary" id="importBtn" disabled
-                        onclick="startImport()" th:text="#{button.startImport}">
-                    Import starten
+                <button type="submit" class="a-button a-button--primary" id="importBtn" disabled
+                        onclick="startImport()">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i>
+                    <span class="a-button__label" th:text="#{button.startImport}">Import starten</span>
                 </button>
-                <a th:href="@{/eclass}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                <button type="button" class="a-button a-button--destructive-primary"
+                        th:onclick="|window.location.href='@{/eclass}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span>
+                </button>
             </div>
         </form>
     </div>
@@ -152,11 +154,15 @@
         <form th:action="@{/eclass/admin/fix-hierarchy}" method="post"
               th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('eclass.confirmRepairHierarchy'))}');|">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-            <button type="submit" class="btn btn-warning" th:text="#{button.repairHierarchyNow}">Hierarchie jetzt reparieren</button>
+            <button type="submit" class="a-button a-button--primary">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-settings"></i>
+                <span class="a-button__label" th:text="#{button.repairHierarchyNow}">Hierarchie jetzt reparieren</span>
+            </button>
         </form>
     </div>
 
 </div>
+ </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
 <script th:inline="javascript">
 const importI18n = {

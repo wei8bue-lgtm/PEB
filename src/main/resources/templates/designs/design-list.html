@@ -5,78 +5,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{design.title}">Designs - PEB</title>
+    <title th:text="#{app.title}">SEP4Eng - Synchronous Engineering Platform</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-</head>
-<body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{design.management}">Design Management</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 th:text="#{design.allDesigns}">All Designs</h2>
-                <a th:href="@{/designs/new}" class="btn btn-success" sec:authorize="hasAuthority('WRITE')" th:text="#{button.newDesign}">
-                    + Create New Design
-                </a>
-            </div>
-
-            <div th:if="${designs.empty}" class="alert alert-info" th:text="#{design.noneFound}">
-                No designs found. Create your first design!
-            </div>
-
-            <table th:unless="${designs.empty}" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.id}">ID</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.name}">Name</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.department}">Department</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.mass}">Mass (kg)</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.material}">Material</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.actions}">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="design : ${designs}" style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 0.75rem;" th:text="${design.id}">DS00000001</td>
-                        <td style="padding: 0.75rem;" th:text="${design.name}">Design Name</td>
-                        <td style="padding: 0.75rem;" th:text="${design.department}">Engineering</td>
-                        <td style="padding: 0.75rem;" th:text="${design.mass}">100</td>
-                        <td style="padding: 0.75rem;" th:text="${design.material}">Steel</td>
-                        <td style="padding: 0.75rem;">
-                            <a th:href="@{/designs/{id}(id=${design.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" th:text="#{button.view}">View</a>
-                            <a th:href="@{/designs/{id}/edit(id=${design.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" sec:authorize="hasAuthority('WRITE')" th:text="#{button.edit}">Edit</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+    <link rel="stylesheet" th:href="@{css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            padding: 1rem;
-            border-radius: 4px;
+        /* einfaches Layout: Side-Navigation links, Inhalt rechts */
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
         }
-        table {
-            background: white;
-        }
-        tbody tr:hover {
-            background-color: #f8f9fa;
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
         }
     </style>
+</head>
+<body>
+
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{design.title})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
+            <div class="container">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h3 style="margin:0">
+                            <span th:text="#{design.allDesigns}">All Designs</span> 
+                            (<span th:text="${designs.size()}">0</span>)
+                        </h3>
+                        <sec:authorize access="hasAuthority('WRITE')">
+                            <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/new}'|">
+                                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                                <span class="a-button__label" th:text="#{button.newDesign}">+ Create New Design</span>
+                            </button>
+                        </sec:authorize>
+                    </div>
+
+                    <!-- Such- und Filterleiste -->
+                    <form method="get" style="display:flex; gap:.5rem; margin-bottom:1rem;">
+                        <div class="a-text-field">
+                            <input type="text"
+                                   name="search"
+                                   th:value="${search}"
+                                   th:placeholder="#{design.searchPlaceholder}"
+                                   placeholder="Search name / ID / department...">
+                        </div>
+
+                        <button type="submit" class="a-button a-button--primary">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-search"></i>
+                            <span class="a-button__label" th:text="#{button.searchPlain}">Search</span>
+                        </button>
+
+                        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                            <span class="a-button__label" th:text="#{button.reset}">Reset</span>
+                        </button>
+                    </form>
+
+                    <!-- Tabelle -->
+                    <table class="m-table" aria-label="Designs">
+                        <thead>
+                            <tr>
+                                <th th:text="#{label.id}">ID</th>
+                                <th th:text="#{label.name}">Name</th>
+                                <th th:text="#{label.department}">Department</th>
+                                <th th:text="#{label.mass}">Mass (kg)</th>
+                                <th th:text="#{label.material}">Material</th>
+                                <th style="text-align: right;" th:text="#{label.actions}">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="design : ${designs}">
+                                <td th:text="${design.id}">DS00000001</td>
+                                <td>
+                                    <a th:href="@{'/designs/' + ${design.id}}" th:text="${design.name}">Design Name</a>
+                                </td>
+                                <td th:text="${design.department}">Engineering</td>
+                                <td th:text="${design.mass}">100</td>
+                                <td th:text="${design.material}">Steel</td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                                        <div class="a-link -icon">
+                                            <a th:href="@{'/designs/' + ${design.id}}" target="_self">
+                                                <span></span>
+                                                <span>[[#{button.view}]]</span>
+                                            </a>
+                                        </div>
+                                        <div class="a-link -icon" sec:authorize="hasAuthority('WRITE')">
+                                            <a th:href="@{'/designs/' + ${design.id} + '/edit'}" target="_self">
+                                                <span></span>
+                                                <span>[[#{button.edit}]]</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${designs.isEmpty()}">
+                                <td colspan="6" style="text-align:center; color:#888;" th:text="#{design.noneFound}">
+                                    No designs found. Create your first design!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

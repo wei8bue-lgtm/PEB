@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "name": "text-case",
+    "type": "sem",
+    "brand": "diy",
+    "description": "semantic text-case tokens for brand diy",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.text-case"
+    ]
+  },
+  "sem": {
+    "text-case": {
+      "$value": "{core.text-case.none}",
+      "$type": "textCase",
+      "figma-type": "var.string"
+    }
+  }
+}

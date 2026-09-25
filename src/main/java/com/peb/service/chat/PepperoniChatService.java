@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class PepperoniChatService {
 
-    public static final String BOT_NAME = "PEPperoni";
+    public static final String BOT_NAME = "SEPChat";
     private static final Pattern OBJECT_ID_PATTERN = Pattern.compile("\\b([A-Za-z]{2}\\d{6,10})\\b");
     private static final Pattern ALL_REQUEST_PATTERN = Pattern.compile("(?i)\\b(alle|all|list|liste|zeige\\s+alle|zeig\\s+alle)\\b");
 
@@ -124,7 +124,7 @@ public class PepperoniChatService {
                         false,
                         "LLM_UNAVAILABLE",
                         true,
-                        "Ich bin PEPperoni. Ich konnte die Anfrage gerade nicht sicher interpretieren. Bitte formuliere die Suche konkreter, z.B. 'alle Designs mit Status released'."
+                        "Ich bin SEPChat. Ich konnte die Anfrage gerade nicht sicher interpretieren. Bitte formuliere die Suche konkreter, z.B. 'alle Designs mit Status released'."
                 );
             }
         }
@@ -226,7 +226,7 @@ public class PepperoniChatService {
 
     private String sanitizeQuery(String input) {
         return input
-                .replaceAll("(?i)\\b(find|suche|such|zeige|zeig|finde|objekt|objekte|objektliste|name|id|bitte|hallo|hi|hey|pepperoni|mir|alle|all|list|liste)\\b", " ")
+                .replaceAll("(?i)\\b(find|suche|such|zeige|zeig|finde|objekt|objekte|objektliste|name|id|bitte|hallo|hi|hey|S|mir|alle|all|list|liste)\\b", " ")
                 .replaceAll("\\s+", " ")
                 .trim();
     }
@@ -287,7 +287,7 @@ public class PepperoniChatService {
             String raw = dialogflowClient.detectIntentText(prompt, "peb-user", llmLanguage);
             return parseLlmIntentResponse(raw, userInput, forcedType, forcedStatus);
         } catch (Exception e) {
-            log.warn("PEPperoni LLM-Intent fehlgeschlagen, nutze Fallback-Regeln. Fehler: {}", e.getMessage());
+            log.warn("SEPChat LLM-Intent fehlgeschlagen, nutze Fallback-Regeln. Fehler: {}", e.getMessage());
             return Optional.empty();
         }
     }
@@ -406,7 +406,7 @@ public class PepperoniChatService {
             String source) {
 
         if (resultPage.isSearchUnavailable()) {
-            return "Ich bin PEPperoni. Die Suche ist aktuell nicht erreichbar, versuche es bitte gleich nochmal.";
+            return "Ich bin SEPChat. Die Suche ist aktuell nicht erreichbar, versuche es bitte gleich nochmal.";
         }
 
         StringBuilder filterInfo = new StringBuilder();
@@ -419,22 +419,22 @@ public class PepperoniChatService {
 
         if (resultPage.getTotalHits() == 0) {
             if (allMode && appliedType != null) {
-                return "Ich bin PEPperoni und habe keine Treffer für den Typ " + appliedType.getDisplayName() + " gefunden." + filterInfo;
+                return "Ich bin SEPChat und habe keine Treffer für den Typ " + appliedType.getDisplayName() + " gefunden." + filterInfo;
             }
-            return "Ich bin PEPperoni und habe keine Treffer für '" + query + "' gefunden." + filterInfo;
+            return "Ich bin SEPChat und habe keine Treffer für '" + query + "' gefunden." + filterInfo;
         }
 
         if (exactIdMode) {
-            return "Ich bin PEPperoni. Ich habe " + resultPage.getTotalHits()
+            return "Ich bin SEPChat. Ich habe " + resultPage.getTotalHits()
                     + " Treffer zur ID-Suche gefunden. Ich zeige dir die relevantesten Ergebnisse." + filterInfo;
         }
 
         if (allMode && appliedType != null) {
-            return "Ich bin PEPperoni. Ich habe " + resultPage.getTotalHits()
+            return "Ich bin SEPChat. Ich habe " + resultPage.getTotalHits()
                     + " Treffer für den Typ " + appliedType.getDisplayName() + " gefunden. Ich zeige dir die Top-Ergebnisse." + filterInfo;
         }
 
-        String prefix = "Ich bin PEPperoni" + ("LLM".equals(source) ? " (LLM)" : "");
+        String prefix = "Ich bin SEPChat" + ("LLM".equals(source) ? " (LLM)" : "");
         return prefix + ". Ich habe " + resultPage.getTotalHits()
             + " Treffer für '" + query + "' gefunden. Ich zeige dir die Top-Ergebnisse." + filterInfo;
     }

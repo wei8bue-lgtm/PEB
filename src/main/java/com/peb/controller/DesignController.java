@@ -22,6 +22,7 @@ import com.peb.service.MaterialService;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -40,10 +41,31 @@ public class DesignController {
 	private String tcvisExePath;
 
     @GetMapping
-    public String listDesigns(Model model) {
-        model.addAttribute("designs", designService.getAllDesigns());
+	public String listDesigns(
+			@RequestParam(required = false) String search,
+			Model model) {
+
+		List<Design> designs = designService.getAllDesigns();
+
+		if (search != null && !search.isBlank()) {
+			String term = search.trim().toLowerCase(Locale.ROOT);
+			designs = designs.stream()
+					.filter(d -> contains(d.getId(), term)
+							|| contains(d.getName(), term)
+							|| contains(d.getDepartment(), term)
+							|| contains(d.getMass(), term)
+							|| contains(d.getMaterial(), term))
+					.toList();
+		}
+
+		model.addAttribute("search", search);
+		model.addAttribute("designs", designs);
         return "designs/design-list";
     }
+
+	private static boolean contains(String value, String term) {
+		return value != null && value.toLowerCase(Locale.ROOT).contains(term);
+	}
 
 	@GetMapping("/new")
 	public String newDesignForm(Model model) {

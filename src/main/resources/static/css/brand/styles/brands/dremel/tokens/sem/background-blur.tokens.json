@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "name": "background-blur",
+    "type": "sem",
+    "brand": "dremel",
+    "description": "semantic background-blur tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "dimension": {
+      "background-blur": {
+        "dim": {
+          "$value": "{core.dimension.25}",
+          "$type": "dimension",
+          "figma-type": "var.number"
+        }
+      }
+    }
+  }
+}

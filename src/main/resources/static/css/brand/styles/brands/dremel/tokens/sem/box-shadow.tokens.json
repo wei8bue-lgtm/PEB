@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "name": "box-shadow",
+    "type": "sem",
+    "brand": "dremel",
+    "description": "semantic box-shadow tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "box-shadow": {
+      "small": {
+        "$value": {
+          "x": 0,
+          "y": 0,
+          "blur": "{core.dimension.100}",
+          "spread": "{core.dimension.0}",
+          "color": "shadow-fill"
+        },
+        "$type": "shadow",
+        "figma-type": "var.number"
+      },
+      "medium": {
+        "$value": {
+          "x": 0,
+          "y": 0,
+          "blur": "{core.dimension.200}",
+          "spread": "{core.dimension.0}",
+          "color": "shadow-fill"
+        },
+        "$type": "shadow",
+        "figma-type": "var.number"
+      },
+      "large": {
+        "$value": {
+          "x": 0,
+          "y": 0,
+          "blur": "{core.dimension.400}",
+          "spread": "{core.dimension.0}",
+          "color": "shadow-fill"
+        },
+        "$type": "shadow",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

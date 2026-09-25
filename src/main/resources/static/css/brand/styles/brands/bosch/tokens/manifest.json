@@ -1,0 +1,113 @@
+{
+  "package": "@bosch/bdds.tokens-npm",
+  "brand": "bosch",
+  "version": "2.4.0",
+  "description": "design tokens for the brand bosch",
+  "tokens": {
+    "core": {
+      "gradations": {
+        "hash": "42f38fde",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2025-11-07"
+      },
+      "font-family": {
+        "hash": "9dc356fd",
+        "status": "stable",
+        "dependencies": [
+          "core.font-family",
+          "core.font-weight"
+        ],
+        "lastModified": "2026-01-13"
+      }
+    },
+    "sem": {
+      "typography": {
+        "hash": "de687567",
+        "status": "stable",
+        "dependencies": [
+          "core.font-family",
+          "core.font-size",
+          "core.font-weight",
+          "core.line-height",
+          "sem.letter-spacing",
+          "sem.text-case"
+        ],
+        "lastModified": "2025-11-13"
+      },
+      "text-case": {
+        "hash": "599af2a4",
+        "status": "stable",
+        "dependencies": [
+          "core.text-case"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "Light Mode": {
+        "hash": "682c912e",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2026-05-07"
+      },
+      "letter-spacing": {
+        "hash": "cde39b90",
+        "status": "stable",
+        "dependencies": [
+          "core.letter-spacing"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "dimension": {
+        "hash": "f0f487a3",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "Dark Mode": {
+        "hash": "35c590ab",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2026-05-07"
+      },
+      "color": {
+        "hash": "2c5068bf",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2025-11-07"
+      },
+      "box-shadow": {
+        "hash": "a197859b",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-11-13"
+      },
+      "border-radius": {
+        "hash": "d05e7816",
+        "status": "stable",
+        "dependencies": [
+          "core.border-radius"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "background-blur": {
+        "hash": "b0b5d384",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "asset": {
+        "hash": "1a1a1c93",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2025-12-16"
+      }
+    }
+  },
+  "generatedAt": "2026-05-07T11:31:31.332Z"
+}

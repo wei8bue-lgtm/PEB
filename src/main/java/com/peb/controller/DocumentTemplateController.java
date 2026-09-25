@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/document-templates")
@@ -33,10 +34,30 @@ public class DocumentTemplateController {
     // ─────────────────────────────────────────────
 
     @GetMapping
-    public String listTemplates(Model model) {
+    public String listTemplates(
+            @RequestParam(required = false) String search,
+            Model model) {
         List<DocumentTemplate> templates = templateService.getAllTemplates();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase(Locale.ROOT);
+            templates = templates.stream()
+                    .filter(t -> contains(t.getId(), term)
+                            || contains(t.getName(), term)
+                            || contains(t.getDepartment(), term)
+                            || contains(t.getDescription(), term)
+                            || contains(t.getAttribute1(), term)
+                            || contains(t.getAttribute2(), term))
+                    .toList();
+        }
+
+        model.addAttribute("search", search);
         model.addAttribute("templates", templates);
         return "document-templates/doc-template-list";
+    }
+
+    private static boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     // ─────────────────────────────────────────────

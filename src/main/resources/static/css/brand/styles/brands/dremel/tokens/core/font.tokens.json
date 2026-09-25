@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "name": "font-family",
+    "type": "core",
+    "brand": "dremel",
+    "description": "core font-family tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.font-family",
+      "core.font-weight"
+    ]
+  },
+  "core": {
+    "font-family": {
+      "primary": {
+        "$value": "Avenir Next LT Pro",
+        "$type": "fontFamily",
+        "figma-type": "var.string"
+      },
+      "secondary": {
+        "$value": "Avenir Next LT Pro",
+        "$type": "fontFamily",
+        "figma-type": "var.string"
+      }
+    },
+    "font-face": {
+      "AvenirNextLTPro": {
+        "regular": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "files": [
+              {
+                "path": "AvenirNextLTPro-Regular.ttf",
+                "format": "truetype"
+              }
+            ],
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "swap"
+          }
+        },
+        "regularItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.regular}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "AvenirNextLTPro-It.ttf",
+                "format": "truetype"
+              }
+            ]
+          }
+        },
+        "bold": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "normal",
+            "weight": "{core.font-weight.bold}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "AvenirNextLTPro-Bold.ttf",
+                "format": "truetype"
+              }
+            ]
+          }
+        },
+        "boldItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.bold}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "AvenirNextLTPro-BoldIt.ttf",
+                "format": "truetype"
+              }
+            ]
+          }
+        },
+        "icon": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-Icon",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_icon.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_icon.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "ui-icon": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-UI-Icon",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_ui_icon.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_ui_icon.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "ui-icon-rtl": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-UI-Icon-RTL",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_ui_icon_rtl.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_ui_icon_rtl.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

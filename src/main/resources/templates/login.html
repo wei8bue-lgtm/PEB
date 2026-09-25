@@ -4,54 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{login.title}">Login - PEB</title>
+    <title th:text="#{login.title}">Login - SEP4Eng</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <!--
-        ENTFERNT: CSRF Meta-Tags
-        <meta name="_csrf" th:content="${_csrf.token}"/>
-        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-        Nicht mehr nötig - Thymeleaf th:action fügt den
-        CSRF Hidden-Field automatisch ein.
-    -->
+	<link rel="stylesheet" th:href="@{css/brand/styles/frontend-kit-complete.css}">
+	<link rel="stylesheet" th:href="@{css/brand/styles/brands/bosch/styles/semantic/index.css}">
 </head>
 <body>
-<div class="login-container">
+<div class="login-card frontend-kit__example-wrapper -primary">
 
-    <div class="login-header">
-        <div class="logo-placeholder">PEB</div>
-        <h2 th:text="#{login.heading}">Production Engineering Backbone</h2>
+	<div
+	  class="a-sticker -emphasis-01"
+	  aria-labelledby="sticker-label-id-emphasis-01">
+	  <span id="sticker-label-id-emphasis-01" class="a-sticker__label -size-l">
+		SEP4Eng
+	  </span>
+	</div>
+        <h3 th:text="#{login.heading}">Synchronous Engineering Platform</h3>
         <p class="login-subtitle" th:text="#{login.subtitle}">
-            Bitte melden Sie sich mit Ihren AD-Zugangsdaten an
+            Please sign in with your AD credentials
         </p>
-    </div>
 
-    <div th:if="${param.error}" class="alert alert-danger">
-        <strong th:text="#{login.failed}">Anmeldung fehlgeschlagen.</strong><br>
-        <span th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null}"
-              th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}">
-        </span>
-        <span th:unless="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null}" th:text="#{login.checkCredentials}">
-            Bitte prüfen Sie Ihre Zugangsdaten.
-        </span>
-    </div>
+	<div th:if="${param.error}" class="a-notification -error" role="alert">
+	  <i class="a-icon ui-ic-alert-error"></i>
+	  <div
+		id="notification-label-id-bar-error-error"
+		class="a-notification__content"
+		th:text="#{login.checkCredentials}"> Please check your credentials.
+	  </div>
+	</div>
+	
+	<div th:if="${param.logout}" class="a-notification -success" role="alert">
+		<i class="a-icon ui-ic-alert-success"></i>
+		<div
+			id="notification-label-id-bar-success-success"
+			class="a-notification__content"
+			th:text="#{login.logoutSuccess}">You have been successfully logged out>
+		</div>
+	</div>
 
-    <div th:if="${param.logout}" class="alert alert-success" th:text="#{login.logoutSuccess}">
-        Sie wurden erfolgreich abgemeldet.
-    </div>
-
-    <!--
-        th:action ist PFLICHT (nicht action="..."):
-        Thymeleaf fügt automatisch ein Hidden-Field ein:
-        <input type="hidden" name="_csrf" value="abc123...">
-    -->
     <form th:action="@{/login}" method="post">
-
-        <div class="form-group">
-            <label for="username">
-                <span th:text="#{login.username}">AD-Benutzername</span>
-                <span class="label-hint" th:text="#{login.usernameHint}">(z.B. AB1CDE)</span>
-            </label>
-            <input type="text"
+		
+		<div class="a-text-field">
+					 <input type="text"
                    id="username"
                    name="username"
                    autocomplete="username"
@@ -59,32 +53,60 @@
                    autofocus
                    th:placeholder="#{login.usernamePlaceholder}"
                    placeholder="Windows-Benutzername">
-        </div>
-
-        <div class="form-group">
-            <label for="password" th:text="#{login.password}">Passwort</label>
-            <input type="password"
+		</div>
+	
+		<div class="a-password-input">
+		    <label for="password" th:text="#{login.password}">Passwort</label>
+			<input type="password"
                    id="password"
                    name="password"
                    autocomplete="current-password"
                    required
                    th:placeholder="#{login.passwordPlaceholder}"
                    placeholder="Windows-Passwort">
-        </div>
+		  <button
+			type="button"
+			class="a-password-input__icon-password"
+			aria-label="Show password">
+			<i class="a-icon ui-ic-watch-on"></i>
+		  </button>
+		</div>
 
-        <button type="submit" class="btn-login" th:text="#{login.submit}">Anmelden</button>
+		<button type="submit" class="a-button a-button--primary">
+			<span class="a-button__label" th:text="#{login.submit}">Login</span>
+		</button>		
 
     </form>
 
-    <div class="sso-info">
-        <p>
-            🔐 <strong th:text="#{login.ssoTitle}">Single Sign-On aktiv</strong> –
-            <span th:text="#{login.ssoInfo}">Verwenden Sie Ihre Windows-Zugangsdaten.</span><br>
-            <span th:text="#{login.ssoProblems}">Bei Problemen:</span>
-            <a href="mailto:it-support@de.bosch.com" th:text="#{login.ssoSupport}">IT-Support</a>
-        </p>
-    </div>
+
+	<div class="a-text-area">
+		<textarea id="1" disabled="" th:text="|#{login.ssoTitle} – #{login.ssoInfo}&#10;#{login.ssoProblems} mailto:it-support@de.bosch.com|">
+		</textarea>
+	</div>
+
+
 
 </div>
+
+<script>
+(function () {
+    const toggleBtn = document.querySelector('.a-password-input__icon-password');
+    const passwordInput = document.getElementById('password');
+    if (!toggleBtn || !passwordInput) {
+        return;
+    }
+    const icon = toggleBtn.querySelector('i.a-icon');
+
+    toggleBtn.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        if (icon) {
+            icon.classList.toggle('ui-ic-watch-on', !isHidden);
+            icon.classList.toggle('ui-ic-watch-off', isHidden);
+        }
+    });
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "name": "font-family",
+    "type": "core",
+    "brand": "pro",
+    "description": "core font-family tokens for brand pro",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.font-family",
+      "core.font-weight"
+    ]
+  },
+  "core": {
+    "font-family": {
+      "primary": {
+        "$value": "Bosch Sans",
+        "$type": "fontFamily",
+        "figma-type": "var.string"
+      },
+      "secondary": {
+        "$value": "Bosch Sans",
+        "$type": "fontFamily",
+        "figma-type": "var.string"
+      }
+    },
+    "font-face": {
+      "boschsans": {
+        "regular": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "files": [
+              {
+                "path": "boschsans_regular.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_regular.woff",
+                "format": "woff"
+              }
+            ],
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "swap"
+          }
+        },
+        "regularItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.regular}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_regularItalic.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_regularItalic.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "bold": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "normal",
+            "weight": "{core.font-weight.bold}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_bold.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_bold.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "boldItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.bold}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_boldItalic.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_boldItalic.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "medium": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "files": [
+              {
+                "path": "boschsans_medium.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_medium.woff",
+                "format": "woff"
+              }
+            ],
+            "style": "normal",
+            "weight": "{core.font-weight.medium}",
+            "display": "swap"
+          }
+        },
+        "mediumItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.medium}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_mediumItalic.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_mediumItalic.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "black": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "normal",
+            "weight": "{core.font-weight.black}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_black.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_black.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "blackItalic": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "{core.font-family.primary}",
+            "style": "italic",
+            "weight": "{core.font-weight.black}",
+            "display": "swap",
+            "files": [
+              {
+                "path": "boschsans_blackItalic.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "boschsans_blackItalic.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "icon": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-Icon",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_icon.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_icon.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "ui-icon": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-UI-Icon",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_ui_icon.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_ui_icon.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        },
+        "ui-icon-rtl": {
+          "$type": "fontFace",
+          "$value": {
+            "family": "Bosch-UI-Icon-RTL",
+            "style": "normal",
+            "weight": "{core.font-weight.regular}",
+            "display": "auto",
+            "files": [
+              {
+                "path": "bosch_ui_icon_rtl.woff2",
+                "format": "woff2"
+              },
+              {
+                "path": "bosch_ui_icon_rtl.woff",
+                "format": "woff"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,15 +7,63 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="#{design.editTitle}">Edit Design - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .btn-secondary {
             background-color: #6c757d;
             color: white;
         }
         .btn-secondary:hover { background-color: #5a6268; }
 
-        /* Child_View Textarea */
-        .form-group textarea {
+        /* Abstände im Formular: Titel -> Felder -> Felder untereinander */
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+        .card form .a-text-field {
+            margin-bottom: 1.25rem;
+        }
+
+        /* Select- (Werkstoff) und Textarea-Feld (Child View): das Floating-Label
+           der Bosch-Komponente funktioniert hier nicht zuverlässig (kein CSS-Äquivalent
+           zu :placeholder-shown für <select>, und bei leerem Textarea+Placeholder
+           überlagern sich Label und Placeholder). Daher Label statisch über dem Feld
+           anzeigen statt "floaten" zu lassen. */
+        label[for="materialId"],
+        label[for="childView"] {
+            position: static !important;
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+        #materialId {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            position: static;
+        }
+        /* Wrapper hat sonst eine feste Höhe mit overflow:hidden (fürs Floating-Label
+           ausgelegt) - dadurch wird der zusätzliche Platz für das statische Label
+           sonst oben/unten abgeschnitten. */
+        .a-text-field--select,
+        .a-text-field--textarea {
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+        }
+
+        /* Child_View Textarea: gleiche Breite wie andere Felder, 4-fache Höhe */
+        .a-text-field textarea {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #ced4da;
@@ -23,10 +71,10 @@
             font-family: inherit;
             font-size: 0.95rem;
             resize: vertical;
-            min-height: 120px;
+            min-height: 180px;
             box-sizing: border-box;
         }
-        .form-group textarea:focus {
+        .a-text-field textarea:focus {
             outline: none;
             border-color: #0d6efd;
             box-shadow: 0 0 0 2px rgba(13,110,253,0.15);
@@ -55,96 +103,124 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="#{design.editHeading}">Edit Design</h1>
-    <div style="margin-left: auto;">
-        <a th:href="@{/designs/{id}(id=${designId})}"
-           class="btn btn-primary" th:text="#{button.backToDesign}">Back to Design</a>
-    </div>
-</div>
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{design.title})}"></div>
 
-<div class="container">
-    <div class="card">
-        <h2 th:text="#{design.editInfo}">Edit Design Information</h2>
+    <div class="app-layout">
 
-        <form th:action="@{/designs/{id}(id=${designId})}"
-              th:object="${design}"
-              method="post">
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
 
-            <!-- Name -->
-            <div class="form-group">
-                <label for="name" th:text="#{label.name} + ' *'">Name *</label>
-                <input type="text" id="name"
-                       th:field="*{name}"
-                       required maxlength="256">
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
+            <div class="container">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h2 style="margin:0" th:text="#{design.editHeading}">Edit Design</h2>
+						   
+						<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/{id}(id=${designId})}'|">
+							<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+							<span class="a-button__label" th:text="#{button.backToDesign}">Back to Design</span>
+						</button>
+						
+											
+                    </div>
+
+                    <h3 th:text="#{design.editInfo}">Edit Design Information</h3>
+
+                    <form th:action="@{/designs/{id}(id=${designId})}"
+                          th:object="${design}"
+                          method="post">
+
+                        <!-- Name -->
+                        <div class="a-text-field">
+                            <label for="name" th:text="#{label.name} + ' *'">Name *</label>
+                            <input type="text" id="name"
+                                   th:field="*{name}"
+                                   required maxlength="256">
+                        </div>
+
+                        <!-- Department -->
+                        <div class="a-text-field">
+                            <label for="department" th:text="#{label.department}">Department</label>
+                            <input type="text" id="department"
+                                   th:field="*{department}"
+                                   maxlength="128">
+                        </div>
+
+                        <!-- Mass -->
+                        <div class="a-text-field">
+                            <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
+                            <input type="text" id="mass"
+                                   th:field="*{mass}"
+                                   maxlength="8">
+                            <div class="field-note" th:text="#{design.massSyncNote}">
+                                Wird automatisch an verlinkte eBOM-Objekte synchronisiert.
+                            </div>
+                        </div>
+
+                        <!-- Material (Auswahl aus Materialstammdaten) -->
+                        <div class="a-text-field a-text-field--select">
+                            <label for="materialId" th:text="#{label.material}">Material</label>
+                            <select id="materialId" th:field="*{materialId}">
+                                <option value="" th:text="#{common.noMaterialLinked}">-- Kein Material verknüpft --</option>
+                                <option th:each="m : ${releasedMaterials}"
+                                        th:value="${m.id}"
+                                        th:text="${m.id + ' – ' + m.name + (m.materialGroup != null ? ' (' + m.materialGroup + ')' : '')}">
+                                </option>
+                            </select>
+                            <div class="field-note" th:text="#{design.materialSyncNote}">
+                                Wird automatisch an verlinkte eBOM-Objekte synchronisiert.
+                                Nur freigegebene Materialien mit Status „Active" sind wählbar.
+                            </div>
+                        </div>
+
+                        <!-- Child_View -->
+                        <div class="a-text-field a-text-field--textarea">
+                            <label for="childView" th:text="#{label.childView}">Child View</label>
+                            <textarea id="childView"
+                                      th:field="*{childView}"
+                                      oninput="updateCharCounter(this)"
+                                      th:placeholder="#{design.childViewPlaceholder}"
+                                      placeholder="Strukturbeschreibung / Stücklisteninhalt ...">
+                            </textarea>
+                            <div class="char-counter" id="childViewCounter">
+                                0 <span th:text="#{common.characters}">Zeichen</span>
+                            </div>
+                            <div class="field-note" th:text="#{design.childViewNote}">
+                                Datentyp: Oracle CLOB (keine Längenbeschränkung).
+                            </div>
+                        </div>
+
+                        <div style="margin-top:2rem; display:flex; gap:0.75rem;">
+							
+							<button type="submit" class="a-button a-button--primary">
+								<i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
+								<span class="a-button__label" th:text="#{button.saveChanges}">Save Changes</span>
+							</button>
+							
+							<button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/designs}'|">
+								<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+								<span class="a-button__label" th:text="#{button.cancel}">Cancel</span>
+							</button>
+							
+							
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <!-- Department -->
-            <div class="form-group">
-                <label for="department" th:text="#{label.department}">Department</label>
-                <input type="text" id="department"
-                       th:field="*{department}"
-                       maxlength="128">
-            </div>
-
-            <!-- Mass -->
-            <div class="form-group">
-                <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
-                <input type="text" id="mass"
-                       th:field="*{mass}"
-                       maxlength="8">
-                <div class="field-note" th:text="#{design.massSyncNote}">
-                    Wird automatisch an verlinkte eBOM-Objekte synchronisiert.
+                    </div>
                 </div>
             </div>
 
-			<!-- Material (Auswahl aus Materialstammdaten) -->
-			<div class="form-group">
-				<label for="materialId" th:text="#{label.material}">Material</label>
-				<select id="materialId" th:field="*{materialId}"
-						style="width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:4px;">
-					<option value="" th:text="#{common.noMaterialLinked}">-- Kein Material verknüpft --</option>
-					<option th:each="m : ${releasedMaterials}"
-							th:value="${m.id}"
-							th:text="${m.id + ' – ' + m.name + (m.materialGroup != null ? ' (' + m.materialGroup + ')' : '')}">
-					</option>
-				</select>
-				<div class="field-note" th:text="#{design.materialSyncNote}">
-					Wird automatisch an verlinkte eBOM-Objekte synchronisiert.
-					Nur freigegebene Materialien mit Status „Active" sind wählbar.
-				</div>
-			</div>
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
 
-			<!-- Child_View -->
-			<div class="form-group">
-				<label for="childView" th:text="#{label.childView}">Child View</label>
-				<textarea id="childView"
-						  th:field="*{childView}"
-						  oninput="updateCharCounter(this)"
-						  th:placeholder="#{design.childViewPlaceholder}"
-						  placeholder="Strukturbeschreibung / Stücklisteninhalt ...">
-				</textarea>
-				<div class="char-counter" id="childViewCounter">
-					0 <span th:text="#{common.characters}">Zeichen</span>
-				</div>
-				<div class="field-note" th:text="#{design.childViewNote}">
-					Datentyp: Oracle CLOB (keine Längenbeschränkung).
-				</div>
-			</div>
-
-            <div style="margin-top:2rem; display:flex; gap:0.75rem;">
-                <button type="submit" class="btn btn-success">
-                    💾 <span th:text="#{button.saveChanges}">Save Changes</span>
-                </button>
-                <a th:href="@{/designs/{id}(id=${designId})}"
-                   class="btn btn-secondary">
-                    ✖ <span th:text="#{button.cancel}">Cancel</span>
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
 
 <script th:inline="javascript">
     const charSuffix = /*[[#{common.characters}]]*/ 'Zeichen';

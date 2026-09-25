@@ -7,17 +7,14 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="#{docTemplate.createTitle}">Neues Document Template - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <style>.app-layout{display:flex;align-items:flex-start}.app-layout__content{flex:1 1 auto;min-width:0}.card form .form-group{margin-bottom:1.25rem}.a-text-area{margin-top:1.5rem}.a-text-area label{position:static!important;display:block;margin-bottom:.35rem}.a-text-area textarea{pointer-events:auto!important;overflow-y:auto!important;width:100%;box-sizing:border-box;resize:vertical}.file-field label{position:static!important;display:block;margin-bottom:.35rem}.file-field input[type="file"]{display:block;width:100%;box-sizing:border-box;padding:.5rem;border:1px solid #ced4da;border-radius:4px;background:#f1f3f4}</style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{docTemplate.createHeading}">Neues Document Template erstellen</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{docTemplate.heading})}"></div>
 
-    <div class="container">
+    <div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
         <div class="card">
             <h2 th:text="#{docTemplate.info}">Template-Informationen</h2>
 
@@ -26,19 +23,19 @@
             <form th:action="@{/document-templates}" th:object="${template}"
                   method="post" enctype="multipart/form-data">
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}"
                            required maxlength="255" th:placeholder="#{docTemplate.namePlaceholder}" placeholder="Template-Name eingeben">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}"
                            maxlength="100" th:placeholder="#{docTemplate.departmentPlaceholder}" placeholder="Abteilung (optional)">
                 </div>
 
-                <div class="form-group">
+                <div class="a-text-area">
                     <label for="description" th:text="#{label.description}">Beschreibung</label>
                     <textarea id="description" th:field="*{description}"
                               maxlength="1000" rows="3"
@@ -53,13 +50,13 @@
                     durch die eingetragenen Werte ersetzt.
                 </p>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="attribute1" th:text="#{label.attribute1Full}">Attribute 1 (Standardwert / Beschreibung)</label>
                     <input type="text" id="attribute1" th:field="*{attribute1}"
                            maxlength="500" th:placeholder="#{docTemplate.attribute1Placeholder}" placeholder="z.B. Projektnummer, Abteilung, ...">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="attribute2" th:text="#{label.attribute2Full}">Attribute 2 (Standardwert / Beschreibung)</label>
                     <input type="text" id="attribute2" th:field="*{attribute2}"
                            maxlength="500" th:placeholder="#{docTemplate.attribute2Placeholder}" placeholder="z.B. Version, Autor, ...">
@@ -73,7 +70,7 @@
                     {{Attribute2}} enthalten.
                 </p>
 
-                <div class="form-group">
+                <div class="file-field form-group">
                     <label for="docFile" th:text="#{label.templateFile}">Template-Datei (.docx) *</label>
                     <input type="file" id="docFile" name="docFile"
                            required accept=".docx"
@@ -81,26 +78,26 @@
                 </div>
 
                 <div style="margin-top:2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.createTemplate}">Template erstellen</button>
-                    <a th:href="@{/document-templates}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                    <button type="submit" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label" th:text="#{button.createTemplate}">Template erstellen</span></button>
+                    <button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/document-templates}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i><span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span></button>
                 </div>
             </form>
         </div>
 
-        <div class="card">
+<!--         <div class="card">
             <h3 th:text="#{docTemplate.notesHeading}">Hinweise</h3>
-            <ul>
-                <li th:text="#{docTemplate.note1}">Name ist Pflichtfeld (max. 255 Zeichen)</li>
-                <li th:text="#{docTemplate.note2}">ID wird automatisch generiert (Format: DT00000001)</li>
-                <li th:text="#{docTemplate.note3}">Revision 01 wird automatisch angelegt (Status: Working)</li>
-                <li th:text="#{docTemplate.note4}">Nur .docx-Dateien sind erlaubt</li>
-                <li th:text="#{docTemplate.note5}">Platzhalter {{Attribute1}} und {{Attribute2}}
-                    in der .doc-Datei werden beim Erstellen eines Dokuments automatisch ersetzt</li>
-                <li th:text="#{docTemplate.note6}">Das Template muss zuerst freigegeben werden, bevor Dokumente
-                    daraus erstellt werden können</li>
-            </ul>
-        </div>
+            <div class="a-text-area">
+                <textarea id="templateNotes" readonly tabindex="0"
+                          th:text="|#{docTemplate.note1}\n#{docTemplate.note2}\n#{docTemplate.note3}\n#{docTemplate.note4}\n#{docTemplate.note5}\n#{docTemplate.note6}|">Name ist Pflichtfeld</textarea>
+            </div>
+        </div> -->
+		
+		<div class="a-text-area">
+			<textarea id="1" readonly tabindex="0" th:text="|#{docTemplate.notesHeading}&#10;#{docTemplate.note1}&#10;#{docTemplate.note2}&#10;#{docTemplate.note3}&#10;#{docTemplate.note4}&#10;#{docTemplate.note5}&#10;#{docTemplate.note6}|">
+			</textarea>
+		</div>
     </div>
+    </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
     <style>
         .btn-secondary { background-color:#6c757d; color:white; }

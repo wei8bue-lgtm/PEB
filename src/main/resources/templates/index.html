@@ -1,4 +1,4 @@
-<!-- src/main/resources/templates/layout.html -->
+<!-- src/main/resources/templates/index.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
@@ -6,163 +6,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{app.title}">PEB - Production Engineering Backbone</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <title th:text="#{app.title}">SEP4Eng - Synchronous Engineering Platform</title>
+		<link rel="stylesheet" th:href="@{/css/styles.css}">
+	    <link rel="stylesheet" th:href="@{css/brand/styles/frontend-kit-complete.css}">
+	    <link rel="stylesheet" th:href="@{css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        /* einfaches Layout: Side-Navigation links, Inhalt rechts */
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- ── Header ─────────────────────────────────────────────── -->
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{app.title}">PEB - Production Engineering Backbone</h1>
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{index.welcomeSubtitle})}"></div>
 
-        <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+    <div class="app-layout">
 
-            <!-- Zentrale Suche -->
-            <div th:replace="~{fragments/navbar-search :: navbar-search}"></div>
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
 
-            <!-- Angemeldeter Benutzer -->
-            <div class="user-info">
-                <span class="user-icon">👤</span>
-                <span sec:authentication="name">Benutzer</span>
-                <!-- Rolle anzeigen -->
-                <span sec:authorize="hasRole('ADMIN')"
-                      class="role-badge role-admin" th:text="#{role.admin}">Admin</span>
-                <span sec:authorize="hasRole('USER') and !hasRole('ADMIN')"
-                      class="role-badge role-user" th:text="#{role.user}">User</span>
-                <span sec:authorize="hasRole('VIEWER') and !hasRole('USER')"
-                      class="role-badge role-viewer" th:text="#{role.viewer}">Viewer</span>
+        <div class="app-layout__content">
+
+            <!-- ── Hauptinhalt ────────────────────────────────── -->
+            <div class="frontend-kit__example-wrapper -secondary">
+              <div class="e-container" style="margin: 1rem auto;">
+
+                <!-- Pending-Hinweis für Admins - nur wenn ausstehende User -->
+                <div sec:authorize="hasRole('ADMIN')"
+                     id="pendingAlert"
+                     class="alert alert-warning"
+                     style="display:none">
+                    ⚠️ <span th:text="#{index.pendingUsers}">Benutzer warten auf Freischaltung –</span>
+                    <a th:href="@{/admin/users(status='PENDING')}">
+                        <span th:text="#{index.activateNow}">Jetzt freischalten</span>
+                    </a>
+                </div>
+
+				<div class="frontend-kit__example-wrapper -primary">
+                    <h3 th:text="#{index.welcomeTitle}">Welcome to SEP</h3>
+
+                    <!-- Central Search -->
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/search}'|" >
+					  <i class="a-icon a-button__icon ui-ic-search"></i>
+					  <span class="a-button__label "th:text="#{menu.search}">Suche</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+                    <!-- Standard actions for all authenticated users) -->
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-mechanic"></i>
+					  <span class="a-button__label" th:text="#{menu.designs}">Designs</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-motorcycle-electric-traction-control"></i>
+						<span class="a-button__label" th:text="#{menu.edesigns}">E-Designs</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-software-tex"></i>
+						<span class="a-button__label" th:text="#{menu.sdesigns}">S-Designs</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/drawings}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-picture-in-picture"></i>
+						<span class="a-button__label" th:text="#{menu.drawings}">Drawings</span>
+					</button>
+					
+					<hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/ebom}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-structure"></i>
+						<span class="a-button__label" th:text="#{menu.ebom}">eBOM</span>
+					</button>
+					
+					<hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/cim}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-puzzle-2"></i>
+						<span class="a-button__label" th:text="#{menu.cim}">CIM Integration</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/product-data}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-case-label-product"></i>
+						<span class="a-button__label" th:text="#{menu.productData}">Product Data</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/product-bom}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-case-label-product"></i>
+						<span class="a-button__label" th:text="#{menu.productBom}">Product BOM</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/manufacturing-bom}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-toolbox"></i>
+					  <span class="a-button__label" th:text="#{menu.manufacturingBom}">Manufacturing BOM</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/product-bop}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-settings-drop-check"></i>
+						<span class="a-button__label" th:text="#{menu.productBop}">Product BOP</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/plant-bop}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-skyscraper-flat-semi-detached"></i>
+						<span class="a-button__label" th:text="#{menu.plantBop}">Plant BOP</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/eclass}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-reference"></i>
+						<span class="a-button__label" th:text="#{menu.eclass}">ECLASS</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/document-templates}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-document-code-stack"></i>
+						<span class="a-button__label" th:text="#{menu.documentTemplates}">Document Templates</span>
+					</button>
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/documents}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-document-dat-edit"></i>
+						<span class="a-button__label" th:text="#{menu.documents}">Documents</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/materials}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-material-list"></i>
+						<span class="a-button__label" th:text="#{menu.materials}">Material management</span>
+					</button>
+
+                    <hr class="a-divider" />
+
+					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/suppliers}'|" >
+					  <i class="a-icon a-button__icon boschicon-bosch-ic-truck-delivery"></i>
+						<span class="a-button__label" th:text="#{menu.suppliers}">Suppliers management</span>
+					</button>
+
+                    <!-- Admin-Aktionen - nur für ROLE_ADMIN -->
+					<sec:authorize access="hasRole('ADMIN')">
+                        <hr class="a-divider" />
+
+						<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/admin/users}'|" >
+						  <i class="a-icon a-button__icon boschicon-bosch-ic-user-hand"></i>
+							<span class="a-button__label" th:text="#{menu.userManagement}">User management</span>
+						</button>
+
+						<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/admin/monitoring}'|" >
+						  <i class="a-icon a-button__icon boschicon-bosch-ic-monitor-tiled"></i>
+							<span class="a-button__label" th:text="#{menu.monitoring}">Monitoring</span>
+						</button>
+
+						<button type="button" id="reindexSearchBtn" class="a-button a-button--primary">
+							<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+							<span class="a-button__label" th:text="#{menu.reindexSearch}">Index Rebuild</span>
+						</button>
+						<span id="reindexStatus" style="margin-left:8px; font-size:0.9em;"></span>
+                    </sec:authorize>
+
+                </div>
+              </div>
             </div>
 
-
-
-            <!-- Logout -->
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ── Hauptinhalt ─────────────────────────────────────────── -->
-    <div class="container">
-
-        <!-- Pending-Hinweis für Admins - nur wenn ausstehende User -->
-        <div sec:authorize="hasRole('ADMIN')"
-             id="pendingAlert"
-             class="alert alert-warning"
-             style="display:none">
-            ⚠️ <span th:text="#{index.pendingUsers}">Benutzer warten auf Freischaltung –</span>
-            <a th:href="@{/admin/users(status='PENDING')}">
-                <span th:text="#{index.activateNow}">Jetzt freischalten</span>
-            </a>
-        </div>
-
-        <div class="card">
-            <h2 th:text="#{index.welcomeTitle}">Welcome to PEB</h2>
-            <p th:text="#{index.welcomeSubtitle}">Production Engineering Backbone - PLM System</p>
-<!--         </div>
-
-        <div class="card">
-            <h3>Quick Actions</h3> -->
-
-            <!-- Zentrale Suche -->
-            <a th:href="@{/search}" class="btn btn-primary">
-                🔍 <span th:text="#{menu.search}">Suche</span>
-            </a>
-
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-
-            <!-- Standard-Aktionen (für alle authentifizierten User) -->
-			<a th:href="@{/designs}" class="btn btn-primary">
-				📐 <span th:text="#{menu.designs}">Designs</span>
-			</a>
-			<a th:href="@{/designs}" class="btn btn-primary">
-				📐 <span th:text="#{menu.edesigns}">E-Designs</span>
-			</a>
-			<a th:href="@{/designs}" class="btn btn-primary">
-				📐 <span th:text="#{menu.sdesigns}">S-Designs</span>
-			</a>
-			<a th:href="@{/drawings}" class="btn btn-primary">
-				📏 <span th:text="#{menu.drawings}">Drawings</span>
-			</a>
-			<a th:href="@{/ebom}" class="btn btn-primary">
-				🧾 <span th:text="#{menu.ebom}">eBOM</span>
-			</a>
-            <a th:href="@{/cim}" class="btn btn-primary">
-                🧩 <span th:text="#{menu.cim}">CIM Integration</span>
-            </a>
-
-<!--             <div class="card" style="margin-top:1rem; border-left:4px solid #0ea5e9; background:#f0f9ff;">
-                <h3 style="margin-top:0;" th:text="#{cim.demoTitle}">CIM Demo Flow</h3>
-                <p style="margin:.25rem 0;" th:text="#{cim.demoStep1}">1. Create CIM from MAE</p>
-                <p style="margin:.25rem 0;" th:text="#{cim.demoStep2}">2. Validate and Release</p>
-                <p style="margin:.25rem 0 .75rem 0;" th:text="#{cim.demoStep3}">3. Import to Manufacturing</p>
-                <a th:href="@{/cim}" class="btn btn-success" th:text="#{cim.demoButton}">Open CIM Demo</a>
-            </div> -->
-			
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-
-            <a th:href="@{/product-data}"      class="btn btn-primary">
-                📦 <span th:text="#{menu.productData}">Product Data</span>
-            </a>
-            <a th:href="@{/product-bom}"       class="btn btn-primary">
-                📋 <span th:text="#{menu.productBom}">Product BOM</span>
-            </a>
-            <a th:href="@{/manufacturing-bom}" class="btn btn-primary">
-                🔧 <span th:text="#{menu.manufacturingBom}">Manufacturing BOM</span>
-            </a>
-            <a th:href="@{/product-bop}"       class="btn btn-primary">
-                ⚙️ <span th:text="#{menu.productBop}">Product BOP</span>
-            </a>
-            <a th:href="@{/plant-bop}"         class="btn btn-primary">
-                🏭 <span th:text="#{menu.plantBop}">Plant BOP</span>
-            </a>
-
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-			
-						<a th:href="@{/eclass}" class="btn btn-primary">
-				🏷️ <span th:text="#{menu.eclass}">ECLASS</span>
-			</a>
-
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-
-            <a th:href="@{/document-templates}" class="btn btn-primary">
-                📄 <span th:text="#{menu.documentTemplates}">Document Templates</span>
-            </a>
-            <a th:href="@{/documents}" class="btn btn-primary">
-                📝 <span th:text="#{menu.documents}">Dokumente</span>
-            </a>
-
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-
-            <a th:href="@{/materials}" class="btn btn-primary">
-                🧪 <span th:text="#{menu.materials}">Materialmanagement</span>
-            </a>
-			
-            <hr style="margin:.75rem 0; border-color:#dee2e6;">
-
-            <a th:href="@{/suppliers}" class="btn btn-primary">
-                🚚 <span th:text="#{menu.suppliers}">Lieferantenmanagement</span>
-            </a>
-
-            <!-- Admin-Aktionen - nur für ROLE_ADMIN -->
-            <sec:authorize access="hasRole('ADMIN')">
-                <hr style="margin:.75rem 0; border-color:#dee2e6;">
-                <a th:href="@{/admin/users}"
-                   class="btn btn-admin-action">
-                    👥 <span th:text="#{menu.userManagement}">Benutzerverwaltung</span>
-                </a>
-                <a th:href="@{/admin/monitoring}"
-                   class="btn btn-admin-action">
-                    📈 <span th:text="#{menu.monitoring}">Monitoring</span>
-                </a>
-                <button type="button" id="reindexSearchBtn" class="btn btn-admin-action">
-                    🔄 <span th:text="#{menu.reindexSearch}">Suchindex neu aufbauen</span>
-                </button>
-                <span id="reindexStatus" style="margin-left:8px; font-size:0.9em;"></span>
-            </sec:authorize>
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
 
         </div>
     </div>
@@ -230,13 +253,11 @@
             .then(r => r.json())
             .then(data => {
                 if (data.count > 0) {
-                    // Badge im Header zeigen
                     const badge = document.getElementById('pendingBadge');
                     if (badge) {
                         badge.textContent = data.count;
                         badge.style.display = 'inline';
                     }
-                    // Alert-Banner zeigen
                     const alert = document.getElementById('pendingAlert');
                     if (alert) {
                         alert.style.display = 'block';
@@ -250,6 +271,5 @@
             })
             .catch(() => {}); // Fehler still ignorieren
     </script>
-
 </body>
 </html>

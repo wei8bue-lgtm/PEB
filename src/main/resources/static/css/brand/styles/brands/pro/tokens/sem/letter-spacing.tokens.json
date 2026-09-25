@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "name": "letter-spacing",
+    "type": "sem",
+    "brand": "pro",
+    "description": "semantic letter-spacing tokens for brand pro",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.letter-spacing"
+    ]
+  },
+  "sem": {
+    "letter-spacing": {
+      "0": {
+        "$value": "{core.letter-spacing.0}",
+        "$type": "letterSpacing",
+        "figma-type": "var.number"
+      },
+      "-18": {
+        "$value": "{core.letter-spacing.-18}",
+        "$type": "letterSpacing",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

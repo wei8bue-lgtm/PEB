@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "name": "border-radius",
+    "type": "sem",
+    "brand": "pro",
+    "description": "semantic border-radius tokens for brand pro",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.border-radius"
+    ]
+  },
+  "sem": {
+    "border-radius": {
+      "0": {
+        "$value": "{core.border-radius.0}",
+        "$type": "borderRadius",
+        "figma-type": "var.number"
+      },
+      "1": {
+        "$value": "{core.border-radius.0}",
+        "$type": "borderRadius",
+        "figma-type": "var.number"
+      },
+      "2": {
+        "$value": "{core.border-radius.0}",
+        "$type": "borderRadius",
+        "figma-type": "var.number"
+      },
+      "3": {
+        "$value": "{core.border-radius.0}",
+        "$type": "borderRadius",
+        "figma-type": "var.number"
+      },
+      "pill": {
+        "$value": "{core.border-radius.6250}",
+        "$type": "borderRadius",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

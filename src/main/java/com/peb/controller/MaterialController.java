@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * MVC-Controller für Materialmanagement.
@@ -51,9 +52,30 @@ public class MaterialController {
     // ── Übersicht ────────────────────────────────────────────────
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("materials", materialService.findAll());
+    public String list(
+            @RequestParam(required = false) String search,
+            Model model) {
+
+        List<MaterialDTO> materials = materialService.findAll();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase(Locale.ROOT);
+            materials = materials.stream()
+                    .filter(m -> contains(m.getId(), term)
+                            || contains(m.getName(), term)
+                            || contains(m.getDepartment(), term)
+                            || contains(m.getMaterialGroup(), term)
+                            || contains(m.getSpecification(), term))
+                    .toList();
+        }
+
+        model.addAttribute("search", search);
+        model.addAttribute("materials", materials);
         return "material/material-list";
+    }
+
+    private static boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     @GetMapping("/{id}")

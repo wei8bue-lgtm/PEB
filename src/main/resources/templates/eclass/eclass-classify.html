@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{eclass.classifyTitle}">ECLASS Klassifizierung - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+        .app-layout { display: flex; align-items: flex-start; }
+        .app-layout__content { flex: 1 1 auto; min-width: 0; }
         .eclass-search-wrap { position: relative; }
         .eclass-dropdown {
             position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
@@ -35,21 +39,14 @@
 </head>
 <body th:attr="data-object-type=${objectType}">
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="#{eclass.classifyHeading}">ECLASS Klassifizierung</h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/}" class="btn btn-secondary">← <span th:text="#{button.back}">Zurück</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{eclass.classifyHeading})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
     <!-- Objekt-Info -->
     <div class="card">
         <h3 th:text="#{eclass.object}">Objekt</h3>
-        <table class="table">
+        <table class="m-table">
             <tr>
                 <th th:text="#{label.id}">ID</th>
                 <td th:text="${objectId}"></td>
@@ -93,10 +90,15 @@
             <div id="propertySection"></div>
 
             <div style="margin-top:1.5rem;display:flex;gap:.75rem">
-                <button type="submit" class="btn btn-primary"
-                        id="saveBtn" disabled th:text="#{button.saveClassification}">Klassifizierung speichern</button>
-                <a th:href="@{'/' + ${objectType.name().toLowerCase()} + 's/' + ${objectId}}"
-                   class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                <button type="submit" class="a-button a-button--primary" id="saveBtn" disabled>
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
+                    <span class="a-button__label" th:text="#{button.saveClassification}">Klassifizierung speichern</span>
+                </button>
+                <button type="button" class="a-button a-button--destructive-primary"
+                        th:onclick="|window.location.href='@{'/' + ${objectType.name().toLowerCase()} + 's/' + ${objectId}}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span>
+                </button>
 
                 <!-- Klassifizierung entfernen -->
                 <div th:if="${classification != null}" style="margin-left:auto">
@@ -104,7 +106,10 @@
                           method="post" style="display:inline"
                           th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('eclass.confirmRemove'))}');|">
                         <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-                        <button type="submit" class="btn btn-danger" th:text="#{button.removeClassification}">Klassifizierung entfernen</button>
+                        <button type="submit" class="a-button a-button--destructive-primary">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i>
+                            <span class="a-button__label" th:text="#{button.removeClassification}">Klassifizierung entfernen</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -112,14 +117,20 @@
     </div>
 
     <!-- ECLASS-Katalog-Link -->
-    <div class="card" style="padding:.75rem 1rem">
-        <a th:href="@{/eclass}" target="_blank" th:text="#{eclass.openCatalog}">📂 ECLASS-Katalog öffnen</a>
-        &nbsp;|&nbsp;
-        <a th:href="@{'/eclass/similar/' + ${objectType} + '/' + ${objectId}}" th:text="#{button.similar}">
-            🔄 Ähnliche Objekte anzeigen
-        </a>
+    <div class="card" style="padding:.75rem 1rem; display:flex; gap:.75rem;">
+        <button type="button" class="a-button a-button--primary"
+                th:onclick="|window.open('@{/eclass}', '_blank')|">
+            <i class="a-icon a-button__icon boschicon-bosch-ic-folder"></i>
+            <span class="a-button__label" th:text="#{eclass.openCatalog}">ECLASS-Katalog öffnen</span>
+        </button>
+        <button type="button" class="a-button a-button--primary"
+                th:onclick="|window.location.href='@{'/eclass/similar/' + ${objectType} + '/' + ${objectId}}'|">
+            <i class="a-icon a-button__icon boschicon-bosch-ic-handlewithcare"></i>
+            <span class="a-button__label" th:text="#{button.similar}">Ähnliche Objekte anzeigen</span>
+        </button>
     </div>
 </div>
+ </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
 <script th:inline="javascript">
 const classifyI18n = {

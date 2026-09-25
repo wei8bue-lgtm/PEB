@@ -7,9 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{eclass.catalogTitle}">ECLASS Katalog - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+        .app-layout { display: flex; align-items: flex-start; }
+        .app-layout__content { flex: 1 1 auto; min-width: 0; }
         .eclass-search-box { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
         .eclass-search-box input {
             flex: 1; padding: .55rem .75rem; border: 1px solid #ced4da;
@@ -46,18 +50,9 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="#{eclass.catalogHeading}">ECLASS Katalog</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
-            </form>
-        </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{eclass.catalogHeading})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
     <!-- Statistik -->
     <div class="card" style="display:flex;gap:2rem;align-items:center;">
@@ -75,7 +70,11 @@
             <span class="stat-badge" th:text="${commodityCount} + ' Commodities'"></span>
         </div>
         <div sec:authorize="hasRole('ADMIN')" style="margin-left:auto">
-            <a th:href="@{/eclass/import}" class="btn btn-primary" th:text="#{button.importXml}">&#x2B06; XML importieren</a>
+            <button type="button" class="a-button a-button--primary"
+                    th:onclick="|window.location.href='@{/eclass/import}'|">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i>
+                <span class="a-button__label" th:text="#{button.importXml}">XML importieren</span>
+            </button>
         </div>
     </div>
 
@@ -86,7 +85,10 @@
             <input type="text" id="eclassSearch"
                    th:placeholder="#{eclass.searchPlaceholder}" placeholder="Klasse suchen (z.B. Elektromotor, 27-37-04, motor)..."
                    autocomplete="off">
-            <button class="btn btn-primary" onclick="doSearch()" th:text="#{button.searchPlain}">Suchen</button>
+            <button type="button" class="a-button a-button--primary" onclick="doSearch()">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-search"></i>
+                <span class="a-button__label" th:text="#{button.searchPlain}">Suchen</span>
+            </button>
         </div>
         <div id="searchResults" class="search-result-list"></div>
     </div>
@@ -133,6 +135,7 @@
         </div>
     </div>
 </div>
+ </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
 <script th:inline="javascript">
 var colMap  = { maingroup:'colMainGroup', group:'colGroup', commodity:'colCommodity' };
@@ -209,7 +212,7 @@ function doSearch() {
                 return '<div class="search-result-item">'
                      + '<span><span class="badge-level level-' + lvl + '">' + (lvlLabel[lvl]||'') + '</span>'
                      + ' <strong>' + escHtml(c.code) + '</strong> &ndash; ' + escHtml(name) + '</span>'
-                     + '<a href="/eclass/' + c.id + '" class="btn btn-secondary" style="padding:.2rem .6rem;font-size:.8rem">' + i18nDetail + '</a>'
+                     + '<a href="/eclass/' + c.id + '" class="a-link -icon"><span></span><span>' + i18nDetail + '</span></a>'
                      + '</div>';
             }).join('');
         })

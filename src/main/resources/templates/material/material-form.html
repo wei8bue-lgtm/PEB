@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${isNew} ? #{material.newTitle} : #{material.editTitle}"></title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
@@ -17,21 +19,36 @@
             width:100%; padding:.5rem .7rem; border:1px solid #ced4da; border-radius:4px; font-size:.9rem;
         }
         .section-title { margin-top:1.5rem; margin-bottom:.5rem; font-size:1rem; color:#333; border-bottom:1px solid #eee; padding-bottom:.3rem; }
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
+        .form-grid .form-group { margin-bottom:1.25rem; }
+        label[for="status"] { position:static !important; display:block; margin-bottom:.35rem; }
+        #status { width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:4px; box-sizing:border-box; position:static; }
+        .a-text-field--select { height:auto !important; min-height:0 !important; overflow:visible !important; }
+        .a-text-area { margin-top:1.5rem; }
+        .a-text-area textarea { pointer-events:auto !important; overflow-y:auto !important; -webkit-user-select:text; user-select:text; cursor:text; width:100%; box-sizing:border-box; min-height:160px; max-height:300px; resize:vertical; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="${isNew} ? #{material.newHeading} : #{material.editHeading} + ' ' + ${material.id}"></h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/materials}" class="btn btn-secondary">← <span th:text="#{button.backToList}">Zur Liste</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{material.title})}"></div>
 
+<div class="app-layout">
+    <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+    <div class="app-layout__content">
+        <div class="frontend-kit__example-wrapper -secondary">
+            <div class="e-container" style="margin:1rem auto;">
+                <div class="frontend-kit__example-wrapper -primary">
 <div class="container">
     <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h2 th:text="${isNew} ? #{material.newHeading} : #{material.editHeading} + ' ' + ${material.id}"></h2>
+            <button type="button" class="a-button a-button--primary"
+                    th:onclick="|window.location.href='@{/materials}'|">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                <span class="a-button__label" th:text="#{button.backToList}">Zur Liste</span>
+            </button>
+        </div>
         <form th:action="${isNew} ? @{/materials} : @{'/materials/' + ${material.id}}" method="post">
             <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
 
@@ -45,9 +62,9 @@
                     <label th:text="#{label.department}">Abteilung</label>
                     <input type="text" name="department" th:value="${material.department}">
                 </div>
-                <div class="form-group">
-                    <label th:text="#{common.status}">Status</label>
-                    <select name="status">
+                <div class="form-group a-text-field a-text-field--select">
+                    <label for="status" th:text="#{common.status}">Status</label>
+                    <select id="status" name="status">
                         <option value="ACTIVE"       th:selected="${material.status == null || material.status.name() == 'ACTIVE'}" th:text="#{material.status.active}">Aktiv</option>
                         <option value="UNDER_REVIEW"  th:selected="${material.status != null and material.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}">In Prüfung</option>
                         <option value="OBSOLETE"      th:selected="${material.status != null and material.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}">Ausgelaufen</option>
@@ -93,15 +110,33 @@
             </div>
 
             <div class="section-title" th:text="#{label.description}">Beschreibung</div>
-            <div class="form-group full">
+            <div class="a-text-area">
                 <textarea name="description" rows="4" th:text="${material.description}"></textarea>
             </div>
 
             <div style="margin-top:1.5rem;display:flex;gap:.75rem">
-                <button type="submit" class="btn btn-primary" th:text="${isNew} ? #{button.createMaterial} : #{button.saveChanges}"></button>
-                <a th:href="${isNew} ? @{/materials} : @{'/materials/' + ${material.id}}" class="btn btn-secondary" th:text="#{button.cancel}">Abbrechen</a>
+                <button type="submit" class="a-button a-button--primary">
+                    <i class="a-icon a-button__icon" th:classappend="${isNew} ? ' boschicon-bosch-ic-add' : ' boschicon-bosch-ic-save'"></i>
+                    <span class="a-button__label" th:text="${isNew} ? #{button.createMaterial} : #{button.saveChanges}"></span>
+                </button>
+                <button th:if="${isNew}" type="button" class="a-button a-button--destructive-primary"
+                        th:onclick="|window.location.href='@{/materials}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span>
+                </button>
+                <button th:unless="${isNew}" type="button" class="a-button a-button--destructive-primary"
+                        th:onclick="|window.location.href='@{/materials/{id}(id=${material.id})}'|">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span>
+                </button>
             </div>
         </form>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+        <div th:replace="~{fragments/footer :: footer}"></div>
     </div>
 </div>
 </body>

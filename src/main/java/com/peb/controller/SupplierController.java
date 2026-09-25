@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * MVC-Controller für Lieferantenmanagement.
@@ -39,9 +40,29 @@ public class SupplierController {
     // ── Übersicht ────────────────────────────────────────────────
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("suppliers", supplierService.findAll());
+    public String list(
+            @RequestParam(required = false) String search,
+            Model model) {
+
+        List<SupplierDTO> suppliers = supplierService.findAll();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase(Locale.ROOT);
+            suppliers = suppliers.stream()
+                    .filter(s -> contains(s.getId(), term)
+                            || contains(s.getName(), term)
+                            || contains(s.getCity(), term)
+                            || contains(s.getCountry(), term))
+                    .toList();
+        }
+
+        model.addAttribute("search", search);
+        model.addAttribute("suppliers", suppliers);
         return "supplier/supplier-list";
+    }
+
+    private static boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     @GetMapping("/{id}")

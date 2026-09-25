@@ -8,18 +8,18 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="${document.name} + ' - PEB'">Dokument - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <style>
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
+        .a-text-area textarea { pointer-events:auto !important; overflow-y:auto !important; width:100%; box-sizing:border-box; resize:vertical; }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{document.viewHeading}">Dokument</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/documents}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
-            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.templates}">Templates</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{document.heading})}"></div>
 
-    <div class="container">
+    <div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
         <!-- Statusmeldungen -->
         <div th:if="${param.created}" class="alert alert-success" th:text="#{document.createdAlert}">
@@ -58,26 +58,27 @@
                                    and document.latestRevision.releaseStatus.name() == 'RELEASED'}"
                           th:action="@{/documents/{id}/revise(id=${document.id})}"
                           method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-warning"
+                        <button type="submit" class="a-button a-button--primary"
                                 sec:authorize="hasAuthority('WRITE')" th:text="#{button.createNewRevision}">
                             Neue Revision anlegen
                         </button>
                     </form>
-                    <a th:href="@{/documents/{id}/edit(id=${document.id})}"
-                       class="btn btn-secondary"
-                       sec:authorize="hasAuthority('WRITE')">
-                        ✏ <span th:text="#{button.edit}">Bearbeiten</span>
-                    </a>
+                    <button type="button" class="a-button a-button--primary"
+                            th:onclick="|window.location.href='@{/documents/{id}/edit(id=${document.id})}'|"
+                            sec:authorize="hasAuthority('WRITE')">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i>
+                        <span class="a-button__label" th:text="#{button.edit}">Bearbeiten</span>
+                    </button>
                     <form th:action="@{/documents/{id}/delete(id=${document.id})}"
                           method="post" style="display:inline;"
                           sec:authorize="hasAuthority('DELETE')"
                           th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('document.confirmDeleteFull'))}');|">
-                        <button type="submit" class="btn btn-danger">🗑 <span th:text="#{button.delete}">Löschen</span></button>
+                        <button type="submit" class="a-button a-button--destructive-primary"><i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i><span class="a-button__label" th:text="#{button.delete}">Löschen</span></button>
                     </form>
                 </div>
             </div>
 
-            <table style="margin-top:1rem; border-collapse:collapse; width:100%;">
+            <table class="m-table" aria-label="Document details">
                 <tr style="border-bottom:1px solid #dee2e6;">
                     <td style="padding:.5rem 1rem .5rem 0; font-weight:600; width:180px;" th:text="#{label.department}">Department</td>
                     <td style="padding:.5rem 0;" th:text="${document.department ?: '-'}"></td>
@@ -121,7 +122,7 @@
                 Keine Revisionen vorhanden.
             </div>
 
-            <table th:unless="${revisions.empty}" style="width:100%; border-collapse:collapse;">
+            <table class="m-table" th:unless="${revisions.empty}" aria-label="Document revisions">
                 <thead>
                     <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
                         <th style="padding:.75rem; text-align:left;" th:text="#{label.rev}">Rev.</th>
@@ -136,10 +137,11 @@
                 <tbody>
                     <tr th:each="rev : ${revisions}" style="border-bottom:1px solid #ddd;">
                         <td style="padding:.75rem; font-weight:600;" th:text="${rev.revision}">01</td>
-                        <td style="padding:.75rem;">
-                            <span th:text="${rev.releaseStatus.displayName}"
-                                  th:class="${'badge badge-' + rev.releaseStatus.name().toLowerCase()}">
-                            </span>
+                        <td class="-with-icon-and-label">
+                            <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                            <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                            <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                            <span th:text="${rev.releaseStatus.displayName}"></span>
                         </td>
                         <td style="padding:.75rem;" th:text="${rev.attribute1 ?: '-'}"></td>
                         <td style="padding:.75rem;" th:text="${rev.attribute2 ?: '-'}"></td>
@@ -163,30 +165,32 @@
                                     <!-- Button, der das Dokument direkt auf dem Server generiert -->
                                     <form th:action="@{/documents/{id}/revisions/{revId}/generate-prefilled(id=${document.id},revId=${rev.revisionId})}"
                                           method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-primary" th:text="#{button.generateDocument}">
-                                            ⚡ Dokument generieren
+                                        <button type="submit" class="a-button a-button--primary -small">
+                                            <i class="a-icon a-button__icon boschicon-bosch-ic-document-add"></i>
+                                            <span class="a-button__label" th:text="#{button.generateDocument}">Dokument generieren</span>
                                         </button>
                                     </form>
 
                                     <!-- (Optional) Manuellen Upload weiterhin erlauben -->
-                                    <button class="btn btn-sm" onclick="toggleUploadForm(this)" th:text="#{button.uploadOwn}">
-                                        ⬆ Eigenes hochladen
+                                    <button class="a-button a-button--primary -small" onclick="toggleUploadForm(this)">
+                                        <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i>
+                                        <span class="a-button__label" th:text="#{button.uploadOwn}">Eigenes hochladen</span>
                                     </button>
                                 </div>
 
                                 <!-- FALL 2: Datei ist bereits vorhanden (generiert oder hochgeladen) -->
 								<div th:if="${rev.docFilePath != null}">
-									<a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
-									   class="btn btn-sm btn-secondary">
-										⬇ Herunterladen & Prüfen
+                                                <a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
+                                                    class="a-button a-button--primary -small">
+                                                    <span class="a-button__label">Herunterladen und Prüfen</span>
 									</a>
 
 									<form th:action="@{/documents/{id}/revisions/{revId}/release(id=${document.id},revId=${rev.revisionId})}"
 										  method="post" style="display:inline;"
 										  sec:authorize="hasAuthority('WRITE')">
-										<button type="submit" class="btn btn-sm btn-release"
-												onclick="return confirm('Dokument-Revision freigeben?')">
-											✅ Freigeben
+                                        <button type="submit" class="a-button a-button--primary -small"
+                                                onclick="return confirm('Dokument-Revision freigeben?')">
+                                                <span class="a-button__label">Freigeben</span>
 										</button>
 									</form>
 
@@ -195,8 +199,9 @@
 										  method="post" style="display:inline;"
 										  sec:authorize="hasAuthority('WRITE')"
 										  onsubmit="return confirm('Datei wirklich löschen?\n\nAttribute und Revision bleiben erhalten. Danach kann ein neues Dokument generiert werden.')">
-										<button type="submit" class="btn btn-sm btn-danger">
-											🗑 Datei löschen
+                                        <button type="submit" class="a-button a-button--destructive-primary -small">
+                                            <i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i>
+                                            <span class="a-button__label">Datei löschen</span>
 										</button>
 									</form>
 								</div>
@@ -205,9 +210,10 @@
 
                             <!-- Für bereits freigegebene Revisionen wird nur der Download angezeigt -->
                             <div th:if="${rev.releaseStatus.name() != 'WORKING' and rev.docFilePath != null}">
-                                <a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
-                                   class="btn btn-sm" th:text="#{button.downloadDocument}">
-                                    ⬇ Dokument herunterladen
+                                          <a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
+                                              class="a-button a-button--primary -small">
+                                                <i class="a-icon a-button__icon boschicon-bosch-ic-download"></i>
+                                                <span class="a-button__label" th:text="#{button.downloadDocument}">Dokument herunterladen</span>
                                 </a>
                             </div>
                         </td>
@@ -225,8 +231,8 @@
                                 <div style="display:flex; gap:1rem; align-items:center; margin-top:.5rem;">
                                     <input type="file" name="docFile" accept=".docx" required
                                            style="flex:1; padding:.4rem; border:1px solid #ced4da; border-radius:4px;">
-                                    <button type="submit" class="btn btn-success btn-sm" th:text="#{button.upload}">Hochladen</button>
-                                    <button type="button" class="btn btn-sm btn-secondary"
+                                    <button type="submit" class="a-button a-button--primary -small" th:text="#{button.upload}">Hochladen</button>
+                                    <button type="button" class="a-button a-button--secondary -small"
                                             onclick="this.closest('tr').style.display='none'" th:text="#{button.cancel}">
                                         Abbrechen
                                     </button>
@@ -242,6 +248,7 @@
             </table>
         </div>
     </div>
+    </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
     <script>
         function toggleUploadForm(btn) {
@@ -257,21 +264,6 @@
         .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
         .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
         .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; padding:1rem; border-radius:4px; }
-        .badge { display:inline-block; padding:.2rem .5rem; border-radius:3px; font-size:.8rem; font-weight:600; }
-        .badge-working  { background:#fff3cd; color:#856404; }
-        .badge-released { background:#d4edda; color:#155724; }
-        .badge-obsolete { background:#f8d7da; color:#721c24; }
-        .btn-sm { font-size:.8rem; padding:.2rem .5rem; margin:.1rem; }
-        .btn-info { background:#17a2b8; color:white; }
-        .btn-info:hover { background:#138496; }
-        .btn-release { background:#28a745; color:white; }
-        .btn-release:hover { background:#218838; }
-        .btn-secondary { background:#6c757d; color:white; }
-        .btn-secondary:hover { background:#5a6268; }
-        .btn-warning { background:#ffc107; color:#212529; }
-        .btn-warning:hover { background:#e0a800; }
-        .btn-danger { background:#dc3545; color:white; }
-        .btn-danger:hover { background:#c82333; }
         .hint-text { font-size:.8rem; color:#856404; }
         .help-text { color:#6c757d; font-size:.85rem; display:block; }
         tbody tr:hover { background:#f8f9fa; }

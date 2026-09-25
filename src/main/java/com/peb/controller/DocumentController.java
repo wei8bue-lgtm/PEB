@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/documents")
@@ -37,9 +38,34 @@ public class DocumentController {
     // ─────────────────────────────────────────────
 
     @GetMapping
-    public String listDocuments(Model model) {
-        model.addAttribute("documents", documentService.getAllDocuments());
+    public String listDocuments(
+            @RequestParam(required = false) String search,
+            Model model) {
+
+        List<Document> documents = documentService.getAllDocuments();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase(Locale.ROOT);
+            documents = documents.stream()
+                    .filter(d -> contains(d.getId(), term)
+                            || contains(d.getName(), term)
+                            || contains(d.getDepartment(), term)
+                            || contains(d.getDescription(), term)
+                            || contains(d.getAttribute1(), term)
+                            || contains(d.getAttribute2(), term)
+                            || (d.getTemplate() != null
+                                && (contains(d.getTemplate().getId(), term)
+                                    || contains(d.getTemplate().getName(), term))))
+                    .toList();
+        }
+
+        model.addAttribute("search", search);
+        model.addAttribute("documents", documents);
         return "documents/document-list";
+    }
+
+    private static boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     // ─────────────────────────────────────────────

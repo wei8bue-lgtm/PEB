@@ -5,18 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{ebom.createTitle}">Create eBOM Object - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
+        .card form .form-group { margin-bottom:1.25rem; }
+        .select-field label { position:static !important; display:block; margin-bottom:.35rem; }
+        .select-field { height:auto !important; min-height:0 !important; overflow:visible !important; }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{ebom.createHeading}">Create New eBOM Object</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{ebom.createHeading})}"></div>
 
+    <div class="app-layout">
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+        <div class="app-layout__content">
+            <div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary">
     <div class="container">
         <div class="card">
             <h2 th:text="#{ebom.objectInfo}">eBOM Object Information</h2>
@@ -26,7 +33,7 @@
             </div>
 
             <form th:action="@{/ebom}" th:object="${ebomObject}" method="post">
-                <div class="form-group">
+                <div class="form-group select-field">
                     <label for="objectType" th:text="#{label.objectType}">Object Type *</label>
                     <select id="objectType" th:field="*{objectType}" required>
                         <option value="" th:text="#{common.selectType}">-- Select Type --</option>
@@ -38,14 +45,14 @@
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256" 
                            th:placeholder="#{ebom.namePlaceholder}"
                            placeholder="Enter object name">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group select-field">
                     <label for="linkedDesignId" th:text="#{label.linkedDesign}">Linked Design Object</label>
                     <select id="linkedDesignId" th:field="*{linkedDesignId}">
                         <option value="" th:text="#{common.noDesignLink}">-- No Design Link (Optional) --</option>
@@ -60,14 +67,14 @@
                     </small>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128" 
                            th:placeholder="#{ebom.departmentPlaceholder}"
                            placeholder="Enter department (optional)">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
                     <input type="text" id="mass" th:field="*{mass}" maxlength="8" 
                            placeholder="e.g., 100.5">
@@ -76,7 +83,7 @@
                     </small>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="material" th:text="#{label.material}">Material</label>
                     <input type="text" id="material" th:field="*{material}" maxlength="256" 
                            placeholder="e.g., Steel, Aluminum">
@@ -85,7 +92,7 @@
                     </small>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group select-field">
                     <label for="supplier" th:text="#{label.supplier}">Lieferant</label>
                     <select id="supplier" th:field="*{supplier}">
                         <option value="" th:text="#{common.noSupplier}">-- Kein Lieferant --</option>
@@ -98,15 +105,15 @@
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.createEbomObject}">Create eBOM Object</button>
-                    <a th:href="@{/ebom}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
+                    <button type="submit" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label" th:text="#{button.createEbomObject}">Create eBOM Object</span></button>
+                    <button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/ebom}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i><span class="a-button__label" th:text="#{button.cancel}">Cancel</span></button>
                 </div>
             </form>
         </div>
 
         <div class="card">
             <h3 th:text="#{ebom.objectTypes}">eBOM Object Types</h3>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table class="m-table" aria-label="eBOM object types">
                 <thead>
                     <tr style="background-color: #f8f9fa;">
                         <th style="padding: 0.5rem; text-align: left;" th:text="#{label.type}">Type</th>
@@ -154,15 +161,12 @@
             </table>
         </div>
     </div>
+            </div></div></div>
+            <div th:replace="~{fragments/footer :: footer}"></div>
+        </div>
+    </div>
 
     <style>
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
         .alert-danger {
             background-color: #f8d7da;
             color: #721c24;

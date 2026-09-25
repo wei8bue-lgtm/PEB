@@ -6,93 +6,169 @@
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" href="data:,">
-    <title th:text="#{design.createTitle}">Create Design - PEB</title>
+    <title th:text="#{design.createTitle}">Create Design - SEP4Eng</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
-<body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{design.createHeading}">Create New Design</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/designs}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <h2 th:text="#{design.info}">Design Information</h2>
-
-            <div th:if="${error}" class="alert alert-danger" th:text="${error}">
-                Error message
-            </div>
-
-            <form th:action="@{/designs}" th:object="${design}" method="post">
-                <div class="form-group">
-                    <label for="name" th:text="#{label.name} + ' *'">Name *</label>
-                    <input type="text" id="name" th:field="*{name}"
-                           required maxlength="256"
-                           th:placeholder="#{design.namePlaceholder}"
-                           placeholder="Enter design name">
-                </div>
-
-                <div class="form-group">
-                    <label for="department" th:text="#{label.department}">Department</label>
-                    <input type="text" id="department" th:field="*{department}"
-                           maxlength="128"
-                           th:placeholder="#{ebom.departmentPlaceholder}"
-                           placeholder="Enter department (optional)">
-                </div>
-
-				<div class="form-group">
-					<label for="mass" th:text="#{label.mass}">Mass (kg)</label>
-					<input type="text" id="mass" th:field="*{mass}"
-						   maxlength="8"
-						   placeholder="e.g., 100.5">
-				</div>
-
-				<div class="form-group">
-					<label for="materialId" th:text="#{label.material}">Material</label>
-					<select id="materialId" th:field="*{materialId}">
-						<option value="" th:text="#{common.noMaterialLinked}">-- Kein Material verknüpft --</option>
-						<option th:each="m : ${releasedMaterials}"
-								th:value="${m.id}"
-								th:text="${m.id + ' – ' + m.name + (m.materialGroup != null ? ' (' + m.materialGroup + ')' : '')}">
-						</option>
-					</select>
-				</div>
-
-                <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.createDesign}">
-                        Create Design
-                    </button>
-                    <a th:href="@{/designs}" class="btn btn-secondary" th:text="#{button.cancel}">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-
-		<div class="card">
-			<h3 th:text="#{drawing.formInfo}">Information</h3>
-			<ul>
-				<li th:text="#{design.formInfo.item1}">Name is required (max 256 characters)</li>
-				<li th:text="#{design.formInfo.item2}">ID wird automatisch generiert (Format: DS00000001)</li>
-				<li th:text="#{design.formInfo.item3}">Revision 01 wird automatisch angelegt</li>
-				<li th:text="#{design.formInfo.item4}">Initialer Status: "Working"</li>
-				<li th:text="#{design.formInfo.item5}">Material: nur freigegebene Materialien (Status "Active") wählbar; Auswahl wird an verlinkte eBOM-Objekte synchronisiert</li>
-			</ul>
-		</div>
-    </div>
-
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .btn-secondary { background-color: #6c757d; color: white; }
         .btn-secondary:hover { background-color: #5a6268; }
         .alert-danger {
             background-color: #f8d7da; color: #721c24;
             border: 1px solid #f5c6cb;
             padding: 1rem; border-radius: 4px; margin-bottom: 1rem;
-		select { width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:4px; font-size:1rem; }
+        }
+
+        /* Abstände im Formular: Titel -> Felder -> Felder untereinander -> Buttons */
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+        .card form .a-text-field,
+        .card form .select-field {
+            margin-bottom: 1.25rem;
+        }
+        .card .a-text-area {
+            margin-top: 1.5rem;
+        }
+        /* Frontend-Kit setzt bei readonly/disabled i.d.R. pointer-events:none -
+           hier gezielt wieder aktivieren, damit die Scrollbar bedienbar bleibt */
+        .card .a-text-area textarea {
+            pointer-events: auto !important;
+            overflow-y: auto !important;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+        }
+
+        /* Werkstoff (Select): das Floating-Label der Bosch-Komponente
+           funktioniert bei <select> nicht (kein CSS-Äquivalent zu
+           :placeholder-shown) - Label deshalb statisch über dem Feld anzeigen,
+           analog zu design-edit.html. */
+        label[for="materialId"] {
+            position: static !important;
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+        #materialId {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            position: static;
+        }
+        /* Wrapper hat sonst eine feste Höhe mit overflow:hidden (fürs Floating-Label
+           ausgelegt) - dadurch wird der zusätzliche Platz für das statische Label
+           sonst oben/unten abgeschnitten. */
+        .a-text-field--select {
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
         }
     </style>
+</head>
+<body>
+
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{design.title})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
+            <div class="container">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h2 style="margin:0" th:text="#{design.createHeading}">Create New Design</h2>
+                    </div>
+
+                    <h3 th:text="#{design.info}">Design Information</h3>
+
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+                        Error message
+                    </div>
+
+                    <form th:action="@{/designs}" th:object="${design}" method="post">
+                        <div class="a-text-field">
+                            <label for="name" th:text="#{label.name} + ' *'">Name *</label>
+								<input type="text"
+								   id="name" th:field="*{name}"
+                                   required maxlength="256"
+                                   th:placeholder="#{design.namePlaceholder}"
+                                   placeholder="Enter design name">
+                        </div>						
+
+                        <div class="a-text-field">
+                            <label for="department" th:text="#{label.department}">Department</label>
+                            <input type="text" id="department" th:field="*{department}"
+                                   maxlength="128"
+                                   th:placeholder="#{ebom.departmentPlaceholder}"
+                                   placeholder="Enter department (optional)">
+                        </div>
+
+                        <div class="a-text-field">
+                            <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
+                            <input type="text" id="mass" th:field="*{mass}"
+                                   maxlength="8"
+                                   placeholder="e.g., 100.5">
+                        </div>
+
+                        <div class="a-text-field a-text-field--select">
+                            <label for="materialId" th:text="#{label.material}">Material</label>
+                            <select id="materialId" th:field="*{materialId}">
+                                <option value="" th:text="#{common.noMaterialLinked}">-- Kein Material verknüpft --</option>
+                                <option th:each="m : ${releasedMaterials}"
+                                        th:value="${m.id}"
+                                        th:text="${m.id + ' – ' + m.name + (m.materialGroup != null ? ' (' + m.materialGroup + ')' : '')}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div style="margin-top: 2rem;">
+							
+							<button type="submit" class="a-button a-button--primary">
+								<i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+								<span class="a-button__label" th:text="#{button.createDesign}">Create Design</span>
+							</button>
+							
+							<button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/designs}'|">
+								<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+								<span class="a-button__label" th:text="#{button.reset}">Reset</span>
+							</button>
+                        </div>
+                    </form>
+
+					<div class="a-text-area">
+						<textarea id="1" readonly tabindex="0" th:text="|#{drawing.formInfo}&#10;#{design.formInfo.item1}&#10;#{design.formInfo.item2}&#10;#{design.formInfo.item3}&#10;#{design.formInfo.item4}&#10;#{design.formInfo.item5}|">
+						</textarea>
+					</div>
+
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
+
 </body>
 </html>

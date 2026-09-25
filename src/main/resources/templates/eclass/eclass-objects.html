@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{eclass.objectsPrefix} + ': ' + ${code} + ' - PEB'">ECLASS Objekte - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout { display: flex; align-items: flex-start; }
+        .app-layout__content { flex: 1 1 auto; min-width: 0; }
         .type-badge {
             display: inline-block; padding: .15rem .5rem; border-radius: 3px;
             font-size: .8rem; font-weight: 600; color: #fff;
@@ -24,16 +28,9 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1>ECLASS: <span th:text="${code}"></span></h1>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-        <span sec:authentication="name" class="user-info"></span>
-        <a th:href="@{/eclass}" class="btn btn-secondary">← <span th:text="#{button.catalog}">Katalog</span></a>
-    </div>
-</div>
+<div th:replace="~{fragments/header :: header(#{eclass.objectsPrefix})}"></div>
 
-<div class="container">
+<div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
     <div class="card">
         <h3>
             <span th:text="#{eclass.allPebObjectsWith}">Alle PEB-Objekte mit ECLASS</span> <strong th:text="${code}"></strong>
@@ -45,7 +42,7 @@
             Noch keine Objekte mit diesem ECLASS-Code klassifiziert.
         </div>
 
-        <table class="table" th:unless="${objects.empty}">
+        <table class="m-table" th:unless="${objects.empty}">
             <thead>
                 <tr>
                     <th th:text="#{label.id}">ID</th>
@@ -66,12 +63,15 @@
                     <td th:text="${obj.objectName}"></td>
                     <td th:text="${obj.objectDepartment}"></td>
                     <td>
-                        <a th:href="${obj.detailUrl}" class="btn btn-sm btn-secondary" th:text="#{button.open}">Öffnen</a>
+                        <div class="a-link -icon">
+                            <a th:href="${obj.detailUrl}"><span></span><span th:text="#{button.open}">Öffnen</span></a>
+                        </div>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+ </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 </body>
 </html>

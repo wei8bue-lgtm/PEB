@@ -4,7 +4,8 @@ package com.peb.config;
 import com.peb.service.AdUserDetailsService;
 import com.peb.service.ApiTokenService;
 import com.peb.security.ApiTokenAuthFilter;
-import org.springframework.beans.factory.annotation.Value;
+import com.peb.security.MultiDomainAuthenticationProvider;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,7 +16,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -26,22 +26,12 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import java.util.List;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(AdDomainProperties.class)
 public class SecurityConfig {
-
-    @Value("${peb.ad.domain}")
-    private String adDomain;
-
-    @Value("${peb.ad.url}")
-    private String adUrl;
-
-    @Value("${peb.ad.root-dn}")
-    private String adRootDn;
-
-    @Value("${peb.ad.search-filter:(&(objectClass=user)(sAMAccountName={0}))}")
-    private String adSearchFilter;
 
     private final AdUserDetailsService adUserDetailsService;
 
@@ -50,20 +40,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public ActiveDirectoryLdapAuthenticationProvider adAuthProvider() {
-        ActiveDirectoryLdapAuthenticationProvider provider =
-                new ActiveDirectoryLdapAuthenticationProvider(
-                        adDomain, adUrl, adRootDn);
-        provider.setUserDetailsContextMapper(adUserDetailsService);
-        provider.setSearchFilter(adSearchFilter);
-        provider.setConvertSubErrorCodesToExceptions(true);
-        provider.setUseAuthenticationRequestCredentials(true);
-        return provider;
+        public MultiDomainAuthenticationProvider adAuthProvider(
+            AdDomainProperties adDomainProperties) {
+        return new MultiDomainAuthenticationProvider(
+            adDomainProperties, adUserDetailsService);
     }
 
     @Bean
-    public AuthenticationManager authenticationManager() {
-        return new ProviderManager(List.of(adAuthProvider()));
+    public AuthenticationManager authenticationManager(
+            AdDomainProperties adDomainProperties) {
+        return new ProviderManager(List.of(adAuthProvider(adDomainProperties)));
     }
 
     @Bean
@@ -106,12 +92,14 @@ public class SecurityConfig {
 	}
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            AdDomainProperties adDomainProperties) throws Exception {
 
         // AD-Provider über AuthenticationManagerBuilder registrieren
         AuthenticationManagerBuilder authBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        authBuilder.authenticationProvider(adAuthProvider());
+        authBuilder.authenticationProvider(adAuthProvider(adDomainProperties));
 
         http
             .headers(headers -> headers

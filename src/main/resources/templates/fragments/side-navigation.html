@@ -1,0 +1,330 @@
+<!-- src/main/resources/templates/fragments/side-navigation.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<div th:fragment="side-navigation" class="frontend-kit-example_side-navigation" style="flex: 0 0 auto; position: relative; z-index: 90;">
+  
+  <style>
+    /* Erzwinge, dass die Navigation erst UNTER dem Header beginnt und nicht mehr per fixed 100vh den Footer blockiert */
+    .frontend-kit-example_side-navigation .m-side-navigation {
+      position: sticky !important;
+      top: 3.5rem !important;
+      height: calc(100vh - 3.5rem) !important;
+      max-height: calc(100vh - 3.5rem) !important;
+      border-radius: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-sizing: border-box !important;
+      z-index: 90 !important;
+      transition: width 0.2s ease-in-out !important;
+    }
+
+    /* Schmaler Zustand (Rail-Modus) */
+    .frontend-kit-example_side-navigation .m-side-navigation:not(.-open):not(.-expanded) {
+      width: 4rem !important;
+      min-width: 4rem !important;
+    }
+
+    .frontend-kit-example_side-navigation .m-side-navigation:not(.-open):not(.-expanded) .nav-label-text {
+      display: none !important;
+    }
+
+    /* Ausgeklappter Zustand */
+    .frontend-kit-example_side-navigation .m-side-navigation.-open,
+    .frontend-kit-example_side-navigation .m-side-navigation.-expanded {
+      width: 17.5rem !important;
+      min-width: 17.5rem !important;
+    }
+
+    .frontend-kit-example_side-navigation .m-side-navigation.-open .nav-label-text,
+    .frontend-kit-example_side-navigation .m-side-navigation.-expanded .nav-label-text {
+      display: inline !important;
+    }
+
+    /* Header der Leiste mit Toggle-Button */
+    .frontend-kit-example_side-navigation .m-side-navigation__header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0.5rem 0.75rem !important;
+      min-height: 48px !important;
+      background: transparent !important;
+    }
+
+    .frontend-kit-example_side-navigation .m-menu-group {
+      overflow-y: auto !important;
+      flex: 1 1 auto !important;
+    }
+  </style>
+
+  <nav id="appSideNavigation" class="m-side-navigation -contrast" aria-label="Side Navigation">
+    
+    <!-- Header mit Toggle-Button (immer sichtbar) -->
+    <div class="m-side-navigation__header">
+      <div class="m-side-navigation__header__label -size-l-bold nav-label-text" style="color: white; font-size: 0.95rem; font-weight: 600; white-space: nowrap;" th:text="#{app.title}">
+        SEP4Eng
+      </div>
+      
+      <button type="button" id="sideNavToggleBtn" class="a-button a-button--integrated -without-label" 
+              style="width: 36px; height: 36px; min-width: 36px; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;" 
+              aria-label="Toggle Side Navigation" title="Navigation umschalten">
+        <i id="sideNavToggleIcon" class="a-icon a-button__icon boschicon-bosch-ic-list-view-mobile"></i>
+      </button>
+    </div>
+
+    <ul class="m-menu-group" role="menubar" aria-orientation="vertical">
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/}" role="menuitem" class="a-menu-item__link" title="Start">
+            <i class="a-icon boschicon-bosch-ic-home"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.home}">Start</span>
+          </a>
+        </div>
+      </li>
+	  
+	 <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/search}" role="menuitem" class="a-menu-item__link" title="Search">
+            <i class="a-icon a-button__icon ui-ic-search"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.search}">Search</span>
+          </a>
+        </div>
+      </li>
+	  
+	  <!-- Design Gruppe -->
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <button type="button" role="menuitem" class="a-menu-item__group" aria-controls="group-design-data" aria-label="open group" onclick="toggleSubmenu(this)">
+            <i class="a-icon boschicon-bosch-ic-mechanic"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.DesignData}">Design Data</span>
+            <i class="a-icon ui-ic-down-small nav-label-text"></i>
+          </button>
+        </div>
+        <ul id="group-design-data" class="m-menu-group__group" role="menu" style="display: none;">
+
+		  <li class="a-menu-item  -indent" role="none">
+			<div class="a-menu-item__wrapper">
+			  <a th:href="@{/designs}" role="menuitem" class="a-menu-item__link" title="Designs">
+				<span class="a-menu-item__label nav-label-text" th:text="#{menu.designs}">Designs</span>
+			  </a>
+			</div>
+		  </li>	
+
+		  <li class="a-menu-item  -indent" role="none">
+			<div class="a-menu-item__wrapper">
+			  <a th:href="@{/designs}" role="menuitem" class="a-menu-item__link" title="Designs">
+				<span class="a-menu-item__label nav-label-text" th:text="#{menu.edesigns}">E-Designs</span>
+			  </a>
+			</div>
+		  </li>	
+		  
+		  <li class="a-menu-item  -indent" role="none">
+			<div class="a-menu-item__wrapper">
+			  <a th:href="@{/designs}" role="menuitem" class="a-menu-item__link" title="Designs">
+				<span class="a-menu-item__label nav-label-text" th:text="#{menu.sdesigns}">S-Designs</span>
+			  </a>
+			</div>
+		  </li>	
+		  
+		 <li class="a-menu-item  -indent" role="none">
+			<div class="a-menu-item__wrapper">
+			  <a th:href="@{/drawings}" role="menuitem" class="a-menu-item__link" title="Drawings">
+				<span class="a-menu-item__label nav-label-text" th:text="#{menu.drawings}">Drawings</span>
+			  </a>
+			</div>
+		  </li>	
+		  
+		</ul>
+      </li>
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/ebom}" role="menuitem" class="a-menu-item__link" title="eBOM">
+            <i class="a-icon boschicon-bosch-ic-structure"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.ebom}">eBOM</span>
+          </a>
+        </div>
+      </li>
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/cim}" role="menuitem" class="a-menu-item__link" title="CIM Integration">
+            <i class="a-icon boschicon-bosch-ic-puzzle-2"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.cim}">CIM Integration</span>
+          </a>
+        </div>
+      </li>
+	  
+
+
+      <!-- Product Data Gruppe -->
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <button type="button" role="menuitem" class="a-menu-item__group" aria-controls="group-product-data" aria-label="open group" onclick="toggleSubmenu(this)">
+            <i class="a-icon boschicon-bosch-ic-case-label-product"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.productData}">Product Data</span>
+            <i class="a-icon ui-ic-down-small nav-label-text"></i>
+          </button>
+        </div>
+        <ul id="group-product-data" class="m-menu-group__group" role="menu" style="display: none;">
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/product-data}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.productData}">Product Data</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/product-bom}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.productBom}">Product BOM</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/manufacturing-bom}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.manufacturingBom}">Manufacturing BOM</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/product-bop}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.productBop}">Product BOP</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/plant-bop}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.plantBop}">Plant BOP</span>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/eclass}" role="menuitem" class="a-menu-item__link" title="ECLASS">
+            <i class="a-icon boschicon-bosch-ic-reference"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.eclass}">ECLASS</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- Documents Gruppe -->
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <button type="button" role="menuitem" class="a-menu-item__group" aria-controls="group-documents" aria-label="open group" onclick="toggleSubmenu(this)">
+            <i class="a-icon boschicon-bosch-ic-document-code-stack"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.documents}">Documents</span>
+            <i class="a-icon ui-ic-down-small nav-label-text"></i>
+          </button>
+        </div>
+        <ul id="group-documents" class="m-menu-group__group" role="menu" style="display: none;">
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/document-templates}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.documentTemplates}">Document Templates</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/documents}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.documents}">Documents</span>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/materials}" role="menuitem" class="a-menu-item__link" title="Material management">
+            <i class="a-icon boschicon-bosch-ic-material-list"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.materials}">Material management</span>
+          </a>
+        </div>
+      </li>
+
+      <li class="a-menu-item" role="none">
+        <div class="a-menu-item__wrapper">
+          <a th:href="@{/suppliers}" role="menuitem" class="a-menu-item__link" title="Suppliers management">
+            <i class="a-icon boschicon-bosch-ic-truck-delivery"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.suppliers}">Suppliers management</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- Admin Gruppe -->
+      <li class="a-menu-item" role="none" sec:authorize="hasRole('ADMIN')">
+        <div class="a-menu-item__wrapper">
+          <button type="button" role="menuitem" class="a-menu-item__group" aria-controls="group-admin" aria-label="open group" onclick="toggleSubmenu(this)">
+            <i class="a-icon boschicon-bosch-ic-user-hand"></i>
+            <span class="a-menu-item__label nav-label-text" th:text="#{menu.admin}">Administration</span>
+            <i class="a-icon ui-ic-down-small nav-label-text"></i>
+          </button>
+        </div>
+        <ul id="group-admin" class="m-menu-group__group" role="menu" style="display: none;">
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/admin/users}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.userManagement}">User management</span>
+              </a>
+            </div>
+          </li>
+          <li class="a-menu-item -indent" role="none">
+            <div class="a-menu-item__wrapper">
+              <a th:href="@{/admin/monitoring}" role="menuitem" class="a-menu-item__link">
+                <span class="a-menu-item__label" th:text="#{menu.monitoring}">Monitoring</span>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+    </ul>
+  </nav>
+
+  <script>
+    (function () {
+      const toggleBtn = document.getElementById('sideNavToggleBtn');
+      const sideNav = document.getElementById('appSideNavigation');
+      const toggleIcon = document.getElementById('sideNavToggleIcon');
+
+      if (toggleBtn && sideNav) {
+        toggleBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const isOpen = sideNav.classList.toggle('-open');
+          sideNav.classList.toggle('-expanded', isOpen);
+
+          if (isOpen) {
+            toggleIcon.className = 'a-icon a-button__icon boschicon-bosch-ic-close';
+          } else {
+            toggleIcon.className = 'a-icon a-button__icon boschicon-bosch-ic-list-view-mobile';
+          }
+        });
+      }
+    })();
+
+    function toggleSubmenu(button) {
+      const parent = button.closest('.a-menu-item');
+      const submenu = parent.querySelector('.m-menu-group__group');
+      if (submenu) {
+        const isVisible = submenu.style.display === 'block';
+        submenu.style.display = isVisible ? 'none' : 'block';
+        parent.classList.toggle('-open', !isVisible);
+      }
+    }
+  </script>
+</div>
+
+</body>
+</html>

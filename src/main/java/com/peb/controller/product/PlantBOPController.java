@@ -8,6 +8,7 @@ import com.peb.service.product.LineBalancingService;
 import com.peb.service.product.RevisionChainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +34,9 @@ public class PlantBOPController {
     private final LineBalancingService       balancingService;
     private final BottleneckAnalysisService  bottleneckService; // NEU
     private final RevisionChainService       revisionChainService;
+
+        @Value("${peb.linebalancing.ai-agent-url:https://vertexaisearch.cloud.google.com/eu/home/cid/bcb383f1-26d8-41fd-9a55-623f7e93de92/r/agent/379611006448038179/session/-?pli=1}")
+        private String lineBalancingAiAgentUrl;
 
     // ── Liste ────────────────────────────────────────────────────
     @GetMapping
@@ -289,6 +293,8 @@ public class PlantBOPController {
         model.addAttribute("result",   result);
         model.addAttribute("plantBOP", plantBOP);
         model.addAttribute("report",   report);
+        model.addAttribute("lineBalancingAiAgentUrl",
+                lineBalancingAiAgentUrl);
         return "plant-bop/balancing";
     }
 

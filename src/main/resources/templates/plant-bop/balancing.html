@@ -139,12 +139,40 @@
             border-radius: 6px;
         }
         .improvement-value { color: #198754; font-weight: 700; }
+        .agent-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            background: #f3f8ff;
+            border: 1px solid #b8d0ff;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .agent-status {
+            font-size: .95rem;
+            color: #495057;
+        }
+        .agent-buttons {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .agent-note {
+            font-size: .72rem;
+            color: #6c757d;
+            margin-top: .2rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo-placeholder">PEB</div>
+    <div class="logo-placeholder">SEP</div>
     <h1>⚖️ Line Balancing</h1>
     <div style="margin-left:auto;display:flex;gap:.5rem;">
         <a th:href="@{/plant-bop/{id}(id=${plantBOP.id})}"
@@ -156,6 +184,50 @@
 </div>
 
 <div class="container">
+
+    <div class="agent-panel" sec:authorize="hasAuthority('WRITE')">
+        <div style="flex:1; min-width:260px;">
+            <strong>🤖 LineBalancing Ausführung</strong>
+            <div class="agent-status">
+                Bereit. Wähle einen Modus für die Berechnung oder öffne den Gemini Agent.
+            </div>
+        </div>
+        <div class="agent-buttons">
+            <div>
+                <a th:href="@{/plant-bop/{id}/balancing(id=${plantBOP.id})}"
+                   class="btn btn-primary">
+                    ⚙️ LineBalancing berechnen
+                </a>
+                <div class="agent-note">In-Process Logik</div>
+            </div>
+
+            <div style="color:#ced4da; font-size:1.2rem;">|</div>
+
+            <div>
+                <a th:href="${lineBalancingAiAgentUrl}"
+                   class="btn btn-success"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Öffnet den konfigurierten Gemini Agent in einem neuen Tab">
+                    🤖 KI-LineBalancing öffnen
+                </a>
+                <div class="agent-note">Gemini Agent</div>
+            </div>
+
+            <div style="color:#ced4da; font-size:1.2rem;">|</div>
+
+            <div>
+                <a th:href="@{/api/plant-bop/{id}/balancing(id=${plantBOP.id})}"
+                   class="btn btn-primary"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="LineBalancing-JSON als Prompt-Input für den KI-Agent öffnen">
+                    📄 JSON Export
+                </a>
+                <div class="agent-note">KI-Input Daten</div>
+            </div>
+        </div>
+    </div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- Karte 1: KPIs + Workstation-Auslastung                    -->

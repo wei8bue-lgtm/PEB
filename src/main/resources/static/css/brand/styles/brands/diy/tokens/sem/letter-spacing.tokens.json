@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "name": "letter-spacing",
+    "type": "sem",
+    "brand": "diy",
+    "description": "semantic letter-spacing tokens for brand diy",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.letter-spacing"
+    ]
+  },
+  "sem": {
+    "letter-spacing": {
+      "$value": "{core.letter-spacing.0}",
+      "$type": "letterSpacing",
+      "figma-type": "var.number"
+    }
+  }
+}

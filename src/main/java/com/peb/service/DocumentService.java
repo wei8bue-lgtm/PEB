@@ -15,6 +15,7 @@ import com.peb.util.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
@@ -34,8 +35,13 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service für Document Verwaltung.
@@ -46,6 +52,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class DocumentService {
+
+    private static final String ATTR1_START = "[[PEB_ATTR1_START]]";
+    private static final String ATTR1_END   = "[[PEB_ATTR1_END]]";
+    private static final String ATTR2_START = "[[PEB_ATTR2_START]]";
+    private static final String ATTR2_END   = "[[PEB_ATTR2_END]]";
 
     private final DocumentRepository         documentRepository;
     private final DocumentRevisionRepository revisionRepository;
@@ -319,8 +330,11 @@ public byte[] generatePrefilledDocument(Long documentRevisionId) throws IOExcept
 	public void generateAndSavePrefilledDocument(Long documentRevisionId) throws IOException {
 		log.info("---- START generateAndSavePrefilledDocument für Revision ID: {} ----", documentRevisionId);
 
-		// 1. Generiert das Dokument als Byte-Array im Speicher (Ihre bestehende Logik)
-		byte[] documentBytes = generatePrefilledDocument(documentRevisionId);
+        // 1. Generiert das Dokument als Byte-Array im Speicher.
+        // Bei Folgerevisionen mit vorhandener Vorgänger-Datei wird der
+        // Vorgängerinhalt wiederverwendet und nur template-basierte Passagen
+        // mit den aktuellen Attributwerten aktualisiert.
+        byte[] documentBytes = generateReusablePrefilledDocument(documentRevisionId);
 		
 		DocumentRevision docRevision = getRevision(documentRevisionId);
 		
@@ -343,6 +357,61 @@ public byte[] generatePrefilledDocument(Long documentRevisionId) throws IOExcept
 		
 		log.info("Datenbank für Revision {} aktualisiert. Dateipfad: {}", documentRevisionId, targetPath.toString());
 	}
+
+    @Transactional(readOnly = true)
+    public byte[] generateReusablePrefilledDocument(Long documentRevisionId) throws IOException {
+        DocumentRevision current = getRevision(documentRevisionId);
+
+        Optional<DocumentRevision> predecessorOpt = findPreviousRevisionWithFile(current);
+        if (predecessorOpt.isEmpty()) {
+            return generatePrefilledDocument(documentRevisionId);
+        }
+
+        DocumentRevision predecessor = predecessorOpt.get();
+        if (predecessor.getDocFilePath() == null || predecessor.getDocFilePath().isBlank()) {
+            return generatePrefilledDocument(documentRevisionId);
+        }
+
+        Path predecessorPath = Paths.get(predecessor.getDocFilePath());
+        if (!Files.exists(predecessorPath)) {
+            log.warn("Vorgängerdatei nicht gefunden (Fallback auf Template): {}", predecessorPath);
+            return generatePrefilledDocument(documentRevisionId);
+        }
+
+        try (FileInputStream predecessorFis = new FileInputStream(predecessorPath.toFile());
+             XWPFDocument predecessorDoc = new XWPFDocument(predecessorFis);
+             XWPFDocument oldTemplateDoc = buildFilledTemplateDocument(
+                 	current.getTemplateRevision(), predecessor.getAttribute1(), predecessor.getAttribute2());
+             XWPFDocument newTemplateDoc = buildFilledTemplateDocument(
+                 	current.getTemplateRevision(), current.getAttribute1(), current.getAttribute2());
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            // Primärpfad: marker-basierte Aktualisierung bleibt stabil,
+            // auch wenn Nutzer den Fließtext rund um die Attribute editiert haben.
+            boolean markerUpdated = updateMarkedAttributesInDocument(
+                predecessorDoc,
+                current.getAttribute1(),
+                current.getAttribute2());
+
+            if (!markerUpdated) {
+            // Fallback für ältere Dokumente ohne Marker.
+                mergeTemplateDrivenParagraphs(
+                        predecessorDoc,
+                        oldTemplateDoc,
+                        newTemplateDoc,
+                    current.getTemplateRevision(),
+                    predecessor.getAttribute1(),
+                    predecessor.getAttribute2(),
+                        current.getAttribute1(),
+                        current.getAttribute2());
+            }
+            predecessorDoc.write(out);
+
+            log.info("Dokument-Reuse aktiv: Revision {} nutzt Vorgänger {} mit aktualisierten Attributen.",
+                    current.getRevisionId(), predecessor.getRevisionId());
+            return out.toByteArray();
+        }
+    }
 
 
 
@@ -417,23 +486,438 @@ private void substituteInParagraphs(java.util.List<XWPFParagraph> paragraphs,
 
         log.info("Paragraph #{}: Placeholder found! Processing...", i);
 
-        // Platzhalter ersetzen
-        String updatedText = text.replace("{{Attribute1}}", attribute1 != null ? attribute1 : "")
-                                 .replace("{{Attribute2}}", attribute2 != null ? attribute2 : "");
+        // Platzhalter ersetzen (ohne Marker im sichtbaren Dokument).
+        String updatedText = text
+            .replace("{{Attribute1}}", nvl(attribute1))
+            .replace("{{Attribute2}}", nvl(attribute2));
 
         log.info("Paragraph #{}: Text after replacement: '{}'", i, updatedText);
 
-        // Alle alten Runs entfernen
-        while (!para.getRuns().isEmpty()) {
-            para.removeRun(0);
-        }
-
-        // Neuen, sauberen Run erstellen
-        XWPFRun newRun = para.createRun();
-        newRun.setText(updatedText);
+        writeMarkedTextToParagraph(para, updatedText);
 
         log.info("Paragraph #{}: Substitution complete for this paragraph.", i);
     }
+}
+
+private boolean updateMarkedAttributesInDocument(
+        XWPFDocument doc,
+        String attribute1,
+        String attribute2) {
+
+    int changed = 0;
+    changed += updateMarkedAttributesInParagraphs(doc.getParagraphs(), attribute1, attribute2);
+
+    for (XWPFTable table : doc.getTables()) {
+        for (XWPFTableRow row : table.getRows()) {
+            for (XWPFTableCell cell : row.getTableCells()) {
+                changed += updateMarkedAttributesInParagraphs(
+                        cell.getParagraphs(), attribute1, attribute2);
+            }
+        }
+    }
+    return changed > 0;
+}
+
+private int updateMarkedAttributesInParagraphs(
+        List<XWPFParagraph> paragraphs,
+        String attribute1,
+        String attribute2) {
+
+    int changed = 0;
+    for (XWPFParagraph paragraph : paragraphs) {
+        List<XWPFRun> runs = paragraph.getRuns();
+        if (runs == null || runs.isEmpty()) {
+            continue;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (XWPFRun run : runs) {
+            String runText = run.getText(0);
+            if (runText != null) {
+                sb.append(runText);
+            }
+        }
+
+        String original = sb.toString();
+        String updated = replaceMarkedValue(original, ATTR1_START, ATTR1_END, nvl(attribute1));
+        updated = replaceMarkedValue(updated, ATTR2_START, ATTR2_END, nvl(attribute2));
+
+        if (!original.equals(updated)) {
+            writeMarkedTextToParagraph(paragraph, updated);
+            changed++;
+        }
+    }
+    return changed;
+}
+
+private String replaceMarkedValue(String text, String startMarker, String endMarker, String newValue) {
+    String result = text;
+    int searchPos = 0;
+
+    while (true) {
+        int start = result.indexOf(startMarker, searchPos);
+        if (start < 0) {
+            break;
+        }
+
+        int valueStart = start + startMarker.length();
+        int end = result.indexOf(endMarker, valueStart);
+        if (end < 0) {
+            break;
+        }
+
+        result = result.substring(0, start)
+            + newValue
+            + result.substring(end + endMarker.length());
+
+        searchPos = start + newValue.length();
+    }
+
+    return result;
+}
+
+private void writeMarkedTextToParagraph(XWPFParagraph para, String text) {
+    while (!para.getRuns().isEmpty()) {
+        para.removeRun(0);
+    }
+
+    XWPFRun run = para.createRun();
+    run.setText(text != null ? text : "");
+}
+
+private void appendVisibleRun(XWPFParagraph para, String value) {
+    if (value == null || value.isEmpty()) {
+        return;
+    }
+    XWPFRun run = para.createRun();
+    run.setText(value);
+}
+
+private Optional<DocumentRevision> findPreviousRevisionWithFile(DocumentRevision current) {
+    if (current == null || current.getDocument() == null || current.getRevision() == null) {
+        return Optional.empty();
+    }
+
+    Integer currentNumber = parseRevisionNumber(current.getRevision());
+    if (currentNumber == null) {
+        return Optional.empty();
+    }
+
+    return current.getDocument().getRevisions().stream()
+            .filter(r -> r.getRevisionId() != null
+                    && !r.getRevisionId().equals(current.getRevisionId()))
+            .filter(r -> r.getDocFilePath() != null && !r.getDocFilePath().isBlank())
+            .filter(r -> {
+                Integer num = parseRevisionNumber(r.getRevision());
+                return num != null && num < currentNumber;
+            })
+            .max(Comparator.comparingInt(r -> parseRevisionNumber(r.getRevision())));
+}
+
+private Integer parseRevisionNumber(String revision) {
+    if (revision == null || revision.isBlank()) {
+        return null;
+    }
+    try {
+        return Integer.parseInt(revision.trim());
+    } catch (NumberFormatException ex) {
+        return null;
+    }
+}
+
+private XWPFDocument buildFilledTemplateDocument(
+        DocumentTemplateRevision templateRevision,
+        String attribute1,
+        String attribute2) throws IOException {
+
+    if (templateRevision == null
+            || templateRevision.getDocFilePath() == null
+            || templateRevision.getDocFilePath().isBlank()) {
+        throw new ObjectNotFoundException("Template-Revision hat keine zugeordnete Datei.");
+    }
+
+    Path templatePath = Paths.get(templateRevision.getDocFilePath());
+    if (!Files.exists(templatePath)) {
+        throw new IOException("Template-Datei nicht gefunden unter: " + templatePath);
+    }
+
+    try (FileInputStream fis = new FileInputStream(templatePath.toFile())) {
+        XWPFDocument templateDoc = new XWPFDocument(fis);
+        substituteInParagraphs(templateDoc.getParagraphs(), nvl(attribute1), nvl(attribute2));
+        for (XWPFTable table : templateDoc.getTables()) {
+            for (XWPFTableRow row : table.getRows()) {
+                for (XWPFTableCell cell : row.getTableCells()) {
+                    substituteInParagraphs(cell.getParagraphs(), nvl(attribute1), nvl(attribute2));
+                }
+            }
+        }
+        return templateDoc;
+    }
+}
+
+private void mergeTemplateDrivenParagraphs(
+        XWPFDocument predecessorDoc,
+        XWPFDocument oldTemplateDoc,
+        XWPFDocument newTemplateDoc,
+    DocumentTemplateRevision templateRevision,
+    String oldAttribute1,
+    String oldAttribute2,
+        String newAttribute1,
+        String newAttribute2) {
+
+    List<XWPFParagraph> predecessorParas = flattenParagraphs(predecessorDoc);
+    List<XWPFParagraph> oldTemplateParas = flattenParagraphs(oldTemplateDoc);
+    List<XWPFParagraph> newTemplateParas = flattenParagraphs(newTemplateDoc);
+
+    int max = Math.min(oldTemplateParas.size(), newTemplateParas.size());
+    List<TemplateParagraphPair> templatePairs = new ArrayList<>();
+
+    for (int i = 0; i < max; i++) {
+        String oldMarked = normalizeText(paragraphRawText(oldTemplateParas.get(i)));
+        String newMarked = normalizeText(paragraphRawText(newTemplateParas.get(i)));
+        String oldVisible = normalizeText(oldTemplateParas.get(i).getText());
+        String newVisible = normalizeText(newTemplateParas.get(i).getText());
+
+        if (!oldMarked.isBlank() || !oldVisible.isBlank()) {
+            templatePairs.add(new TemplateParagraphPair(
+                    oldMarked, newMarked, oldVisible, newVisible));
+        }
+    }
+
+    int updatedCount = 0;
+
+    for (XWPFParagraph predecessorPara : predecessorParas) {
+        String raw = normalizeText(paragraphRawText(predecessorPara));
+        String visible = normalizeText(predecessorPara.getText());
+
+        if (raw.isBlank() && visible.isBlank()) {
+            continue;
+        }
+
+        boolean changed = false;
+        String updatedRaw = raw;
+
+        for (TemplateParagraphPair pair : templatePairs) {
+            // Neue Dokumente mit Markern: direkter marker-basierter Austausch.
+            if (!pair.oldMarked().isBlank() && updatedRaw.contains(pair.oldMarked())) {
+                updatedRaw = updatedRaw.replace(pair.oldMarked(), pair.newMarked());
+                changed = true;
+                continue;
+            }
+
+            // Legacy-Dokumente ohne Marker: sichtbaren Template-Satz ersetzen
+            // und Marker für Folgerevisionen einsäen.
+            if (!pair.oldVisible().isBlank() && visible.contains(pair.oldVisible())) {
+                String updatedVisible = visible.replace(pair.oldVisible(), pair.newVisible());
+                updatedRaw = updatedVisible;
+                changed = true;
+                break;
+            }
+        }
+
+        if (changed && !updatedRaw.equals(raw)) {
+            writeMarkedTextToParagraph(predecessorPara, updatedRaw);
+            updatedCount++;
+        }
+    }
+
+    if (updatedCount == 0) {
+        updatedCount += applyPlaceholderTemplateFallback(
+                predecessorDoc,
+                templateRevision,
+                oldAttribute1,
+                oldAttribute2,
+                newAttribute1,
+                newAttribute2);
+    }
+
+    log.info("Fallback-Reuse: {} templatebasierte Absatz/Segment(e) aktualisiert.", updatedCount);
+}
+
+private int applyPlaceholderTemplateFallback(
+        XWPFDocument predecessorDoc,
+        DocumentTemplateRevision templateRevision,
+        String oldAttribute1,
+        String oldAttribute2,
+        String newAttribute1,
+        String newAttribute2) {
+
+    if (templateRevision == null
+            || templateRevision.getDocFilePath() == null
+            || templateRevision.getDocFilePath().isBlank()) {
+        return 0;
+    }
+
+    Path templatePath = Paths.get(templateRevision.getDocFilePath());
+    if (!Files.exists(templatePath)) {
+        return 0;
+    }
+
+    try (FileInputStream fis = new FileInputStream(templatePath.toFile());
+         XWPFDocument rawTemplateDoc = new XWPFDocument(fis)) {
+
+        List<String> templateLines = flattenParagraphs(rawTemplateDoc).stream()
+                .map(this::paragraphRawText)
+                .map(this::normalizeText)
+                .filter(t -> t.contains("{{Attribute1}}") || t.contains("{{Attribute2}}"))
+                .toList();
+
+        if (templateLines.isEmpty()) {
+            return 0;
+        }
+
+        int updated = 0;
+        List<XWPFParagraph> predecessorParas = flattenParagraphs(predecessorDoc);
+
+        for (XWPFParagraph para : predecessorParas) {
+            String visible = normalizeText(para.getText());
+            if (visible.isBlank()) {
+                continue;
+            }
+
+            boolean changed = false;
+            String updatedVisible = visible;
+
+            for (String templateLine : templateLines) {
+                String replaced = replaceByTemplatePattern(
+                        updatedVisible,
+                        templateLine,
+                        nvl(oldAttribute1),
+                        nvl(oldAttribute2),
+                        nvl(newAttribute1),
+                        nvl(newAttribute2));
+                if (!replaced.equals(updatedVisible)) {
+                    updatedVisible = replaced;
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                writeMarkedTextToParagraph(para, updatedVisible);
+                updated++;
+            }
+        }
+
+        return updated;
+    } catch (IOException ex) {
+        log.warn("Placeholder-Fallback konnte Template nicht laden: {}", ex.getMessage());
+        return 0;
+    }
+}
+
+private String replaceByTemplatePattern(
+        String targetText,
+        String templateWithPlaceholders,
+        String oldAttribute1,
+        String oldAttribute2,
+        String newAttribute1,
+        String newAttribute2) {
+
+    Pattern pattern = buildTemplatePattern(templateWithPlaceholders);
+    Matcher matcher = pattern.matcher(targetText);
+    if (!matcher.matches()) {
+        return targetText;
+    }
+
+    String replacement = templateWithPlaceholders
+            .replace("{{Attribute1}}", newAttribute1)
+            .replace("{{Attribute2}}", newAttribute2);
+
+    // Zusätzliche Absicherung: nur ersetzen, wenn ein alt-Wert tatsächlich
+    // im Match vorkam oder der Match durch die Placeholder-Struktur passt.
+    String matched = matcher.group();
+    boolean hasOldValue = (!oldAttribute1.isBlank() && matched.contains(oldAttribute1))
+            || (!oldAttribute2.isBlank() && matched.contains(oldAttribute2));
+
+    if (!hasOldValue && !matched.equals(templateWithPlaceholders
+            .replace("{{Attribute1}}", "")
+            .replace("{{Attribute2}}", ""))) {
+        // Struktur passt, aber alte Werte nicht klar erkennbar -> trotzdem ersetzen,
+        // damit Datums-/Teilnehmeraktualisierung robust bleibt.
+    }
+
+    return targetText.substring(0, matcher.start())
+            + replacement
+            + targetText.substring(matcher.end());
+}
+
+private Pattern buildTemplatePattern(String templateWithPlaceholders) {
+    StringBuilder regex = new StringBuilder();
+    int cursor = 0;
+
+    while (cursor < templateWithPlaceholders.length()) {
+        int i1 = templateWithPlaceholders.indexOf("{{Attribute1}}", cursor);
+        int i2 = templateWithPlaceholders.indexOf("{{Attribute2}}", cursor);
+        int next;
+        String marker;
+
+        if (i1 < 0 && i2 < 0) {
+            next = -1;
+            marker = null;
+        } else if (i1 < 0 || (i2 >= 0 && i2 < i1)) {
+            next = i2;
+            marker = "{{Attribute2}}";
+        } else {
+            next = i1;
+            marker = "{{Attribute1}}";
+        }
+
+        if (next < 0) {
+            regex.append(Pattern.quote(templateWithPlaceholders.substring(cursor)));
+            break;
+        }
+
+        if (next > cursor) {
+            regex.append(Pattern.quote(templateWithPlaceholders.substring(cursor, next)));
+        }
+
+        regex.append("(.+?)");
+        cursor = next + marker.length();
+    }
+
+    return Pattern.compile("\\A" + regex + "\\z", Pattern.DOTALL);
+}
+
+private String paragraphRawText(XWPFParagraph paragraph) {
+    StringBuilder sb = new StringBuilder();
+    for (XWPFRun run : paragraph.getRuns()) {
+        String t = run.getText(0);
+        if (t != null) {
+            sb.append(t);
+        }
+    }
+    return sb.toString();
+}
+
+private record TemplateParagraphPair(
+        String oldMarked,
+        String newMarked,
+        String oldVisible,
+        String newVisible) {}
+
+private List<XWPFParagraph> flattenParagraphs(XWPFDocument document) {
+    List<XWPFParagraph> paragraphs = new ArrayList<>();
+
+    for (IBodyElement element : document.getBodyElements()) {
+        if (element instanceof XWPFParagraph paragraph) {
+            paragraphs.add(paragraph);
+            continue;
+        }
+
+        if (element instanceof XWPFTable table) {
+            for (XWPFTableRow row : table.getRows()) {
+                for (XWPFTableCell cell : row.getTableCells()) {
+                    paragraphs.addAll(cell.getParagraphs());
+                }
+            }
+        }
+    }
+
+    return paragraphs;
+}
+
+private String normalizeText(String text) {
+    return text == null ? "" : text.trim().replace("\u00A0", " ");
 }
 
 

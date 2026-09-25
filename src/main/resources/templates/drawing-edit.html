@@ -3,40 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{drawing.editTitle}">Edit Drawing - PEB</title>
+    <title th:text="#{drawing.editTitle}">Edit Drawing - SEP4Eng</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .card form .a-text-field {
+            margin-bottom: 1.25rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{drawing.editHeading}">Edit Drawing</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-primary" th:text="#{button.backToDrawing}">Back to Drawing</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{drawing.heading})}"></div>
 
+    <div class="app-layout">
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+        <div class="app-layout__content">
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
     <div class="container">
         <div class="card">
             <h2 th:text="#{drawing.editInfo}">Edit Drawing Information</h2>
 
             <form th:action="@{/drawings/{id}(id=${drawingId})}" th:object="${drawing}" method="post">
-                <div class="form-group">
+                <div class="a-text-field">
                     <label for="name" th:text="#{label.drawingName}">Drawing Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256">
                 </div>
 
-                <div class="form-group">
+                <div class="a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128">
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Save Changes</button>
-                    <a th:href="@{/drawings/{id}(id=${drawingId})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
+                    <button type="submit" class="a-button a-button--primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
+                        <span class="a-button__label" th:text="#{button.saveChanges}">Save Changes</span>
+                    </button>
+					<button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/drawings}'|">
+						<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+						<span class="a-button__label" th:text="#{button.cancel}">Cancel</span>
+					</button>
                 </div>
             </form>
+        </div>
+    </div>
+    </div>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="~{fragments/footer :: footer}"></div>
         </div>
     </div>
 

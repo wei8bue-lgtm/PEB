@@ -8,18 +8,18 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="${template.name} + ' - PEB'">Template - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <style>
+        .app-layout { display:flex; align-items:flex-start; }
+        .app-layout__content { flex:1 1 auto; min-width:0; }
+        .a-text-area textarea { pointer-events:auto !important; overflow-y:auto !important; width:100%; box-sizing:border-box; resize:vertical; }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{docTemplate.viewHeading}">Document Template</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/document-templates}" class="btn btn-primary" th:text="#{button.backToList}">Zurück zur Liste</a>
-            <a th:href="@{/documents}" class="btn btn-primary" th:text="#{menu.documents}">Dokumente</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{docTemplate.heading})}"></div>
 
-    <div class="container">
+    <div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
 
         <!-- Statusmeldungen -->
         <div th:if="${param.released}" class="alert alert-success" th:text="#{docTemplate.releasedAlert}">
@@ -48,31 +48,35 @@
                                    and template.latestRevision.releaseStatus.name() == 'RELEASED'}"
                           th:action="@{/document-templates/{id}/revise(id=${template.id})}"
                           method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-warning"
-                                sec:authorize="hasAuthority('WRITE')" th:text="#{button.createNewRevision}">
-                            Neue Revision anlegen
+                        <button type="submit" class="a-button a-button--primary"
+                                sec:authorize="hasAuthority('WRITE')">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-document-save-to"></i>
+                            <span class="a-button__label" th:text="#{button.createNewRevision}">Neue Revision anlegen</span>
                         </button>
                     </form>
-                    <a th:href="@{/document-templates/{id}/edit(id=${template.id})}"
-                       class="btn btn-secondary"
-                       sec:authorize="hasAuthority('WRITE')">
-                        ✏ <span th:text="#{button.edit}">Bearbeiten</span>
-                    </a>
-                    <a th:href="@{/documents/new}" class="btn btn-success"
+                    <button type="button" class="a-button a-button--primary"
+                            th:onclick="|window.location.href='@{/document-templates/{id}/edit(id=${template.id})}'|"
+                            sec:authorize="hasAuthority('WRITE')">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i>
+                        <span class="a-button__label" th:text="#{button.edit}">Bearbeiten</span>
+                    </button>
+                    <button type="button" class="a-button a-button--primary"
+                            th:onclick="|window.location.href='@{/documents/new}'|"
                        th:if="${template.releasedRevision != null}"
-                       sec:authorize="hasAuthority('WRITE')" th:text="#{button.createDocument}">
-                        + Dokument erstellen
-                    </a>
+                       sec:authorize="hasAuthority('WRITE')">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                        <span class="a-button__label" th:text="#{button.createDocument}">Dokument erstellen</span>
+                    </button>
                     <form th:action="@{/document-templates/{id}/delete(id=${template.id})}"
                           method="post" style="display:inline;"
                           sec:authorize="hasAuthority('DELETE')"
                           th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('docTemplate.confirmDeleteFull'))}');|">
-                        <button type="submit" class="btn btn-danger">🗑 <span th:text="#{button.delete}">Löschen</span></button>
+                        <button type="submit" class="a-button a-button--destructive-primary"><i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i><span class="a-button__label" th:text="#{button.delete}">Löschen</span></button>
                     </form>
                 </div>
             </div>
 
-            <table style="margin-top:1rem; border-collapse:collapse; width:100%;">
+            <table class="m-table" aria-label="Document template details">
                 <tr style="border-bottom:1px solid #dee2e6;">
                     <td style="padding:.5rem 1rem .5rem 0; font-weight:600; width:180px;" th:text="#{label.department}">Department</td>
                     <td style="padding:.5rem 0;" th:text="${template.department ?: '-'}"></td>
@@ -106,7 +110,7 @@
                 Keine Revisionen vorhanden.
             </div>
 
-            <table th:unless="${revisions.empty}" style="width:100%; border-collapse:collapse;">
+            <table class="m-table" th:unless="${revisions.empty}" aria-label="Document template revisions">
                 <thead>
                     <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
                         <th style="padding:.75rem; text-align:left;" th:text="#{label.rev}">Rev.</th>
@@ -121,10 +125,11 @@
                 <tbody>
                     <tr th:each="rev : ${revisions}" style="border-bottom:1px solid #ddd;">
                         <td style="padding:.75rem; font-weight:600;" th:text="${rev.revision}">01</td>
-                        <td style="padding:.75rem;">
-                            <span th:text="${rev.releaseStatus.displayName}"
-                                  th:class="${'badge badge-' + rev.releaseStatus.name().toLowerCase()}">
-                            </span>
+                        <td class="-with-icon-and-label">
+                            <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                            <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                            <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                            <span th:text="${rev.releaseStatus.displayName}"></span>
                         </td>
                         <td style="padding:.75rem;" th:text="${rev.attribute1 ?: '-'}"></td>
                         <td style="padding:.75rem;" th:text="${rev.attribute2 ?: '-'}"></td>
@@ -140,25 +145,25 @@
                             <!-- Download -->
                             <a th:if="${rev.docFilePath != null}"
                                th:href="@{/document-templates/{id}/revisions/{revId}/download(id=${template.id},revId=${rev.revisionId})}"
-                               class="btn btn-sm" th:text="#{button.download}">⬇ Download</a>
+                               class="a-button a-button--primary -small" th:text="#{button.download}">Download</a>
 
                             <!-- Release (nur WORKING) -->
                             <form th:if="${rev.releaseStatus.name() == 'WORKING'}"
                                   th:action="@{/document-templates/{id}/revisions/{revId}/release(id=${template.id},revId=${rev.revisionId})}"
                                   method="post" style="display:inline;"
                                   sec:authorize="hasAuthority('WRITE')">
-                                <button type="submit" class="btn btn-sm btn-release"
+                                <button type="submit" class="a-button a-button--primary -small"
                                         th:attr="onclick=|return confirm('${#strings.escapeJavaScript(#messages.msg('docTemplate.confirmReleaseRevision'))}');|">
-                                    ✅ <span th:text="#{button.release}">Freigeben</span>
+                                    <span th:text="#{button.release}">Freigeben</span>
                                 </button>
                             </form>
 
                             <!-- Update Datei (nur WORKING) -->
                             <button th:if="${rev.releaseStatus.name() == 'WORKING'}"
-                                    class="btn btn-sm btn-secondary"
+                                    class="a-button a-button--secondary -small"
                                     onclick="toggleUpdateForm(this)"
                                     sec:authorize="hasAuthority('WRITE')" th:text="#{button.updateFile}">
-                                ✏ Datei aktualisieren
+                                Datei aktualisieren
                             </button>
                         </td>
                     </tr>
@@ -186,8 +191,8 @@
                                     <input type="file" name="docFile" accept=".doc">
                                 </div>
                                 <div style="margin-top:.75rem;">
-                                    <button type="submit" class="btn btn-success btn-sm" th:text="#{button.save}">Speichern</button>
-                                    <button type="button" class="btn btn-sm btn-secondary"
+                                    <button type="submit" class="a-button a-button--primary -small" th:text="#{button.save}">Speichern</button>
+                                    <button type="button" class="a-button a-button--secondary -small"
                                             onclick="this.closest('tr').style.display='none'" th:text="#{button.cancel}">
                                         Abbrechen
                                     </button>
@@ -199,6 +204,7 @@
             </table>
         </div>
     </div>
+    </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 
     <script>
         function toggleUpdateForm(btn) {
@@ -214,10 +220,6 @@
         .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
         .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:1rem; border-radius:4px; margin-bottom:1rem; }
         .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; padding:1rem; border-radius:4px; }
-        .badge { display:inline-block; padding:.2rem .5rem; border-radius:3px; font-size:.8rem; font-weight:600; }
-        .badge-working  { background:#fff3cd; color:#856404; }
-        .badge-released { background:#d4edda; color:#155724; }
-        .badge-obsolete { background:#f8d7da; color:#721c24; }
         .btn-sm { font-size:.8rem; padding:.2rem .5rem; margin:.1rem; }
         .btn-release { background:#28a745; color:white; }
         .btn-release:hover { background:#218838; }

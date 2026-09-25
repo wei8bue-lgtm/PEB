@@ -8,11 +8,49 @@
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" href="data:,">
-    <title th:text="${design.name} + ' - PEB'">Design - PEB</title>
+    <title th:text="${design.name}">Enter design name</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .btn-sm { font-size:0.875rem; padding:0.25rem 0.5rem; }
+
+        /* Einheitliche Abstände: Kartentitel -> Inhalt, Karten untereinander */
+        .card h3:not([style*="margin"]) {
+            margin-top: 0;
+            margin-bottom: 1.25rem;
+        }
+        .card + .card {
+            margin-top: 1.5rem;
+        }
+
+        /* Details-Tabelle (Key/Value) etwas Abstand zur Button-Zeile darüber */
+        .card table.m-table {
+            margin-top: 0.5rem;
+        }
+
+        /* Child View: readonly-Textfeld, analog zur Info-Box in design-form.html */
+        .a-text-area textarea {
+            pointer-events: auto !important;
+            overflow-y: auto !important;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 160px;
+            max-height: 300px;
+            resize: vertical;
+        }
 
         .thumbnail-wrapper {
             position: relative;
@@ -81,12 +119,19 @@
 
         .btn-viewer { background-color: #6f42c1; color: white; }
         .btn-viewer:hover { background-color: #5a32a3; }
-        .btn-viewer.disabled {
-            background-color: #adb5bd;
-            color: #f1f1f1;
-            cursor: not-allowed;
-            opacity: 0.65;
-            pointer-events: none;
+        .a-button.btn-viewer.disabled {
+            background-color: #adb5bd !important;
+            color: #f1f1f1 !important;
+            cursor: not-allowed !important;
+            opacity: 0.65 !important;
+            pointer-events: none !important;
+        }
+        /* Für Aktionen in der Revisions-Tabelle, die wie ein einfacher Link
+           aussehen sollen (analog zur Product-Data-Liste) statt als Button-Chip */
+        .a-button.a-button--primary.disabled {
+            color: #adb5bd !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
         }
         .alert-info {
             background:#d1ecf1; color:#0c5460;
@@ -123,15 +168,19 @@
 </head>
 <body>
 
-<!-- ══ Header ════════════════════════════════════════════════ -->
-<div class="header">
-    <div class="logo-placeholder">PEB</div>
-    <h1 th:text="${design.name}">Design Name</h1>
-    <div style="margin-left: auto;">
-        <a th:href="@{/designs}" class="btn btn-primary" th:text="#{button.backToList}">Back to List</a>
-    </div>
-</div>
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{design.title})}"></div>
 
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
 <div class="container">
 
     <!-- Flash Messages -->
@@ -141,6 +190,7 @@
                 margin-bottom:1rem;">
         <strong th:text="${successMessage}"></strong>
     </div>
+	
     <div th:if="${errorMessage}"
          style="background:#f8d7da; color:#721c24; padding:1rem;
                 border:1px solid #f5c6cb; border-radius:4px;
@@ -151,90 +201,98 @@
     <!-- ══ Details-Karte ══════════════════════════════════════ -->
     <div class="card">
         <div style="display:flex; justify-content:space-between;
-                    align-items:center; margin-bottom:1rem;">
-            <h2 th:text="#{design.details}">Design Details</h2>
+                    align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+            <div>
+                <h2 style="margin:0 0 0.15rem;" th:text="${design.name}">Design Name</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                <span style="font-size:0.85rem; color:#6c757d;" th:text="#{design.details}">Design Details</span>
+            </div>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
 
-				<a th:href="@{/designs/{id}/edit(id=${design.id})}"
-				   class="btn btn-primary"
-				   sec:authorize="hasAuthority('WRITE')" th:text="'✏️ ' + #{button.edit}">✏️ Edit</a>
-
-				<!-- ✅ NEU – Design Structure Button -->
-				<a th:href="@{/designs/structure/{id}(id=${design.id})}"
-				   class="btn btn-primary"
-				   th:title="#{design.structureTitle}" title="Design Structure verwalten" th:text="#{button.structure}">🗂️ Structure</a>
-
-				<!-- Existing: 3D Viewer button -->
-				<a th:if="${design.latestRevision != null}"
-				   th:href="${viewerAvailableByRevision.get(design.latestRevision.revisionId)}
-							 ? @{'/viewer/' + ${design.id} + '/revision/' + ${design.latestRevision.revisionId}}
-							 : null"
-				   th:classappend="${viewerAvailableByRevision.get(design.latestRevision.revisionId)} ? '' : ' disabled'"
-				   class="btn btn-viewer"
-				   th:title="${viewerAvailableByRevision.get(design.latestRevision.revisionId)}
-							  ? #{design.viewer3dTitle}
-							  : #{design.viewer3dNotAvailableTitle}"
-				   title="3D Viewer – neueste Revision"
-				   th:text="#{button.viewer3d}">🔷 3D Viewer</a>
+				
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+					<span class="a-button__label" th:text="#{button.backToList}">Back to List</span>
+				</button>
+			
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/{id}/edit(id=${design.id})}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-edit"></i>
+					<span class="a-button__label" th:text="#{button.edit}">Edit</span>
+				</button>
+				
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/structure/{id}(id=${design.id})}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-structure"></i>
+					<span class="a-button__label" th:text="#{button.structure}">Structure</span>
+				</button>
+			
+				<button type="button" 
+						class="a-button a-button--primary"
+						th:classappend="${design.latestRevision != null && viewerAvailableByRevision.get(design.latestRevision.revisionId)} ? '' : ' disabled'"
+						th:disabled="${design.latestRevision == null || !viewerAvailableByRevision.get(design.latestRevision.revisionId)}"
+						th:onclick="${design.latestRevision != null && viewerAvailableByRevision.get(design.latestRevision.revisionId)} ? 'window.location.href=\'' + @{'/viewer/' + ${design.id} + '/revision/' + ${design.latestRevision.revisionId}} + '\'' : null"
+						th:title="${design.latestRevision != null && viewerAvailableByRevision.get(design.latestRevision.revisionId)} ? #{design.viewer3dTitle} : #{design.viewer3dNotAvailableTitle}">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-structure"></i>
+					<span class="a-button__label" th:text="#{button.viewer3d}">3D Viewer</span>
+				</button>
 
                 <form th:action="@{/designs/{id}/delete(id=${design.id})}"
                       method="post" style="display:inline;"
                       th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('design.confirmDelete'))}');|"
                       sec:authorize="hasAuthority('DELETE')">
-                    <button type="submit" class="btn btn-danger" th:text="'🗑️ ' + #{button.delete}">🗑️ Delete</button>
+                    <button type="submit" class="a-button a-button--destructive-primary">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i>
+                        <span class="a-button__label" th:text="#{button.delete}">Delete</span>
+                    </button>
                 </form>
             </div>
         </div>
 
-        <table style="width:100%; border-collapse:collapse;">
+        <table class="m-table" aria-label="Design-Details">
             <tr>
-                <th style="width:200px; padding:0.5rem; text-align:left;
-                           background:#f8f9fa;" th:text="#{label.id}">ID</th>
-                <td style="padding:0.5rem;" th:text="${design.id}">DS00000001</td>
+                <th th:text="#{label.id}">ID</th>
+                <td th:text="${design.id}">DS00000001</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.name}">Name</th>
-                <td style="padding:0.5rem;" th:text="${design.name}">Name</td>
+                <th th:text="#{label.name}">Name</th>
+                <td th:text="${design.name}">Name</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.department}">Department</th>
-                <td style="padding:0.5rem;" th:text="${design.department}">Engineering</td>
+                <th th:text="#{label.department}">Department</th>
+                <td th:text="${design.department}">Engineering</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.mass}">Mass (kg)</th>
-                <td style="padding:0.5rem;" th:text="${design.mass}">100</td>
+                <th th:text="#{label.mass}">Mass (kg)</th>
+                <td th:text="${design.mass}">100</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.material}">Material</th>
-                <td style="padding:0.5rem;" th:text="${design.material}">Steel</td>
+                <th th:text="#{label.material}">Material</th>
+                <td th:text="${design.material}">Steel</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.created}">Created</th>
-                <td style="padding:0.5rem;"
-                    th:text="${design.createdDate != null
+                <th th:text="#{label.created}">Created</th>
+                <td th:text="${design.createdDate != null
                         ? #temporals.format(design.createdDate,'dd.MM.yyyy HH:mm:ss')
                         : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{lifecycle.history.createdBy}">Created By</th>
-                <td style="padding:0.5rem;" th:text="${design.createdBy}">admin</td>
+                <th th:text="#{lifecycle.history.createdBy}">Created By</th>
+                <td th:text="${design.createdBy}">admin</td>
             </tr>
             <tr>
-                <th style="padding:0.5rem; text-align:left; background:#f8f9fa;" th:text="#{label.lastModified}">Last Modified</th>
-                <td style="padding:0.5rem;"
-                    th:text="${design.lastModifiedDate != null
+                <th th:text="#{label.lastModified}">Last Modified</th>
+                <td th:text="${design.lastModifiedDate != null
                         ? #temporals.format(design.lastModifiedDate,'dd.MM.yyyy HH:mm:ss')
                         : #messages.msg('common.na')}">01.01.2024</td>
             </tr>
             <tr th:if="${design.childView != null and !design.childView.isEmpty()}">
-                <th style="padding:0.5rem; text-align:left;
-                           background:#f8f9fa; vertical-align:top;" th:text="#{label.childView}">Child View</th>
-                <td style="padding:0.5rem;">
-                    <pre style="margin:0; white-space:pre-wrap; word-break:break-word;
-                                font-family:inherit; font-size:0.9rem;
-                                background:#f8f9fa; padding:0.5rem;
-                                border-radius:4px; max-height:200px; overflow-y:auto;"
-                         th:text="${design.childView}"></pre>
+                <th style="vertical-align:top;" th:text="#{label.childView}">Child View</th>
+                <td>
+                    <div class="a-text-area">
+                        <textarea readonly tabindex="0" th:text="${design.childView}"></textarea>
+                    </div>
                 </td>
             </tr>
         </table>
@@ -245,24 +303,26 @@
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
-                🖼️ <span th:text="#{ebom.thumbnail}">Thumbnail</span>
+                <span th:text="#{ebom.thumbnail}">Thumbnail</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
                     — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-                <a th:href="@{/designs/{id}/thumbnail(id=${design.id})}"
-                   target="_blank"
-                   class="btn btn-primary btn-sm"
-                   id="thumbnailOpenBtn" th:text="#{button.fullscreen}">Vollbild ↗</a>
-
-                <!-- ✅ String-Konkatenation -->
-                <a th:href="@{'/datasets/manage/DESIGN/'
+				   
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/{id}/thumbnail(id=${design.id})}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-fullscreen"></i>
+				<span class="a-button__label" th:text="#{button.fullscreen}">Vollbild</span>
+			</button>
+			   
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
-                             + '?objectId=' + ${design.id}}"
-                   class="btn btn-primary btn-sm"
-                   th:title="#{design.manageDatasetTitle}" title="Thumbnail Dataset verwalten" th:text="#{button.datasetShort}">📎 Dataset</a>
+                             + '?objectId=' + ${design.id}}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-document-test"></i>
+				<span class="a-button__label" th:text="#{button.datasetShort}">Dataset</span>
+			</button>
+			
             </div>
         </div>
 
@@ -282,12 +342,13 @@
                     <strong th:text="#{category.thumbnail}">Thumbnail</strong>
                     <span th:text="#{ebom.noThumbnailHintTrail}">hinzufügen (jpeg / jpg / bmp / png)</span>
                 </p>
-                <!-- ✅ String-Konkatenation -->
-                <a th:href="@{'/datasets/manage/DESIGN/'
-                             + ${design.latestRevision.revisionId}
-                             + '?objectId=' + ${design.id}}"
-                   class="btn btn-primary btn-sm"
-                   style="margin-top:0.5rem;" th:text="#{button.addDataset}">📎 Dataset hinzufügen</a>
+
+				 <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DESIGN/'
+								 + ${design.latestRevision.revisionId}
+								 + '?objectId=' + ${design.id}}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+					<span class="a-button__label" th:text="#{button.addDataset}">Add Dataset</span>
+				</button>
             </div>
         </div>
 
@@ -315,7 +376,6 @@
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
-                📄
                 <span th:text="${pdfDataset.category.displayName}">PDF Document</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
                     — <span th:text="#{label.revision}">Revision</span>
@@ -323,23 +383,22 @@
                 </span>
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-                <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                   download
-                   class="btn btn-primary btn-sm"
-                   th:title="#{button.downloadPdf}" title="PDF herunterladen" th:text="#{button.download}">⬇️ Download</a>
-
-                <a th:href="@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="btn btn-primary btn-sm"
-                   th:title="#{design.openNewTabTitle}" title="In neuem Tab öffnen" th:text="#{button.fullscreen}">Vollbild ↗</a>
-
-                <!-- ✅ String-Konkatenation -->
-                <a th:href="@{'/datasets/manage/DESIGN/'
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-download"></i>
+					<span class="a-button__label" th:text="#{button.download}">Download</span>
+				</button>
+				 
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/datasets/{id}/stream(id=${pdfDataset.datasetId})}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-fullscreen"></i>
+					<span class="a-button__label" th:text="#{button.fullscreen}">Vollbild</span>
+				</button>
+				   
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
-                             + '?objectId=' + ${design.id}}"
-                   class="btn btn-primary btn-sm"
-                   th:title="#{design.manageDatasetTitle}" title="Dataset verwalten" th:text="#{button.datasetShort}">📎 Dataset</a>
+                             + '?objectId=' + ${design.id}}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-document-test"></i>
+					<span class="a-button__label" th:text="#{button.datasetShort}">Dataset</span>
+				</button>
             </div>
         </div>
 
@@ -371,53 +430,61 @@
         <div style="display:flex; justify-content:space-between;
                     align-items:center; margin-bottom:1rem;">
             <h3 style="margin:0;">
-                📊 <span th:text="#{design.excelTable}">Excel Table</span>
+                <span th:text="#{design.excelTable}">Excel Table</span>
                 <span style="font-size:0.8rem; color:#6c757d; font-weight:normal;">
                     — <span th:text="#{label.revision}">Revision</span>
                     <span th:text="${design.latestRevision.revision}">01</span>
                 </span>
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-                <a th:href="@{/datasets/{id}/stream(id=${excelDataset.datasetId})}"
-                   download
-                   class="btn btn-primary btn-sm" th:text="#{button.download}">⬇️ Download</a>
+				   
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/datasets/{id}/stream(id=${excelDataset.datasetId})}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-download"></i>
+					<span class="a-button__label" th:text="#{button.download}">Download</span>
+				</button>
 
                 <select id="sheetSelector"
-                        class="btn btn-primary btn-sm"
+                        class="a-button a-button--primary -small"
                         onchange="renderSheet(this.value)"
                         style="display:none;"></select>
-
-                <!-- ✅ String-Konkatenation -->
-                <a th:href="@{'/datasets/manage/DESIGN/'
+			   
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DESIGN/'
                              + ${design.latestRevision.revisionId}
-                             + '?objectId=' + ${design.id}}"
-                   class="btn btn-primary btn-sm" th:text="#{button.datasetShort}">📎 Dataset</a>
+                             + '?objectId=' + ${design.id}}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-document-test"></i>
+					<span class="a-button__label" th:text="#{button.datasetShort}">Dataset</span>
+				</button>
             </div>
+			
+			
+			
         </div>
 
         <div class="embedded-viewer-wrapper" id="excelViewerWrapper">
             <div class="embedded-viewer-placeholder" id="excelPlaceholder">
-                <div class="icon">📊</div>
+                <!-- <div class="icon">📊</div> -->
                 <p style="font-weight:500; margin:0;">
                     <span th:text="#{design.excelFile}">Excel-Datei:</span>
                     <strong th:text="${excelDataset.fileName}">Datei.xlsx</strong>
                 </p>
                 <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
-                    <button class="btn btn-primary btn-sm"
+                    <button class="a-button a-button--primary"
                             th:data-dataset-id="${excelDataset.datasetId}"
                             th:data-file-name="${excelDataset.fileName}"
                             onclick="loadExcelWithSheetJS(
                                 this.dataset.datasetId,
-                                this.dataset.fileName)" th:text="#{button.viewDirectSheetJS}">
-                        👁️ Direkt anzeigen (SheetJS)
+                                this.dataset.fileName)">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-eye-open"></i>
+                        <span class="a-button__label" th:text="#{button.viewDirectSheetJS}">Direkt anzeigen (SheetJS)</span>
                     </button>
-                    <button class="btn btn-primary btn-sm"
+                    <button class="a-button a-button--primary"
                             th:data-dataset-id="${excelDataset.datasetId}"
                             th:data-file-name="${excelDataset.fileName}"
                             onclick="requestExcelAsPdf(
                                 this.dataset.datasetId,
-                                this.dataset.fileName)" th:text="#{button.viewAsPdf}">
-                        📄 Als PDF anzeigen
+                                this.dataset.fileName)">
+                        <i class="a-icon a-button__icon boschicon-bosch-ic-document-code-stack"></i>
+                        <span class="a-button__label" th:text="#{button.viewAsPdf}">Als PDF anzeigen</span>
                     </button>
                 </div>
             </div>
@@ -450,12 +517,13 @@
                     <strong th:text="#{design.excelTableCat}">Excel Table</strong>.
                 </p>
             </div>
-            <!-- ✅ String-Konkatenation -->
-            <a th:href="@{'/datasets/manage/DESIGN/'
-                         + ${design.latestRevision.revisionId}
-                         + '?objectId=' + ${design.id}}"
-               class="btn btn-primary btn-sm"
-               style="margin-left:auto;" th:text="#{button.addDataset}">📎 Dataset hinzufügen</a>
+		   
+				<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DESIGN/'
+								 + ${design.latestRevision.revisionId}
+								 + '?objectId=' + ${design.id}}'|">
+					<i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+					<span class="a-button__label" th:text="#{button.addDataset}">Add Dataset</span>
+				</button>
         </div>
     </div>
 
@@ -475,7 +543,12 @@
                       method="post"
                       style="display:inline;"
                       th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmReleaseRevision'))}');|">
-                    <button type="submit" class="btn btn-success">🏁 <span th:text="#{button.release}">Release Revision</span></button>
+					
+					<button type="submit" class="a-button a-button--primary">
+						<i class="a-icon a-button__icon boschicon-bosch-ic-bicycle-e-turbo-mode"></i>
+						<span class="a-button__label" th:text="#{button.release}">Release Revision</span>
+					</button>
+					
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
                     <span th:text="#{label.revision}">Revision</span>
@@ -487,7 +560,11 @@
             <div th:if="${design.latestRevision.releaseStatus.name() == 'RELEASED'}">
                 <form th:action="@{/api/revisions/designs/{id}/revise(id=${design.id})}"
                       method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-primary" th:text="#{button.reviseNewRevision}">📝 Revise (New Revision)</button>
+					<button type="submit" class="a-button a-button--primary">
+						<i class="a-icon a-button__icon boschicon-bosch-ic-document-save-to"></i>
+						<span class="a-button__label" th:text="#{button.reviseNewRevision}">Revise (New Revision)</span>
+					</button>
+					
                 </form>
                 <p style="color:#6c757d; margin-top:0.5rem;">
                     <span th:text="#{label.revision}">Revision</span>
@@ -499,7 +576,10 @@
 
         <div th:if="${design.releasedRevision != null}"
              style="margin-top:1rem; padding-top:1rem; border-top:1px solid #dee2e6;">
-            <button onclick="handleSaveAs()" class="btn btn-primary" th:text="#{button.saveAsCopy}">💾 Save As (Copy)</button>
+			<button type="button" class="a-button a-button--primary" onclick="handleSaveAs()">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
+				<span class="a-button__label"  th:text="#{button.saveAsCopy}">Save As (Copy)</span>
+			</button>
         </div>
     </div>
 
@@ -511,48 +591,40 @@
             No revisions found.
         </div>
 
-        <table th:unless="${design.revisions.empty}"
-               style="width:100%; border-collapse:collapse;">
+        <table th:unless="${design.revisions.empty}" class="m-table" aria-label="Revisions">
             <thead>
-                <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.revision}">Revision</th>
-                    <th style="padding:0.75rem; text-align:left;" th:text="#{common.status}">Status</th>
-                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.createdDate}">Created Date</th>
-                    <th style="padding:0.75rem; text-align:left;" th:text="#{lifecycle.history.createdBy}">Created By</th>
-                    <th style="padding:0.75rem; text-align:left;" th:text="#{label.actions}">Actions</th>
+                <tr>
+                    <th th:text="#{label.revision}">Revision</th>
+                    <th th:text="#{common.status}">Status</th>
+                    <th th:text="#{label.createdDate}">Created Date</th>
+                    <th th:text="#{lifecycle.history.createdBy}">Created By</th>
+                    <th th:text="#{label.actions}">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="revision : ${design.revisions}"
-                    style="border-bottom:1px solid #ddd;">
-                    <td style="padding:0.75rem;"
-                        th:text="${revision.revision}">01</td>
-                    <td style="padding:0.75rem;">
-                        <span class="status-badge"
-                              th:classappend="${revision.releaseStatus.name() == 'WORKING'}
-                                  ? 'status-working'
-                                  : (${revision.releaseStatus.name() == 'RELEASED'}
-                                     ? 'status-released' : 'status-obsolete')"
-                              th:text="${revision.releaseStatus.displayName
-                                         + ' ' + revision.releaseStatus.icon}">
-                            Working 🚩
-                        </span>
+                <tr th:each="revision : ${design.revisions}">
+                    <td th:text="${revision.revision}">01</td>
+                    <td class="-with-icon-and-label">
+                        <i th:if="${revision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                        <i th:if="${revision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                        <i th:if="${revision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                        <span th:text="${revision.releaseStatus.name()}">WORKING</span>
                     </td>
-                    <td style="padding:0.75rem;"
+                    <td
                         th:text="${#temporals.format(
                             revision.createdDate,'dd.MM.yyyy HH:mm:ss')}">
                         2024-01-01
                     </td>
-                    <td style="padding:0.75rem;"
+                    <td
                         th:text="${revision.createdBy}">admin</td>
-                    <td style="padding:0.75rem;">
-                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    <td>
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
 
                             <!-- ✅ String-Konkatenation -->
                             <a th:href="@{'/datasets/manage/DESIGN/'
                                          + ${revision.revisionId}
                                          + '?objectId=' + ${design.id}}"
-                               class="btn btn-primary btn-sm"
+                               class="a-button a-button--primary -small"
                                th:title="#{drawing.manageDatasetsTitle}" title="Datasets verwalten" th:text="#{button.datasetShort} + 's'">📎 Datasets</a>
 
                             <!-- ✅ String-Konkatenation -->
@@ -560,7 +632,7 @@
                                         ? @{'/viewer/' + ${design.id} + '/revision/' + ${revision.revisionId}}
                                         : null"
                                th:classappend="${viewerAvailableByRevision.get(revision.revisionId)} ? '' : ' disabled'"
-                               class="btn btn-viewer btn-sm"
+                               class="a-button a-button--primary -small"
                                th:title="${viewerAvailableByRevision.get(revision.revisionId)}
                                           ? #{design.viewer3dForRevision(${revision.revision})}
                                           : #{design.viewer3dNotAvailableForRevision(${revision.revision})}"
@@ -574,7 +646,7 @@
                                         : null"
                                download
                                th:classappend="${jtDatasetByRevision.containsKey(revision.revisionId)} ? '' : ' disabled'"
-                               class="btn btn-viewer btn-sm"
+                               class="a-button a-button--primary -small"
                                th:title="${jtDatasetByRevision.containsKey(revision.revisionId)}
                                           ? #{design.openInTcvisTitle(${tcvisExePath})}
                                           : #{design.openInTcvisNotAvailableTitle}"
@@ -589,32 +661,32 @@
     </div>
 	
 	<!-- ══ ECLASS-Klassifizierung ════════════════════════════════ -->
-<!-- <div class="card" style="border-left: 4px solid #1a73e8;"
-     th:fragment="eclassPanel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;">
-        <h3 style="margin:0;">🏷️ ECLASS-Klassifizierung</h3> -->
+
 <div class="card">
 <!--     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;"> -->
         <h3 th:text="'🏷️ ' + #{eclass.classificationHeading}">🏷️ ECLASS-Klassifizierung</h3>
         <div style="display:flex; gap:.5rem;" sec:authorize="hasAuthority('WRITE')">
-            <a th:href="@{'/eclass/classify/DESIGN/' + ${design.id}}"
-               class="btn btn-primary btn-sm">
-                <span th:text="${eclassClassification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span>
-            </a>
-            <a th:if="${eclassClassification != null}"
-               th:href="@{'/eclass/similar/DESIGN/' + ${design.id}}"
-               class="btn btn-secondary btn-sm" th:title="#{button.similarTitle}" title="Ähnliche Objekte finden" th:text="#{button.similar}">
-                🔄 Ähnliche
-            </a>
+			
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/eclass/classify/DESIGN/' + ${design.id}}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+				<span class="a-button__label" th:text="${eclassClassification != null ? #messages.msg('button.changeShort') : #messages.msg('button.classifyShort')}"></span>
+			</button>
+			
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/eclass/similar/DESIGN/' + ${design.id}}'|">
+				<i class="a-icon a-button__icon boschicon-bosch-ic-handlewithcare"></i>
+				<span class="a-button__label" th:text="#{button.similar}">Ähnliche"></span>
+			</button>
         </div>
     </div>
+	
+	
 
     <!-- Klassifizierung vorhanden -->
     <div th:if="${eclassClassification != null}">
-        <table style="width:100%; border-collapse:collapse;">
+        <table class="m-table" aria-label="ECLASS-Klassifizierung">
             <tr>
-                <th style="width:180px; padding:.4rem; background:#f8f9fa;" th:text="#{eclass.code}">ECLASS-Code</th>
-                <td style="padding:.4rem;">
+                <th th:text="#{eclass.code}">ECLASS-Code</th>
+                <td>
                     <strong th:text="${eclassClassification.eclassCode}"></strong>
                     &nbsp;
                     <a th:href="@{'/eclass/objects/' + ${eclassClassification.eclassCode}}"
@@ -624,16 +696,16 @@
                 </td>
             </tr>
             <tr>
-                <th style="padding:.4rem; background:#f8f9fa;" th:text="#{eclass.designation}">Bezeichnung</th>
-                <td style="padding:.4rem;" th:text="${eclassClassification.eclassName}"></td>
+                <th th:text="#{eclass.designation}">Bezeichnung</th>
+                <td th:text="${eclassClassification.eclassName}"></td>
             </tr>
             <tr>
-                <th style="padding:.4rem; background:#f8f9fa;" th:text="#{label.version}">Version</th>
-                <td style="padding:.4rem;" th:text="${eclassClassification.eclassVersion}"></td>
+                <th th:text="#{label.version}">Version</th>
+                <td th:text="${eclassClassification.eclassVersion}"></td>
             </tr>
             <tr th:if="${eclassClassification.eclassIrdi != null}">
-                <th style="padding:.4rem; background:#f8f9fa;">IRDI</th>
-                <td style="padding:.4rem;">
+                <th>IRDI</th>
+                <td>
                     <code style="font-size:.85rem;" th:text="${eclassClassification.eclassIrdi}"></code>
                 </td>
             </tr>
@@ -643,11 +715,11 @@
         <div th:if="${!eclassClassification.propertyValues.empty}"
              style="margin-top:.75rem;">
             <h4 style="margin:.5rem 0; font-size:.9rem; color:#555;" th:text="#{eclass.propertyValues}">Merkmalswerte</h4>
-            <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
+            <table class="m-table" aria-label="Merkmalswerte">
                 <tr th:each="entry : ${eclassClassification.propertyValues}">
-                    <th style="width:50%; padding:.3rem .5rem; background:#f8f9fa; font-weight:500;"
+                    <th style="width:50%;"
                         th:text="${eclassClassification.propertyNames[entry.key]}"></th>
-                    <td style="padding:.3rem .5rem;">
+                    <td>
                         <span th:text="${entry.value}"></span>
                         <span th:if="${eclassClassification.propertyUnits[entry.key] != null}"
                               style="color:#888; font-size:.85rem;"
@@ -667,6 +739,12 @@
 </div>
 
 </div><!-- /container -->
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
 
 <!-- ══ Scripts ══════════════════════════════════════════════ -->
 <script th:inline="javascript">
@@ -795,14 +873,14 @@
                         ${err.message}
                     </p>
                     <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                        <button class="btn btn-primary btn-sm"
+                        <button class="a-button a-button--primary -small"
                                 onclick="requestExcelAsPdf(
                                     '${datasetId}', '${fileName}')">
                             ${designViewI18n.retry}
                         </button>
                         <a href="/datasets/${datasetId}/stream"
                            download
-                           class="btn btn-primary btn-sm">
+                           class="a-button a-button--primary -small">
                             ${designViewI18n.download}
                         </a>
                     </div>
@@ -859,13 +937,13 @@
                 </p>
                 <p style="font-size:0.85rem;">${err.message}</p>
                 <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                    <button class="btn btn-primary btn-sm"
+                    <button class="a-button a-button--primary -small"
                             onclick="loadExcelWithSheetJS(
                                 '${datasetId}','${fileName}')">
                         ${designViewI18n.retry}
                     </button>
                     <a href="/datasets/${datasetId}/stream"
-                       download class="btn btn-primary btn-sm">
+                       download class="a-button a-button--primary -small">
                         ${designViewI18n.download}
                     </a>
                 </div>`;

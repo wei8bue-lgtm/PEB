@@ -1,0 +1,107 @@
+{
+  "package": "@bosch/bdds.tokens-npm",
+  "brand": "dremel",
+  "version": "2.4.0",
+  "description": "design tokens for the brand dremel",
+  "tokens": {
+    "core": {
+      "gradations": {
+        "hash": "4e9dec73",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2026-02-17"
+      },
+      "font-family": {
+        "hash": "b3bf21cd",
+        "status": "stable",
+        "dependencies": [
+          "core.font-family",
+          "core.font-weight"
+        ],
+        "lastModified": "2026-01-13"
+      }
+    },
+    "sem": {
+      "typography": {
+        "hash": "de687567",
+        "status": "stable",
+        "dependencies": [
+          "core.font-family",
+          "core.font-size",
+          "core.font-weight",
+          "core.line-height",
+          "sem.letter-spacing",
+          "sem.text-case"
+        ],
+        "lastModified": "2025-11-13"
+      },
+      "text-case": {
+        "hash": "599af2a4",
+        "status": "stable",
+        "dependencies": [
+          "core.text-case"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "Light Mode": {
+        "hash": "dda7c61d",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2026-01-22"
+      },
+      "letter-spacing": {
+        "hash": "cde39b90",
+        "status": "stable",
+        "dependencies": [
+          "core.letter-spacing"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "dimension": {
+        "hash": "f0f487a3",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-12-16"
+      },
+      "color": {
+        "hash": "2c5068bf",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2025-11-07"
+      },
+      "box-shadow": {
+        "hash": "a197859b",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-11-13"
+      },
+      "border-radius": {
+        "hash": "30166d10",
+        "status": "stable",
+        "dependencies": [
+          "core.border-radius"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "background-blur": {
+        "hash": "376d56d1",
+        "status": "stable",
+        "dependencies": [
+          "core.dimension"
+        ],
+        "lastModified": "2025-11-07"
+      },
+      "asset": {
+        "hash": "21cf00c2",
+        "status": "stable",
+        "dependencies": [],
+        "lastModified": "2025-12-16"
+      }
+    }
+  },
+  "generatedAt": "2026-02-17T12:50:58.876Z"
+}

@@ -1,0 +1,1081 @@
+{
+  "Families": [
+    {
+      "Name": "tool name",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#12100f"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#1d1b19"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#272523"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#322f2d"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#3d3a38"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#494542"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#55514d"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#615d59"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#6e6864"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#7b7570"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#8d8075"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#a08c7a"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#b4987c"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#c8a47d"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#deb07c"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#eebd86"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#f5cda4"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#faddc2"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#feeee0"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "cool gray",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#101112"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#1a1b1d"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#242628"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#2e3033"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#393b3e"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#44464a"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#4f5256"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#5a5e62"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#666a6f"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#72767b"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#7d838c"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#87919d"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#919eaf"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#9cacbf"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#abb9cc"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#bac7d8"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#cad5e3"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#dbe3ed"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#edf1f7"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "light green",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#0e120e"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#171d17"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#212720"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#2a322a"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#343d34"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#3e493e"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#495548"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#536153"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#5e6d5e"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#697a69"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#6f896e"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#749972"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#77a974"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#78ba75"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#78cb74"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#76dc70"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#71ee68"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#8afb83"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#cafec7"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "light purple",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#1e0a18"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#2d1225"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#3b1931"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#4a213e"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#5a2a4c"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#6a3259"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#7b3b68"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#8b4476"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#9d4e85"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#ae5794"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#c161a4"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#cf6fb1"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#d482ba"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#da95c3"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#e0a7cc"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#e5b9d6"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#eccbe0"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#f2dcea"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#f8eef4"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "light red",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#1e0c05"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#2d150a"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#3c1d10"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#4b2616"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#5b2f1c"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#6b3923"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#7b422a"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#8c4c30"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#9e5637"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#af613f"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#c46b42"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#d97445"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#ee7e47"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#f49169"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#f7a488"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#f9b6a2"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#fcc8ba"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#fddbd2"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#ffede9"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "golden yellow",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#1c0d01"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#2b1701"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#472903"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#3a2f03"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#563305"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#653d07"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#75470a"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#85520c"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#965d0f"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#a66812"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#b87316"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#ca7f19"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#dc8a1c"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#ef961f"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#fda43f"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#fdb77d"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#fecaa5"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#fedcc6"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#feede4"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "yellow",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#161001"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#221b01"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#2e2502"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#3a2f03"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#473a05"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#544507"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#615009"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#6f5c0c"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#7d680f"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#8b7412"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#9a8115"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#a98d19"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#b99a1c"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#c8a81f"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#d8b523"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#e8c326"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#f9d129"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#fee089"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#feefcd"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "gray",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#101111"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#1b1b1c"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#252527"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#2f3031"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#3a3b3c"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#454648"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#505254"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#5c5d60"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#68696c"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#747679"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#818385"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#8e9092"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#9c9d9f"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#a9aaac"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#b7b8b9"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#c5c6c7"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#d4d4d4"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#e2e2e2"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#f0f0f0"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "green",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#01150a"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#012112"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#022c1a"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#043822"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#05442a"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#075133"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#0a5e3c"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#0d6b45"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#10794e"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#138657"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#2b9464"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#3fa172"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#52ae80"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#65bb8e"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#79c89e"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#8dd5ad"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#a2e2be"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#bcedd1"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#e4f5ea"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "blue",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#001126"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#001c38"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#002649"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#00315b"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#003c6e"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#004781"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#005395"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#005fa9"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#006bbd"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#0078d2"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#0085e8"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#0092fe"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#509fff"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#73acff"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#90b9ff"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#a9c7ff"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#c0d5ff"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#d5e2ff"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#eaf1ff"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "dremel",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#00599e"
+        }
+      ]
+    },
+    {
+      "Name": "purple",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#1e091a"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#2d1128"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#3c1835"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#4b2043"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#5a2851"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#6a3160"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#7b396f"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#8c427f"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#9d4b8f"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#af559f"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#c15eb0"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#d26abf"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#d77ec6"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#dd92ce"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#e2a5d5"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#e7b7dd"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#edcae5"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#f3dbee"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#f9edf6"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "Name": "red",
+      "Gradations": [
+        {
+          "Luminance": 0,
+          "Color": "#000000"
+        },
+        {
+          "Luminance": 5,
+          "Color": "#250603"
+        },
+        {
+          "Luminance": 10,
+          "Color": "#370d06"
+        },
+        {
+          "Luminance": 15,
+          "Color": "#48140a"
+        },
+        {
+          "Luminance": 20,
+          "Color": "#5a1a0e"
+        },
+        {
+          "Luminance": 25,
+          "Color": "#6c2113"
+        },
+        {
+          "Luminance": 30,
+          "Color": "#7f2918"
+        },
+        {
+          "Luminance": 35,
+          "Color": "#92301e"
+        },
+        {
+          "Luminance": 40,
+          "Color": "#a63823"
+        },
+        {
+          "Luminance": 45,
+          "Color": "#ba4029"
+        },
+        {
+          "Luminance": 50,
+          "Color": "#ce482e"
+        },
+        {
+          "Luminance": 55,
+          "Color": "#e45034"
+        },
+        {
+          "Luminance": 60,
+          "Color": "#f26048"
+        },
+        {
+          "Luminance": 65,
+          "Color": "#f37969"
+        },
+        {
+          "Luminance": 70,
+          "Color": "#f48e84"
+        },
+        {
+          "Luminance": 75,
+          "Color": "#f5a39b"
+        },
+        {
+          "Luminance": 80,
+          "Color": "#f7b6b1"
+        },
+        {
+          "Luminance": 85,
+          "Color": "#f8c9c5"
+        },
+        {
+          "Luminance": 90,
+          "Color": "#fadbd9"
+        },
+        {
+          "Luminance": 95,
+          "Color": "#fdedec"
+        },
+        {
+          "Luminance": 100,
+          "Color": "#ffffff"
+        }
+      ]
+    }
+  ]
+}

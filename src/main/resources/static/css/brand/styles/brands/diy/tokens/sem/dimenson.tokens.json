@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "name": "dimension",
+    "type": "sem",
+    "brand": "diy",
+    "description": "semantic dimension tokens for brand diy",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "dimension": {
+      "supergraphic-height": {
+        "$value": "{core.dimension.37}",
+        "$type": "dimension",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

@@ -2,28 +2,28 @@
      Einbinden in die bestehende Navbar-Vorlage mit:
      <div th:replace="~{fragments/navbar-search :: navbar-search}"></div>
 -->
-<div th:fragment="navbar-search" class="peb-search" style="position:relative;" xmlns:th="http://www.thymeleaf.org">
-    <form th:action="@{/search}" method="get" autocomplete="off">
+<div th:fragment="navbar-search" class="peb-search" style="position:relative; flex:0 1 320px; min-width:120px;" xmlns:th="http://www.thymeleaf.org">
+    <form th:action="@{/search}" method="get" autocomplete="off" style="min-width:0;">
         <input type="text"
                id="peb-search-input"
                name="q"
                th:placeholder="#{search.placeholder}"
                placeholder="Suche nach Name, ID, Material... (auch mit * und ?)"
-               style="width:320px;"/>
+               style="width:100%; max-width:320px; min-width:120px; box-sizing:border-box;"/>
     </form>
 
     <div id="peb-search-suggestions"
-         style="display:none; position:absolute; top:100%; left:0; width:320px;
+         style="display:none; position:absolute; top:100%; left:0; width:320px; max-width:100%;
                 background:#fff; border:1px solid #ccc; z-index:1000; max-height:400px; overflow-y:auto;">
     </div>
 
-    <button id="pepperoni-chat-toggle"
-            type="button"
-            title="PEPperoni"
-            style="position:fixed; right:20px; bottom:20px; z-index:1200; border:none; border-radius:999px;
-                   padding:12px 16px; background:#0f766e; color:#fff; font-weight:700; cursor:pointer;">
-        PEPperoni
-    </button>
+
+	<button type="button" id="pepperoni-chat-toggle" class="a-button a-button--neutral-primary chat-toggle-fab">
+		<i class="a-icon a-button__icon boschicon-bosch-ic-chat"></i>
+		<span class="a-button__label">SEPChat</span>
+	</button>
+
+
 
     <div id="pepperoni-chat-panel"
          style="display:none; position:fixed; right:20px; bottom:74px; width:360px; max-width:calc(100vw - 24px);
@@ -144,8 +144,8 @@
         const input = document.getElementById('pepperoni-chat-input');
         const send = document.getElementById('pepperoni-chat-send');
         const log = document.getElementById('pepperoni-chat-log');
-        const botName = 'PEPperoni';
-        const welcomeText = /*[[#{chat.welcome}]]*/ 'Hallo, ich bin PEPperoni. Frag mich nach Namen, IDs oder Objekttypen.';
+        const botName = 'SEPChat';
+        const welcomeText = /*[[#{chat.welcome}]]*/ 'Hallo, ich bin SEPChat. Frag mich nach Namen, IDs oder Objekttypen.';
 
         if (!toggle || !panel || !input || !send || !log) {
             return;

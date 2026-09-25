@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "name": "background-blur",
+    "type": "sem",
+    "brand": "pro",
+    "description": "semantic background-blur tokens for brand pro",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "background-blur": {
+      "dim": {
+        "$value": "{core.dimension.25}",
+        "$type": "dimension",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

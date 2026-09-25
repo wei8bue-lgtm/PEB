@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "name": "background-blur",
+    "type": "sem",
+    "brand": "bosch",
+    "description": "semantic background-blur tokens for brand bosch",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "background-blur": {
+      "dim": {
+        "$value": "{core.dimension.25}",
+        "$type": "dimension",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

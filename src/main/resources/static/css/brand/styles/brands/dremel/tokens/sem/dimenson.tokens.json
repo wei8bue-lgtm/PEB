@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "name": "dimension",
+    "type": "sem",
+    "brand": "dremel",
+    "description": "semantic dimension tokens for brand dremel",
+    "status": "stable",
+    "deprecations": [],
+    "dependencies": [
+      "core.dimension"
+    ]
+  },
+  "sem": {
+    "dimension": {
+      "supergraphic-height": {
+        "$value": "{core.dimension.37}",
+        "$type": "dimension",
+        "figma-type": "var.number"
+      }
+    }
+  }
+}

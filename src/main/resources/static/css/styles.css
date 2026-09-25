@@ -27,60 +27,6 @@ body {
     background-color: #f5f5f5;
 }
 
-.cim-page,
-.cim-page table,
-.cim-page th,
-.cim-page td,
-.cim-page h1,
-.cim-page h2,
-.cim-page h3,
-.cim-page p,
-.cim-page a,
-.cim-page button,
-.cim-page input,
-.cim-page select,
-.cim-page label,
-.cim-page span,
-.cim-page li {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.cim-page .mono {
-    font-family: inherit;
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-}
-
-.cim-page .card h2,
-.cim-page .card h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #212529;
-}
-
-.cim-page .btn {
-    font-family: inherit;
-    font-size: 0.95rem;
-    line-height: 1.4;
-}
-
-.cim-page table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-.cim-page th,
-.cim-page td {
-    vertical-align: top;
-}
-
-.cim-page select,
-.cim-page input,
-.cim-page textarea {
-    font-size: 0.95rem;
-}
-
 /* ── Header ───────────────────────────────────────────────────── */
 .header {
     background-color: var(--primary-color);
@@ -173,9 +119,9 @@ body {
 }
 
 /* ── Admin Quick-Action Buttons ────────────────────────────── */
-.btn-admin-action {
-    background-color: #6c3483;
-    color: white;
+.a-button--brand-primary {
+/*     background-color: #6c3483;
+    color: white; */
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -730,4 +676,192 @@ body {
     .login-container { margin: 40px 1rem; }
 	
 	
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOSCH FRONTEND-KIT ÜBERSTEUERUNGEN (SEP4Eng)
+   Ergänzt/korrigiert Verhalten des Bosch-Brandings, das ohne die
+   vollständige Seitennavigations-Komponente sonst zu unerwünschten
+   Lücken bzw. Farbsprüngen führt.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Fix: Seite wird nach dem Footer wieder weiß.
+   .-primary/:root im Kit setzt background-color: weiß auf <html>.
+   Ist der Seiteninhalt kürzer als der Viewport, scheint dieses Weiß
+   unterhalb von Footer/Wrapper durch. html/body bekommen daher
+   dieselbe graue Fläche wie der -secondary-Wrapper, über die volle
+   Viewporthöhe. */
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    background-color: var(--g-gray-95, #f0f0f0);
+}
+
+/* Fix: Beim Hochscrollen "schiebt sich die Seite hinter dem Header
+   hoch", der Header selbst bleibt stehen. Ursache war nicht nur der
+   fehlende Platz, sondern vor allem: .o-minimal-header hat im Kit
+   position:fixed OHNE explizites top:0. Der Browser berechnet den
+   "auto"-Top-Wert dann aus der statischen Position des Elements -
+   und die verschiebt sich, sobald body ein padding-top bekommt (der
+   Header ist selbst das erste body-Kind). Ergebnis: Header und
+   Seiteninhalt landeten auf derselben Höhe und überlappten sich
+   (sichtbar als Seitentitel, der ÜBER dem Header schwebte).
+   top:0/left:0 pinnt den Header zuverlässig an den Viewport-Rand,
+   unabhängig vom body-padding. */
+.o-minimal-header {
+    top: 0;
+    left: 0;
+}
+
+/* Fix: Beim Hochscrollen "schiebt sich die Seite hinter dem Header
+   hoch", der Header selbst bleibt stehen. Das liegt daran, dass der
+   Bosch-Header per position:fixed über der Seite schwebt, aber
+   bisher kein Platz für ihn reserviert war - der Seiteninhalt begann
+   also direkt unter dem sichtbaren Fensterrand und war zu Beginn vom
+   Header teilweise verdeckt. Ein passendes padding-top am body
+   schafft den nötigen Platz, sodass die Seite von Anfang an sauber
+   unterhalb des Headers beginnt und der Header beim Scrollen wie
+   gewohnt "darüber" stehen bleibt. Höhe = supergraphic (0.375rem)
+   + Kopfzeile (3rem) + Trennlinie (0.0625rem), aufgerundet.
+   Bei Änderungen an der Headerhöhe hier anpassen. */
+body {
+    padding-top: 3.5rem;
+}
+
+/* Fix: In den Header eingebautes Such-Fragment darf beim Schrumpfen
+   des Fensters nicht mit Logout-Button/Logo überlappen. Der Header
+   ist ein Flexcontainer, in dem der Titel per flex-basis:100% nahezu
+   den ganzen Platz beansprucht - alle nachfolgenden Elemente müssen
+   deshalb selbst schrumpfen können, statt eine feste Breite zu
+   erzwingen (siehe max-width/min-width direkt am Suchfeld in
+   navbar-search.html). min-width:0 verhindert außerdem, dass der
+   Flex-Editor die Suchbox trotz Schrumpfen auf ihrer Inhaltsbreite
+   festhält. */
+.o-minimal-header__top {
+    min-width: 0;
+}
+
+.peb-search {
+    min-width: 0;
+	margin-right: 1rem;
+}
+
+/* Fix: SEPChat-Button hing weiter im Header statt unten rechts zu
+   schweben. Grund 1: die Klasse .chat-toggle-fab fehlte hier
+   komplett (nur im HTML referenziert, nie definiert). Grund 2: das
+   Kit setzt mit .a-button{position:relative} eine Basisregel, die
+   bei gleicher Selektor-Spezifität (eine Klasse) je nach Ladereihen-
+   folge über eine einfache .chat-toggle-fab{position:fixed}-Regel
+   gewinnen kann. Eine ID+Klassen-Kombination hat höhere Spezifität
+   als eine einzelne Klasse und gewinnt garantiert, unabhängig von
+   der Reihenfolge der <link>-Tags im <head>. */
+#pepperoni-chat-toggle.chat-toggle-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1200;
+}
+
+/* Fix: Zu großer Abstand links im Header.
+   Das Kit reserviert ab 1194px Breite per margin-inline-start: 5rem
+   Platz für das Burger-Icon der m-side-navigation-Komponente. Diese
+   Navigation wird hier nicht eingesetzt, daher wird der Einzug auf
+   den normalen Innenabstand zurückgesetzt. */
+@media (min-width: 1194px) {
+    .o-minimal-header__title {
+        margin-inline-start: 1rem;
+    }
+}
+
+/* Fix: Zu wenig Abstand links bei den Buttons.
+   .frontend-kit__example-wrapper ist kein Kit-Element und hat daher
+   kein horizontales Padding. .e-container ist die dafür vorgesehene
+   Kit-Klasse (responsives Padding + zentrierte max-width) und wird
+   um den Seiteninhalt gelegt, siehe layout.html. */
+.frontend-kit__example-wrapper > .e-container {
+    padding-block: 1.5rem;
+}
+
+/* Fix: Button-Sektion soll sich optisch vom Header abheben.
+   Der weiße -primary-Bereich lag direkt unter dem Header, sodass
+   beide optisch verschmolzen. Ein eigener Außenabstand nach oben
+   sorgt für sichtbaren grauen Zwischenraum (Farbe der -secondary-
+   Fläche darunter) zwischen Header und Button-Karte. */
+.frontend-kit__example-wrapper.-primary {
+    margin-top: 1.5rem;
+}
+
+/* Fix: Abstand unterhalb der letzten (Admin-)Buttons soll dem
+   Abstand entsprechen, den jede <hr> bereits oberhalb der
+   nachfolgenden Buttons hat (margin: .75rem 0 -> .75rem Abstand
+   nach unten). Gleicher Wert unten am Container sorgt für ein
+   symmetrisches Bild. */
+.frontend-kit__example-wrapper.-primary {
+    padding-bottom: .75rem;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOGIN-SEITE (SEP4Eng)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Fix: Luft am Anfang/Ende der Login-Box.
+   Vorher inline auf dem Wrapper-Div gesetzt (margin/padding) -
+   jetzt über die eigene Klasse .login-card, damit sich das sauber
+   überschreiben/erweitern lässt (Inline-Styles hätten sonst jede
+   externe CSS-Regel für dieselben Eigenschaften geschlagen).
+   padding oben/unten großzügiger als links/rechts, damit vor dem
+   Sticker und nach der SSO-Box spürbar Platz ist. */
+.login-card {
+    margin: 80px auto;
+    max-width: 420px;
+    padding: 2.5rem 2rem;
+}
+
+/* Fix: Abstand zwischen Hinweisen/Eingabefeldern/Button.
+   .login-card selbst UND das <form> darin bekommen jeweils einen
+   "Owl-Selector" (* + *): Er setzt margin-top nur zwischen direkt
+   aufeinanderfolgenden Kindern, nie vor dem allerersten oder nach
+   dem letzten Element - genau das gewünschte "Luft dazwischen",
+   ohne jede einzelne Kit-Klasse (a-notification, a-text-field,
+   a-password-input, a-button, a-text-area ...) einzeln aufzählen
+   zu müssen. Wichtig: bewusst auf .login-card statt auf die
+   gemeinsame Klasse .frontend-kit__example-wrapper.-primary
+   gesetzt, damit die Button-Kacheln auf index.html unberührt
+   bleiben. */
+.login-card > * + *,
+.login-card form > * + * {
+    margin-top: 1.25rem;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UNTERSEITEN (Suche, Monitoring, Benutzerverwaltung) - SEP4Eng
+   ══════════════════════════════════════════════════════════════ */
+
+/* Der Bosch-Kit bringt keine eigene Select/Dropdown-Komponente mit
+   (nur Text-/Passwort-Felder). Damit <select>-Elemente optisch zu
+   .a-text-field passen, werden hier dieselben Farb-Tokens/Maße wie
+   bei "a-text-field input" nachgebaut. */
+.select-field {
+    height: 3rem;
+}
+.select-field select {
+    background-color: var(--nested-minor__enabled__default__fill, var(--base-minor__enabled__default__fill, #f0f0f0));
+    border: none;
+    border-bottom: .0625rem solid var(--nested-minor__enabled__default__front, var(--base-minor__enabled__default__front, #333));
+    color: var(--nested-minor__enabled__default__front, var(--base-minor__enabled__default__front, #333));
+    height: 3rem;
+    padding: 0 1rem;
+    width: 100%;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+/* Mehrere Karten (.frontend-kit__example-wrapper.-primary) direkt
+   untereinander auf einer Unterseite sollen denselben Abstand
+   zueinander haben wie zum Header (siehe margin-top weiter oben). */
+.frontend-kit__example-wrapper.-primary + .frontend-kit__example-wrapper.-primary {
+    margin-top: 1.5rem;
 }

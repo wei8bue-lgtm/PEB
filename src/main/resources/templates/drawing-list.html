@@ -5,93 +5,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{drawing.title}">Drawings - PEB</title>
+    <title th:text="#{app.title}">SEP4Eng - Synchronous Engineering Platform</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-</head>
-<body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{drawing.heading}">Drawing Management</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/}" class="btn btn-primary" th:text="#{button.home}">Home</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger" th:text="#{button.logout}">Logout</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 th:text="#{drawing.allDrawings}">All Drawings</h2>
-                <a th:href="@{/drawings/new}" class="btn btn-success" sec:authorize="hasAuthority('WRITE')" th:text="#{button.newDrawing}">
-                    + Create New Drawing
-                </a>
-            </div>
-
-            <div th:if="${drawings.empty}" class="alert alert-info" th:text="#{drawing.noneFound}">
-                No drawings found. Create your first drawing!
-            </div>
-
-            <table th:unless="${drawings.empty}" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.id}">ID</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.name}">Name</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.department}">Department</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.createdDate}">Created Date</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{lifecycle.history.createdBy}">Created By</th>
-                        <th style="padding: 0.75rem; text-align: left;" th:text="#{label.actions}">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="drawing : ${drawings}" style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 0.75rem;" th:text="${drawing.id}">DR00000001</td>
-                        <td style="padding: 0.75rem;" th:text="${drawing.name}">Drawing Name</td>
-                        <td style="padding: 0.75rem;" th:text="${drawing.department}">Engineering</td>
-                        <td style="padding: 0.75rem;" th:text="${drawing.createdDate != null ? #temporals.format(drawing.createdDate, 'yyyy-MM-dd HH:mm') : #messages.msg('common.na')}">2024-01-01</td>
-                        <td style="padding: 0.75rem;" th:text="${drawing.createdBy}">admin</td>
-                        <td style="padding: 0.75rem;">
-                            <a th:href="@{/drawings/{id}(id=${drawing.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" th:text="#{button.view}">View</a>
-                            <a th:href="@{/drawings/{id}/edit(id=${drawing.id})}" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" sec:authorize="hasAuthority('WRITE')" th:text="#{button.edit}">Edit</a>
-                            <form th:action="@{/drawings/{id}/delete(id=${drawing.id})}" method="post" style="display: inline;" 
-                                  th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmDelete'))}');|" sec:authorize="hasAuthority('DELETE')">
-                                <button type="submit" class="btn btn-danger" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" th:text="#{button.delete}">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h3 th:text="#{drawing.about}">About Drawings</h3>
-            <ul>
-                <li th:text="#{drawing.about.item1}">Drawings are CAD documentation objects</li>
-                <li th:text="#{drawing.about.item2}">ID format: DR00000001, DR00000002, ...</li>
-                <li th:text="#{drawing.about.item3}">Drawings are created at revision level</li>
-                <li th:text="#{drawing.about.item4}">Can be linked to any eBOM level</li>
-                <li th:text="#{drawing.about.item5}">Support dataset attachments (PDF, images, etc.)</li>
-            </ul>
-        </div>
-    </div>
-
+    <link rel="stylesheet" th:href="@{css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            padding: 1rem;
-            border-radius: 4px;
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
         }
-        table {
-            background: white;
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
         }
-        tbody tr:hover {
-            background-color: #f8f9fa;
+        .a-text-area {
+            margin-top: 1.5rem;
+        }
+        .a-text-area textarea {
+            pointer-events: auto !important;
+            overflow-y: auto !important;
+            -webkit-user-select: text;
+            user-select: text;
+            cursor: text;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 160px;
+            max-height: 300px;
+            resize: vertical;
         }
     </style>
+</head>
+<body>
+
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{drawing.heading})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
+
+            <div class="frontend-kit__example-wrapper -secondary">
+                <div class="e-container" style="margin: 1rem auto;">
+                    <div class="frontend-kit__example-wrapper -primary">
+            <div class="container">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin:0">
+                            <span th:text="#{drawing.allDrawings}">All Drawings</span>
+                            (<span th:text="${drawings.size()}">0</span>)
+                        </h3>
+                        <sec:authorize access="hasAuthority('WRITE')">
+                            <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/drawings/new}'|">
+                                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+                                <span class="a-button__label" th:text="#{button.newDrawing}">+ Create New Drawing</span>
+                            </button>
+                        </sec:authorize>
+                    </div>
+
+                    <form method="get" style="display:flex; gap:.5rem; margin-bottom:1rem;">
+                        <div class="a-text-field">
+                            <input type="text"
+                                   name="search"
+                                   th:value="${search}"
+                                   th:placeholder="#{drawing.searchPlaceholder}"
+                                   placeholder="Search name / ID / department...">
+                        </div>
+                        <button type="submit" class="a-button a-button--primary">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-search"></i>
+                            <span class="a-button__label" th:text="#{button.searchPlain}">Search</span>
+                        </button>
+                        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/drawings}'|">
+                            <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                            <span class="a-button__label" th:text="#{button.reset}">Reset</span>
+                        </button>
+                    </form>
+
+                    <table class="m-table" aria-label="Drawings">
+                        <thead>
+                            <tr>
+                                <th th:text="#{label.id}">ID</th>
+                                <th th:text="#{label.name}">Name</th>
+                                <th th:text="#{label.department}">Department</th>
+                                <th th:text="#{label.createdDate}">Created Date</th>
+                                <th th:text="#{lifecycle.history.createdBy}">Created By</th>
+                                <th style="text-align: right;" th:text="#{label.actions}">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="drawing : ${drawings}">
+                                <td th:text="${drawing.id}">DR00000001</td>
+                                <td>
+                                    <a th:href="@{'/drawings/' + ${drawing.id}}" th:text="${drawing.name}">Drawing Name</a>
+                                </td>
+                                <td th:text="${drawing.department}">Engineering</td>
+                                <td th:text="${drawing.createdDate != null ? #temporals.format(drawing.createdDate, 'yyyy-MM-dd HH:mm') : #messages.msg('common.na')}">2024-01-01</td>
+                                <td th:text="${drawing.createdBy}">admin</td>
+                                <td style="text-align: right;">
+                                    <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                                        <div class="a-link -icon">
+                                            <a th:href="@{'/drawings/' + ${drawing.id}}" target="_self">
+                                                <span></span>
+                                                <span>[[#{button.view}]]</span>
+                                            </a>
+                                        </div>
+                                        <div class="a-link -icon" sec:authorize="hasAuthority('WRITE')">
+                                            <a th:href="@{'/drawings/' + ${drawing.id} + '/edit'}" target="_self">
+                                                <span></span>
+                                                <span>[[#{button.edit}]]</span>
+                                            </a>
+                                        </div>
+                                        <form th:action="@{/drawings/{id}/delete(id=${drawing.id})}" method="post" style="display: inline;" 
+                                              th:attr="onsubmit=|return confirm('${#strings.escapeJavaScript(#messages.msg('drawing.confirmDelete'))}');|" 
+                                              sec:authorize="hasAuthority('DELETE')">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="a-button a-button--integrated" title="Delete">
+                                                <i class="a-icon boschicon-bosch-ic-delete"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${drawings.isEmpty()}">
+                                <td colspan="6" style="text-align:center; color:#888;" th:text="#{drawing.noneFound}">
+                                    No drawings found. Create your first drawing!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+<!--                 <div class="card" style="margin-top:1.5rem;">
+                    <h3 th:text="#{drawing.about}">About Drawings</h3>
+                    <ul>
+                        <li th:text="#{drawing.about.item1}">Drawings are CAD documentation objects</li>
+                        <li th:text="#{drawing.about.item2}">ID format: DR00000001, DR00000002, ...</li>
+                        <li th:text="#{drawing.about.item3}">Drawings are created at revision level</li>
+                        <li th:text="#{drawing.about.item4}">Can be linked to any eBOM level</li>
+                        <li th:text="#{drawing.about.item5}">Support dataset attachments (PDF, images, etc.)</li>
+                    </ul>
+                </div> -->
+				
+				<div class="a-text-area">
+					<textarea id="1" readonly tabindex="0" th:text="|#{drawing.about}&#10;#{drawing.about.item1}&#10;#{drawing.about.item2}&#10;#{drawing.about.item3}&#10;#{drawing.about.item4}&#10;#{drawing.about.item5}|">
+					</textarea>
+				</div>
+            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

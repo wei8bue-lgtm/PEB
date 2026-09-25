@@ -5,30 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{ebom.editTitle}">Edit eBOM Object - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
 	<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>.app-layout{display:flex;align-items:flex-start}.app-layout__content{flex:1 1 auto;min-width:0}.card form .form-group{margin-bottom:1.25rem}.select-field label{position:static!important;display:block;margin-bottom:.35rem}.select-field{height:auto!important;min-height:0!important;overflow:visible!important}</style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-placeholder">PEB</div>
-        <h1 th:text="#{ebom.editHeading}">Edit eBOM Object</h1>
-        <div style="margin-left: auto;">
-            <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-primary" th:text="#{button.backToObject}">Back to Object</a>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: header(#{ebom.editHeading})}"></div>
 
-    <div class="container">
+    <div class="app-layout"><div th:replace="~{fragments/side-navigation :: side-navigation}"></div><div class="app-layout__content"><div class="frontend-kit__example-wrapper -secondary"><div class="e-container" style="margin:1rem auto;"><div class="frontend-kit__example-wrapper -primary"><div class="container">
         <div class="card">
             <h2 th:text="#{ebom.editInfo}">Edit Object Information</h2>
             <p><strong th:text="#{label.typeColon}">Type:</strong> <span th:text="${objectType.displayName}">Type</span></p>
 
             <form th:action="@{/ebom/{id}(id=${ebomId})}" th:object="${ebomObject}" method="post">
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="name" th:text="#{label.name} + ' *'">Name *</label>
                     <input type="text" id="name" th:field="*{name}" required maxlength="256">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group select-field">
                     <label for="linkedDesignId" th:text="#{label.linkedDesign}">Linked Design Object</label>
                     <select id="linkedDesignId" th:field="*{linkedDesignId}">
                         <option value="" th:text="#{common.noDesignLinkShort}">-- No Design Link --</option>
@@ -40,22 +37,22 @@
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="department" th:text="#{label.department}">Department</label>
                     <input type="text" id="department" th:field="*{department}" maxlength="128">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="mass" th:text="#{label.mass}">Mass (kg)</label>
                     <input type="text" id="mass" th:field="*{mass}" maxlength="8" readonly>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group a-text-field">
                     <label for="material" th:text="#{label.material}">Material</label>
                     <input type="text" id="material" th:field="*{material}" maxlength="256">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group select-field">
                     <label for="supplier" th:text="#{label.supplier}">Lieferant</label>
                     <select id="supplier" th:field="*{supplier}">
                         <option value="" th:text="#{common.noSupplier}">-- Kein Lieferant --</option>
@@ -67,7 +64,7 @@
                     </select>
                 </div>
 
-                <div class="form-group"
+                <div class="form-group select-field"
                      style="border:2px solid #6f42c1; border-radius:6px; padding:1rem; background:#faf5ff;">
                     <label for="bomType" style="color:#6f42c1; font-weight:600;">
                         🔀 <span th:text="#{variant.bomType.label}">BOM Type (Variant Management)</span>
@@ -83,21 +80,12 @@
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" th:text="#{button.saveChanges}">Save Changes</button>
-                    <a th:href="@{/ebom/{id}(id=${ebomId})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
+                    <button type="submit" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-save"></i><span class="a-button__label" th:text="#{button.saveChanges}">Save Changes</span></button>
+                    <button type="button" class="a-button a-button--destructive-primary" th:onclick="|window.location.href='@{/ebom/{id}(id=${ebomId})}'|"><i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i><span class="a-button__label" th:text="#{button.cancel}">Cancel</span></button>
                 </div>
             </form>
         </div>
     </div>
-
-    <style>
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    </div></div></div></div></div><div th:replace="~{fragments/footer :: footer}"></div></div></div>
 </body>
 </html>
