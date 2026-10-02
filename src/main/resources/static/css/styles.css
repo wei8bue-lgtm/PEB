@@ -765,6 +765,10 @@ body {
     z-index: 1200;
 }
 
+.pepperoni-chat-title {
+    background-color: var(--nested-major__enabled__default__fill, var(--accent-major__enabled__default__fill, #007bc0));
+}
+
 /* Fix: Zu großer Abstand links im Header.
    Das Kit reserviert ab 1194px Breite per margin-inline-start: 5rem
    Platz für das Burger-Icon der m-side-navigation-Komponente. Diese

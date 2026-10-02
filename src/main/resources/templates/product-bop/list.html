@@ -70,6 +70,7 @@
                     </form>
 
                     <!-- Tabelle -->
+                    <div style="overflow-x:auto;">
                     <table class="m-table" aria-label="Product BOPs">
                         <thead>
                             <tr>
@@ -99,11 +100,13 @@
                                 <td>
                                     <span th:text="${bop.bopVersion}">01</span>
                                 </td>
-                                <td class="-with-icon-and-label" th:with="sn=${bop.latestStatusName}">
-                                    <i th:if="${sn == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                                    <i th:if="${sn == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                                    <i th:if="${sn == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                                    <span th:text="${sn == 'KEINE_REVISION' ? #messages.msg('status.noRevision') : sn}"></span>
+                                <td th:with="sn=${bop.latestStatusName}">
+                                    <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                                        <i th:if="${sn == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                                        <i th:if="${sn == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                                        <i th:if="${sn == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                                        <span th:text="${sn == 'KEINE_REVISION' ? #messages.msg('status.noRevision') : sn}"></span>
+                                    </span>
                                 </td>
                                 <td th:text="${#lists.size(bop.manufacturingBOMs)}">0</td>
                                 <td th:text="${bop.createdBy ?: '—'}"></td>
@@ -139,6 +142,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
 
                     <div style="margin-top:1rem; font-size:.85rem; color:#6c757d;">
                         <span th:text="#{mfgBom.total}">Gesamt:</span>

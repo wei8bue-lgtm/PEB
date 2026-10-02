@@ -248,14 +248,23 @@
                     <strong th:text="#{drawing.pdfDocument}">PDF Document</strong>.
                 </p>
             </div>
-            <a th:href="@{'/datasets/manage/DRAWING/'
+<!--             <a th:href="@{'/datasets/manage/DRAWING/'
                          + ${drawing.latestRevision.revisionId}
                          + '?objectId=' + ${drawing.id}}"
                class="a-button a-button--primary btn-sm"
                style="margin-left:auto;">
                 <i class="a-icon a-button__icon boschicon-bosch-ic-attachment"></i>
                 <span class="a-button__label" th:text="#{button.addDataset}">Dataset hinzufügen</span>
-            </a>
+            </a> -->
+			<div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/datasets/manage/DRAWING/'
+                         + ${drawing.latestRevision.revisionId}
+                         + '?objectId=' + ${drawing.id}}'|">
+                <i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+				<span class="a-button__label" th:text="#{button.addDataset}">Dataset hinzufügen</span>
+			</button>
+			</div>
+			
         </div>
     </div>
 

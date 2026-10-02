@@ -125,11 +125,13 @@
                 <tbody>
                     <tr th:each="rev : ${revisions}" style="border-bottom:1px solid #ddd;">
                         <td style="padding:.75rem; font-weight:600;" th:text="${rev.revision}">01</td>
-                        <td class="-with-icon-and-label">
-                            <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                            <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                            <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                            <span th:text="${rev.releaseStatus.displayName}"></span>
+                        <td style="padding:.75rem;">
+                            <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                                <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                                <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                                <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                                <span th:text="${rev.releaseStatus.displayName}"></span>
+                            </span>
                         </td>
                         <td style="padding:.75rem;" th:text="${rev.attribute1 ?: '-'}"></td>
                         <td style="padding:.75rem;" th:text="${rev.attribute2 ?: '-'}"></td>

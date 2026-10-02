@@ -8,51 +8,18 @@
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" href="data:,">
-    <title th:text="${pageTitle} + ' - PEB'">Datasets - PEB</title>
+    <title th:text="${pageTitle}">Datasets</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
-        .dataset-grid {
-            display: grid;
-            gap: 1rem;
-        }
-        .dataset-card {
+        .app-layout {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: #f8f9fa;
-            border-left: 4px solid #0066cc;
-            border-radius: 6px;
-            transition: background 0.2s;
+            align-items: flex-start;
         }
-        .dataset-card:hover       { background: #e9ecef; }
-        .dataset-card-odd         { background: #f0f4f8; }
-        .dataset-card-odd:hover   { background: #e2e8f0; }
-        .dataset-icon {
-            font-size: 2.2rem;
-            min-width: 2.5rem;
-            text-align: center;
-        }
-        .dataset-info {
-            flex: 1;
+        .app-layout__content {
+            flex: 1 1 auto;
             min-width: 0;
-        }
-        .dataset-filename {
-            font-weight: 600;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .dataset-meta {
-            color: #6c757d;
-            font-size: 0.82rem;
-            margin-top: 0.2rem;
-        }
-        .dataset-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-shrink: 0;
         }
         .upload-area {
             border: 2px dashed #0066cc;
@@ -64,27 +31,6 @@
             cursor: pointer;
         }
         .upload-area:hover        { background: #deeaff; }
-        .category-badge {
-            display: inline-block;
-            padding: 0.15rem 0.5rem;
-            border-radius: 10px;
-            font-size: 0.78rem;
-            font-weight: 500;
-            background: #0066cc;
-            color: white;
-            margin-left: 0.5rem;
-        }
-        .info-box {
-            background: #e8f4fd;
-            border-left: 4px solid #0066cc;
-            padding: 1rem 1.25rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .info-box ul {
-            margin: 0.5rem 0 0 0;
-            padding-left: 1.5rem;
-        }
         .alert {
             padding: 0.9rem 1.25rem;
             border-radius: 6px;
@@ -94,9 +40,6 @@
         .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
         .alert-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
         .alert-info    { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; }
-        .btn-sm        { font-size:0.85rem; padding:0.3rem 0.7rem; }
-        .btn-secondary { background-color:#6c757d; color:white; }
-        .btn-secondary:hover { background-color:#5a6268; }
         .stat-row {
             display: flex;
             gap: 1.5rem;
@@ -132,36 +75,49 @@
 </head>
 <body>
 
-<!-- ── Header ── -->
-<div class="header">
-    <div class="logo-placeholder">SEP</div>
-    <h1 th:text="${pageTitle}">Dataset Management</h1>
-<div style="margin-left: auto;">
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(${pageTitle})}"></div>
 
-    <!-- DESIGN → zurück zur Design-Detail-Seite -->
-    <a th:if="${revisionType == 'DESIGN' and objectId != null}"
-       th:href="@{/designs/{id}(id=${objectId})}"
-       class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
+    <div class="app-layout">
 
-    <!-- DESIGN ohne objectId → zurück zur Liste -->
-    <a th:if="${revisionType == 'DESIGN' and objectId == null}"
-       th:href="@{/designs}"
-       class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
 
-    <!-- EBOM → zurück zur EBOM-Seite -->
-    <a th:if="${revisionType == 'EBOM' and objectId != null}"
-       th:href="@{/ebom/{id}(id=${objectId})}"
-       class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
-
-    <!-- Fallback -->
-    <a th:if="${revisionType != 'DESIGN' and revisionType != 'EBOM'}"
-       th:href="@{/}"
-       class="btn btn-primary">← <span th:text="#{button.back}">Zurück</span></a>
-
-</div>
-</div>
+        <div class="app-layout__content">
 
 <div class="container">
+
+    <div style="display:flex; justify-content:flex-end; margin-top:5rem; margin-bottom:1rem;">
+
+        <!-- DESIGN → zurück zur Design-Detail-Seite -->
+        <button type="button" th:if="${revisionType == 'DESIGN' and objectId != null}"
+                th:onclick="|window.location.href='@{/designs/{id}(id=${objectId})}'|"
+                class="a-button a-button--primary">
+            <span class="a-button__label">← <span th:text="#{button.back}">Zurück</span></span>
+        </button>
+
+        <!-- DESIGN ohne objectId → zurück zur Liste -->
+        <button type="button" th:if="${revisionType == 'DESIGN' and objectId == null}"
+                th:onclick="|window.location.href='@{/designs}'|"
+                class="a-button a-button--primary">
+            <span class="a-button__label">← <span th:text="#{button.back}">Zurück</span></span>
+        </button>
+
+        <!-- EBOM → zurück zur EBOM-Seite -->
+        <button type="button" th:if="${revisionType == 'EBOM' and objectId != null}"
+                th:onclick="|window.location.href='@{/ebom/{id}(id=${objectId})}'|"
+                class="a-button a-button--primary">
+            <span class="a-button__label">← <span th:text="#{button.back}">Zurück</span></span>
+        </button>
+
+        <!-- Fallback -->
+        <button type="button" th:if="${revisionType != 'DESIGN' and revisionType != 'EBOM'}"
+                th:onclick="|window.location.href='@{/}'|"
+                class="a-button a-button--primary">
+            <span class="a-button__label">← <span th:text="#{button.back}">Zurück</span></span>
+        </button>
+
+    </div>
 
     <!-- ── Flash Messages ── -->
     <div th:if="${success}" class="alert alert-success">
@@ -171,18 +127,18 @@
         ❌ <span th:text="${error}">Fehler</span>
     </div>
 
-    <!-- ── Revision Info ── -->
+<!--     ── Revision Info ──
     <div class="revision-info">
         <strong th:text="#{viewer.revisionIdLabel}">Revision ID:</strong>
         <span th:text="${revisionId}">1</span>
         &nbsp;|&nbsp;
         <strong th:text="#{label.typeColon}">Typ:</strong>
         <span th:text="${revisionType}">DESIGN</span>
-    </div>
+    </div> -->
 
     <!-- ── Statistiken ── -->
     <div class="card">
-        <h3 style="margin-top:0;" th:text="#{dataset.overview}">📊 Übersicht</h3>
+        <h3 style="margin-top:0;" th:text="#{dataset.overview}">Übersicht</h3>
         <div class="stat-row">
             <div class="stat-item">
                 <div class="stat-value" th:text="${datasetCount}">0</div>
@@ -201,7 +157,7 @@
 
     <!-- ── Upload ── -->
     <div class="card" sec:authorize="hasAuthority('WRITE')">
-        <h2 th:text="#{dataset.uploadFile}">📤 Datei hochladen</h2>
+        <h2 th:text="#{dataset.uploadFile}">Datei hochladen</h2>
 
         <!--
             ✅ WICHTIG:
@@ -265,17 +221,19 @@
                 -->
                 <button type="submit"
                         id="uploadBtn"
-                        class="btn btn-success" th:text="#{button.uploadFull}">
-                    ⬆️ Hochladen
+                        class="a-button a-button--primary">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i>
+                    <span class="a-button__label" th:text="#{button.uploadFull}">Hochladen</span>
                 </button>
                 <button type="button"
-                        class="btn btn-secondary"
-                        onclick="resetUploadForm()" th:text="#{button.resetFull}">
-                    ✖ Zurücksetzen
+                        class="a-button a-button--destructive-primary"
+                        onclick="resetUploadForm()">
+                    <i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i>
+                    <span class="a-button__label" th:text="#{button.resetFull}">Zurücksetzen</span>
                 </button>
                 <span id="uploadSpinner"
                       style="display:none; color:#0066cc;" th:text="#{dataset.uploading}">
-                    ⏳ Wird hochgeladen...
+                    Wird hochgeladen...
                 </span>
             </div>
         </form>
@@ -283,7 +241,7 @@
 
     <!-- ── Dataset Liste ── -->
     <div class="card">
-        <h2><span th:text="#{dataset.attachedFiles}">📎 Angehängte Dateien</span>
+        <h2><span th:text="#{dataset.attachedFiles}">Angehängte Dateien</span>
             <span style="font-size:1rem; color:#6c757d; font-weight:normal;">
                 (<span th:text="${datasetCount}">0</span> <span th:text="#{dataset.fileCountSuffix}">Datei(en)</span>)
             </span>
@@ -295,128 +253,71 @@
             <span th:text="#{dataset.uploadFirstFile}">Laden Sie oben Ihre erste Datei hoch.</span>
         </div>
 
-        <!--
-            ✅ Aus dataset-manage.html (funktioniert mit mehreren Datasets):
-            Scrollbarer Container + iterStat für Nummerierung
-        -->
-        <div th:unless="${datasets.empty}"
-             style="max-height:600px; overflow-y:auto; padding-right:0.25rem;">
+        <div th:unless="${datasets.empty}" style="overflow-x:auto;">
+            <table class="m-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th th:text="#{label.name}">Dateiname</th>
+                        <th th:text="#{label.category}">Kategorie</th>
+                        <th th:text="#{dataset.sizeFooter}">Größe</th>
+                        <th th:text="#{label.date}">Erstellt am</th>
+                        <th th:text="#{lifecycle.history.createdBy}">Erstellt von</th>
+                        <th>ID</th>
+                        <th style="text-align:right;" th:text="#{label.actions}">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="dataset, iterStat : ${datasets}">
+                        <td th:text="${iterStat.count}">1</td>
+                        <td th:text="${dataset.fileName}">datei.pdf</td>
+                        <td th:text="${dataset.category != null ? dataset.category.displayName : '—'}">Kategorie</td>
+                        <td>
+                            <span th:if="${dataset.fileSize != null and dataset.fileSize >= 1048576}"
+                                  th:text="${#numbers.formatDecimal(dataset.fileSize / 1048576.0, 1,'COMMA',1,'POINT')} + ' MB'">1.0 MB</span>
+                            <span th:if="${dataset.fileSize != null and dataset.fileSize >= 1024 and dataset.fileSize < 1048576}"
+                                  th:text="${#numbers.formatDecimal(dataset.fileSize / 1024.0, 1,'COMMA',1,'POINT')} + ' KB'">1.0 KB</span>
+                            <span th:if="${dataset.fileSize != null and dataset.fileSize < 1024}"
+                                  th:text="${dataset.fileSize} + ' Bytes'">512 Bytes</span>
+                            <span th:if="${dataset.fileSize == null}">—</span>
+                        </td>
+                        <td th:text="${dataset.createdDate != null ? #temporals.format(dataset.createdDate,'dd.MM.yyyy HH:mm') : #messages.msg('label.unknown')}">01.01.2024</td>
+                        <td th:text="${dataset.createdBy != null ? dataset.createdBy : #messages.msg('label.unknown')}">admin</td>
+                        <td th:text="${dataset.datasetId}">1</td>
+                        <td style="text-align:right;">
+                            <div style="display:inline-flex; gap:0.5rem; justify-content:flex-end; align-items:center;">
 
-            <div class="dataset-grid">
-                <div th:each="dataset, iterStat : ${datasets}"
-                     class="dataset-card"
-                     th:classappend="${iterStat.odd} ? 'dataset-card-odd' : ''">
+                                <!-- Download -->
+                                <button type="button" class="a-button a-button--primary -small"
+                                        th:onclick="|window.location.href='@{/api/v1/datasets/{id}/download(id=${dataset.datasetId})}'|"
+                                        th:title="#{dataset.downloadTitle(${dataset.fileName})}">
+                                    <span class="a-button__label" th:text="#{button.download}">Download</span>
+                                </button>
 
-                    <!-- Nummer -->
-                    <div style="min-width:2rem; text-align:center;
-                                color:#6c757d; font-weight:600; font-size:0.9rem;">
-                        <span th:text="${iterStat.count}">1</span>
-                    </div>
+                                <!--
+                                    ✅ Aus _1.html: data-filename statt th:onsubmit
+                                    → Kein Thymeleaf-Escaping Problem mit Dateinamen!
+                                -->
+                                <form th:action="@{/datasets/delete/{id}(id=${dataset.datasetId})}"
+                                      method="post"
+                                      style="display:inline;"
+                                      sec:authorize="hasAuthority('DELETE')"
+                                      th:data-filename="${dataset.fileName}"
+                                      onsubmit="return confirmDelete(this)">
+                                    <input type="hidden" name="revisionId"
+                                           th:value="${revisionId}">
+                                    <input type="hidden" name="revisionType"
+                                           th:value="${revisionType}">
+                                    <button type="submit" class="a-button a-button--destructive-primary -small">
+                                        <span class="a-button__label" th:text="#{button.delete}">Löschen</span>
+                                    </button>
+                                </form>
 
-                    <!-- Icon -->
-                    <div class="dataset-icon">
-                        <span th:if="${dataset.mimeType != null
-                                       and #strings.startsWith(
-                                           dataset.mimeType,'application/pdf')}">📄</span>
-                        <span th:if="${dataset.mimeType != null
-                                       and #strings.startsWith(
-                                           dataset.mimeType,'image/')}">🖼️</span>
-                        <span th:if="${dataset.mimeType != null
-                                       and (#strings.contains(dataset.mimeType,'excel')
-                                       or   #strings.contains(dataset.mimeType,'spreadsheet'))}">📊</span>
-                        <span th:if="${dataset.mimeType != null
-                                       and (#strings.contains(dataset.mimeType,'word')
-                                       or   #strings.contains(dataset.mimeType,'document'))}">📝</span>
-                        <span th:if="${dataset.mimeType != null
-                                       and #strings.contains(dataset.mimeType,'zip')}">🗜️</span>
-                        <span th:if="${dataset.mimeType != null
-                                       and #strings.contains(dataset.mimeType,'xml')}">📋</span>
-                        <span th:if="${dataset.mimeType == null}">📎</span>
-                    </div>
-
-                    <!-- Info -->
-                    <div class="dataset-info">
-                        <div class="dataset-filename">
-                            <span th:text="${dataset.fileName}">datei.pdf</span>
-                            <span th:if="${dataset.category != null}"
-                                  class="category-badge"
-                                  th:text="${dataset.category.displayName}">
-                                Kategorie
-                            </span>
-                        </div>
-                        <div class="dataset-meta">
-                            <!-- Größe -->
-                            <span th:if="${dataset.fileSize != null}">
-                                📦
-                                <span th:if="${dataset.fileSize >= 1048576}"
-                                      th:text="${#numbers.formatDecimal(
-                                          dataset.fileSize / 1048576.0,
-                                          1,'COMMA',1,'POINT')} + ' MB'">
-                                    1.0 MB
-                                </span>
-                                <span th:if="${dataset.fileSize >= 1024
-                                              and dataset.fileSize < 1048576}"
-                                      th:text="${#numbers.formatDecimal(
-                                          dataset.fileSize / 1024.0,
-                                          1,'COMMA',1,'POINT')} + ' KB'">
-                                    1.0 KB
-                                </span>
-                                <span th:if="${dataset.fileSize < 1024}"
-                                      th:text="${dataset.fileSize} + ' Bytes'">
-                                    512 Bytes
-                                </span>
-                            </span>
-                            &nbsp;|&nbsp;
-                            📅
-                            <span th:if="${dataset.createdDate != null}"
-                                  th:text="${#temporals.format(
-                                      dataset.createdDate,'dd.MM.yyyy HH:mm')}">
-                                01.01.2024
-                            </span>
-                            <span th:unless="${dataset.createdDate != null}" th:text="#{label.unknown}">Unbekannt</span>
-                            &nbsp;|&nbsp;
-                            👤
-                            <span th:text="${dataset.createdBy != null
-                                             ? dataset.createdBy : #messages.msg('label.unknown')}">
-                                admin
-                            </span>
-                            &nbsp;|&nbsp;
-                            🔑 ID: <span th:text="${dataset.datasetId}">1</span>
-                        </div>
-                    </div>
-
-                    <!-- Aktionen -->
-                    <div class="dataset-actions">
-
-                        <!-- Download -->
-                        <a th:href="@{/api/v1/datasets/{id}/download(id=${dataset.datasetId})}"
-                           class="btn btn-primary btn-sm"
-                           th:title="#{dataset.downloadTitle(${dataset.fileName})}" th:text="#{button.download}">
-                            ⬇️ Download
-                        </a>
-
-                        <!--
-                            ✅ Aus _1.html: data-filename statt th:onsubmit
-                            → Kein Thymeleaf-Escaping Problem mit Dateinamen!
-                        -->
-                        <form th:action="@{/datasets/delete/{id}(id=${dataset.datasetId})}"
-                              method="post"
-                              style="display:inline;"
-                              sec:authorize="hasAuthority('DELETE')"
-                              th:data-filename="${dataset.fileName}"
-                              onsubmit="return confirmDelete(this)">
-                            <input type="hidden" name="revisionId"
-                                   th:value="${revisionId}">
-                            <input type="hidden" name="revisionType"
-                                   th:value="${revisionType}">
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                🗑️ <span th:text="#{button.delete}">Löschen</span>
-                            </button>
-                        </form>
-
-                    </div>
-                </div>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Footer der Liste -->
@@ -432,36 +333,24 @@
 
     <!-- ── Regeln ── -->
     <div class="card">
-        <h3 th:text="#{dataset.rulesHeading}">ℹ️ Dataset-Regeln</h3>
-        <div class="info-box">
-            <ul>
-                <li><strong th:text="#{dataset.rule1Label}">Design/Drawing:</strong> <span th:text="#{dataset.rule1Text}">Max. ein Dataset pro Revision</span></li>
-                <li><strong th:text="#{dataset.rule2Label}">eBOM-Objekte:</strong> <span th:text="#{dataset.rule2Text}">Beliebig viele Datasets pro Revision</span></li>
-                <li><strong th:text="#{dataset.rule3Label}">Kategorien:</strong>
-                    <span th:text="#{dataset.rule3Text}">PDF Dokument, PDF Zeichnung, Excel-Tabelle, CE-Dokument, Sonstiges</span>
-                </li>
-                <li><span th:text="#{dataset.rule4}">Maximale Dateigröße:</span> <strong>100 MB</strong></li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- ── API Info ── -->
-    <div class="card" sec:authorize="hasAuthority('EXECUTE')">
-        <h3 th:text="#{dataset.apiAccess}">🔌 API-Zugriff</h3>
-        <div class="info-box">
-            <code style="display:block; background:#fff; padding:0.75rem;
-                         border-radius:4px; font-size:0.85rem; line-height:1.8;">
-                GET&nbsp;&nbsp;&nbsp;
-                /api/v1/datasets?revisionId=<span th:text="${revisionId}">1</span>
-                &amp;revisionType=<span th:text="${revisionType}">DESIGN</span><br>
-                POST&nbsp;&nbsp; /api/v1/datasets/upload<br>
-                GET&nbsp;&nbsp;&nbsp; /api/v1/datasets/{id}/download<br>
-                DELETE /api/v1/datasets/{id}
-            </code>
-        </div>
-    </div>
+        <h3 th:text="#{dataset.rulesHeading}">Dataset-Regeln</h3>
+        <textarea readonly rows="6" style="width:100%; box-sizing:border-box; resize:vertical;"
+                  th:text="#{dataset.rule1Label} + ': ' + #{dataset.rule1Text} + '
+' + #{dataset.rule2Label} + ': ' + #{dataset.rule2Text} + '
+' + #{dataset.rule3Label} + ': ' + #{dataset.rule3Text} + '
+' + #{dataset.rule4} + ' 100 MB'">Design/Drawing: Max. ein Dataset pro Revision
+eBOM-Objekte: Beliebig viele Datasets pro Revision
+Kategorien: PDF Dokument, PDF Zeichnung, Excel-Tabelle, CE-Dokument, Sonstiges
+Maximale Dateigröße: 100 MB</textarea>
+    </div>	
 
 </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
 
 <!-- ── JavaScript ── -->
 <script th:inline="javascript">

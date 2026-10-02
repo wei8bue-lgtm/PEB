@@ -74,6 +74,7 @@
 						
                     </form>
 
+					<div style="overflow-x:auto;">
 					<table class="m-table" aria-label="Suppliers">
 						<thead>
 						<tr>
@@ -92,15 +93,17 @@
 							<td><a th:href="@{'/suppliers/' + ${s.id}}" th:text="${s.name}"></a></td>
 							<td th:text="${s.city}"></td>
 							<td th:text="${s.country}"></td>
-							<td class="-with-icon-and-label" th:switch="${s.status}">
-								<i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
-								<i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
-								<i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-								<i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
-								<span th:if="${s.status != null and s.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
-								<span th:if="${s.status != null and s.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
-								<span th:if="${s.status != null and s.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
-								<span th:if="${s.status != null and s.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+							<td th:switch="${s.status}">
+								<span style="display:inline-flex; align-items:center; gap:.4rem;">
+									<i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
+									<i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
+									<i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+									<i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
+									<span th:if="${s.status != null and s.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
+									<span th:if="${s.status != null and s.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
+									<span th:if="${s.status != null and s.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
+									<span th:if="${s.status != null and s.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+								</span>
 							</td>
 							<td th:text="${s.releasedRevision ?: '–'}"></td>
 							<td>
@@ -117,6 +120,7 @@
 						</tr>
 						</tbody>
 					</table>
+					</div>
                 </div>
             </div>
 					</div>

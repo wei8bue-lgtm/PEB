@@ -204,10 +204,6 @@
                     align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
             <div>
                 <h2 style="margin:0 0 0.15rem;" th:text="${design.name}">Design Name</h2>
-                                </div>
-                            </div>
-                        </div>
-
                 <span style="font-size:0.85rem; color:#6c757d;" th:text="#{design.details}">Design Details</span>
             </div>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
@@ -311,7 +307,7 @@
             </h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
 				   
-			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/{id}/thumbnail(id=${design.id})}'|">
+            <button type="button" class="a-button a-button--primary" th:if="${thumbnailDataset != null}" th:onclick="|window.location.href='@{/designs/{id}/thumbnail(id=${design.id},v=${thumbnailDataset.datasetId})}'|">
 				<i class="a-icon a-button__icon boschicon-bosch-ic-fullscreen"></i>
 				<span class="a-button__label" th:text="#{button.fullscreen}">Vollbild</span>
 			</button>
@@ -327,15 +323,16 @@
         </div>
 
         <div class="thumbnail-wrapper" id="thumbnailWrapper">
-            <img th:src="@{/designs/{id}/thumbnail(id=${design.id})}"
+              <img th:if="${thumbnailDataset != null}"
+                  th:src="@{/designs/{id}/thumbnail(id=${design.id},v=${thumbnailDataset.datasetId})}"
                  id="thumbnailImg"
                  alt="Thumbnail"
                  th:title="#{ebom.clickToEnlarge}" title="Klicken zum Vergrößern"
                  onclick="openLightbox(this.src)"
                  onerror="showThumbnailPlaceholder()"/>
 
-            <div class="thumbnail-placeholder" id="thumbnailPlaceholder"
-                 style="display:none;">
+              <div class="thumbnail-placeholder" id="thumbnailPlaceholder"
+                  th:style="${thumbnailDataset != null} ? 'display:none' : ''">
                 <div class="icon">🖼️</div>
                 <p style="margin:0; font-weight:500;" th:text="#{ebom.noThumbnail}">Kein Thumbnail vorhanden</p>
                 <p style="margin:0; font-size:0.85rem;">
@@ -576,7 +573,9 @@
 
         <div th:if="${design.releasedRevision != null}"
              style="margin-top:1rem; padding-top:1rem; border-top:1px solid #dee2e6;">
-			<button type="button" class="a-button a-button--primary" onclick="handleSaveAs()">
+            <button type="button" class="a-button a-button--primary"
+                    th:attr="data-design-id=${design.id}"
+                    onclick="handleSaveAs(this)">
 				<i class="a-icon a-button__icon boschicon-bosch-ic-save"></i>
 				<span class="a-button__label"  th:text="#{button.saveAsCopy}">Save As (Copy)</span>
 			</button>
@@ -591,6 +590,7 @@
             No revisions found.
         </div>
 
+        <div style="overflow-x:auto;">
         <table th:unless="${design.revisions.empty}" class="m-table" aria-label="Revisions">
             <thead>
                 <tr>
@@ -604,11 +604,13 @@
             <tbody>
                 <tr th:each="revision : ${design.revisions}">
                     <td th:text="${revision.revision}">01</td>
-                    <td class="-with-icon-and-label">
-                        <i th:if="${revision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                        <i th:if="${revision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                        <i th:if="${revision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                        <span th:text="${revision.releaseStatus.name()}">WORKING</span>
+                    <td>
+                        <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                            <i th:if="${revision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                            <i th:if="${revision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                            <i th:if="${revision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                            <span th:text="${revision.releaseStatus.name()}">WORKING</span>
+                        </span>
                     </td>
                     <td
                         th:text="${#temporals.format(
@@ -658,6 +660,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 	
 	<!-- ══ ECLASS-Klassifizierung ════════════════════════════════ -->
@@ -674,12 +677,9 @@
 			
 			<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{'/eclass/similar/DESIGN/' + ${design.id}}'|">
 				<i class="a-icon a-button__icon boschicon-bosch-ic-handlewithcare"></i>
-				<span class="a-button__label" th:text="#{button.similar}">Ähnliche"></span>
+				<span class="a-button__label" th:text="#{button.similar}">Ähnliche</span>
 			</button>
         </div>
-    </div>
-	
-	
 
     <!-- Klassifizierung vorhanden -->
     <div th:if="${eclassClassification != null}">
@@ -739,6 +739,9 @@
 </div>
 
 </div><!-- /container -->
+                    </div>
+                </div>
+            </div>
 
             <!-- ── Footer (Fragment) ─────────────────────────── -->
             <div th:replace="~{fragments/footer :: footer}"></div>
@@ -798,11 +801,15 @@
         if (e.key === 'Escape') closeLightbox();
     });
 
-    function handleSaveAs() {
+    function handleSaveAs(button) {
         const newName = prompt(designViewI18n.enterNewName);
         if (!newName || !newName.trim()) return;
 
-        const designId   = '[[${design.id}]]';
+        const designId = button.dataset.designId;
+        if (!designId) {
+            alert(designViewI18n.saveAsFailed + ' Design-ID fehlt');
+            return;
+        }
         const csrfToken  = document.querySelector('meta[name="_csrf"]')
                                    .getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')

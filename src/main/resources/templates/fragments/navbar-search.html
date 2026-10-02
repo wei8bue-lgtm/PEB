@@ -29,7 +29,7 @@
          style="display:none; position:fixed; right:20px; bottom:74px; width:360px; max-width:calc(100vw - 24px);
                 background:#fff; border:1px solid #d0d7de; border-radius:12px; box-shadow:0 14px 36px rgba(15,23,42,.22);
                 z-index:1200; overflow:hidden;">
-        <div style="padding:10px 12px; background:#0f766e; color:#fff; font-weight:700;">
+        <div class="pepperoni-chat-title" style="padding:10px 12px; color:#fff; font-weight:700;">
             <span th:text="#{chat.title}">PEPperoni</span>
         </div>
         <div id="pepperoni-chat-log" style="max-height:280px; overflow:auto; padding:12px; font-size:14px;"></div>
@@ -39,10 +39,11 @@
                    th:placeholder="#{chat.placeholder}"
                    placeholder="Frage nach Name, ID oder Objekt..."
                    style="flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px;"/>
-            <button id="pepperoni-chat-send"
+                <button id="pepperoni-chat-send"
+                    class="a-button a-button--brand-primary"
                     type="button"
                     th:text="#{chat.send}"
-                    style="border:none; border-radius:8px; padding:8px 12px; background:#0f766e; color:#fff; cursor:pointer;">
+                    style="border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">
                 Senden
             </button>
         </div>

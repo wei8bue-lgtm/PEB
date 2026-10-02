@@ -8,8 +8,18 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="${cimObject.id + ' - ' + #messages.msg('cim.heading')}">CIM Detail</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
 
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
         @media(max-width:980px){ .grid { grid-template-columns:1fr; } }
         .import-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start; }
@@ -36,15 +46,24 @@
     </style>
 </head>
 <body class="cim-page">
-<div class="header">
-    <div class="logo-placeholder">SEP</div>
-    <h1 th:text="${cimObject.name}">CIM Object</h1>
-    <div style="margin-left:auto; display:flex; gap:.5rem;">
-        <a th:href="@{/cim}" class="btn btn-primary" th:text="#{button.backToList}">Back</a>
-    </div>
-</div>
+
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(${cimObject.name})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
 
 <div class="container">
+
+    <div style="display:flex; justify-content:flex-end; margin-top:5rem; margin-bottom:1rem;">
+        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/cim}'|">
+            <span class="a-button__label" th:text="#{button.backToList}">Back</span>
+        </button>
+    </div>
     <div th:if="${successMessage}" class="card" style="background:#d4edda; border-color:#c3e6cb;">
         <p style="margin:0; color:#155724;" th:text="${successMessage}">Success</p>
     </div>
@@ -54,34 +73,44 @@
 
     <div class="card">
         <h2 th:text="#{cim.masterData}">CIM Master Data</h2>
-        <table style="width:100%; border-collapse:collapse;">
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa; width:220px;" th:text="#{cim.column.id}">CIM ID</th><td class="mono" th:text="${cimObject.id}" style="padding:.5rem;">CI00000001</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.name}">Name</th><td style="padding:.5rem;" th:text="${cimObject.name}">Name</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.department}">Department</th><td style="padding:.5rem;" th:text="${cimObject.department}">Dept</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.lifecycle}">Lifecycle</th><td style="padding:.5rem;" th:text="${cimObject.lifecycleState}">DRAFT</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.sourceMae}">Source MAE</th><td class="mono" style="padding:.5rem;" th:text="${cimObject.sourceMaeObjectId + ' (' + cimObject.sourceMaeObjectType + ')'}">MA00000001</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{label.currentRevision}">Current Revision</th><td style="padding:.5rem;" th:text="${latestRevision != null ? latestRevision.revision + ' / ' + latestRevision.releaseStatus : #messages.msg('common.unknown')}">01 / WORKING</td></tr>
-            <tr><th style="text-align:left; padding:.5rem; background:#f8f9fa;" th:text="#{cim.sourceMaeName}">Source MAE Name</th><td style="padding:.5rem;" th:text="${maeObject != null ? maeObject.name : #messages.msg('common.unknown')}">MAE Name</td></tr>
+        <div style="overflow-x:auto;">
+        <table class="m-table">
+            <tr><th style="width:220px;" th:text="#{cim.column.id}">CIM ID</th><td class="mono" th:text="${cimObject.id}">CI00000001</td></tr>
+            <tr><th th:text="#{label.name}">Name</th><td th:text="${cimObject.name}">Name</td></tr>
+            <tr><th th:text="#{label.department}">Department</th><td th:text="${cimObject.department}">Dept</td></tr>
+            <tr><th th:text="#{cim.lifecycle}">Lifecycle</th><td th:text="${cimObject.lifecycleState}">DRAFT</td></tr>
+            <tr><th th:text="#{cim.sourceMae}">Source MAE</th><td class="mono" th:text="${cimObject.sourceMaeObjectId + ' (' + cimObject.sourceMaeObjectType + ')'}">MA00000001</td></tr>
+            <tr><th th:text="#{label.currentRevision}">Current Revision</th><td th:text="${latestRevision != null ? latestRevision.revision + ' / ' + latestRevision.releaseStatus : #messages.msg('common.unknown')}">01 / WORKING</td></tr>
+            <tr><th th:text="#{cim.sourceMaeName}">Source MAE Name</th><td th:text="${maeObject != null ? maeObject.name : #messages.msg('common.unknown')}">MAE Name</td></tr>
         </table>
+        </div>
 
         <div sec:authorize="hasAuthority('WRITE')" style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;" th:if="${latestRevision != null}">
             <form th:action="@{/cim/{id}/sync(id=${cimObject.id})}" method="post">
-                <button class="btn btn-primary" type="submit" th:text="#{cim.action.sync}">Sync from MAE</button>
+                <button class="a-button a-button--primary" type="submit">
+                    <span class="a-button__label" th:text="#{cim.action.sync}">Sync from MAE</span>
+                </button>
             </form>
             <form th:action="@{/cim/revisions/{revId}/validate(revId=${latestRevision.revisionId})}" method="post">
                 <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
-                <button class="btn btn-primary" type="submit" th:text="#{cim.action.validate}">Validate</button>
+                <button class="a-button a-button--primary" type="submit">
+                    <span class="a-button__label" th:text="#{cim.action.validate}">Validate</span>
+                </button>
             </form>
             <form th:if="${latestRevision.releaseStatus.name() == 'WORKING'}"
                   th:action="@{/cim/revisions/{revId}/review(revId=${latestRevision.revisionId})}" method="post">
                 <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
-                <button class="btn btn-primary" style="background:#fd7e14; border-color:#fd7e14;" type="submit" th:text="#{cim.action.review}">Submit Review</button>
+                <button class="a-button a-button--primary" type="submit">
+                    <span class="a-button__label" th:text="#{cim.action.review}">Submit Review</span>
+                </button>
             </form>
             <form th:if="${latestRevision.releaseStatus.name() == 'WORKING' or latestRevision.releaseStatus.name() == 'IN_REVIEW'}"
                   th:action="@{/cim/revisions/{revId}/release(revId=${latestRevision.revisionId})}" method="post" style="display:flex; gap:.3rem;">
                 <input type="hidden" name="cimId" th:value="${cimObject.id}"/>
                 <input type="text" name="releaseComment" th:placeholder="#{cim.releaseComment}" style="min-width:260px;"/>
-                <button class="btn btn-success" type="submit" th:text="#{cim.action.release}">Release</button>
+                <button class="a-button a-button--primary" type="submit">
+                    <span class="a-button__label" th:text="#{cim.action.release}">Release</span>
+                </button>
             </form>
         </div>
     </div>
@@ -110,43 +139,47 @@
     <div class="grid">
         <div class="card">
             <h3 th:text="#{cim.revisions}">Revisions</h3>
-            <table style="width:100%; border-collapse:collapse;">
+            <div style="overflow-x:auto;">
+            <table class="m-table">
                 <thead>
-                <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                    <th style="padding:.5rem; text-align:left;" th:text="#{label.rev}">Rev</th>
-                    <th style="padding:.5rem; text-align:left;" th:text="#{label.status}">Status</th>
-                    <th style="padding:.5rem; text-align:left;" th:text="#{label.date}">Date</th>
+                <tr>
+                    <th th:text="#{label.rev}">Rev</th>
+                    <th th:text="#{label.status}">Status</th>
+                    <th th:text="#{label.date}">Date</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="r : ${revisions}" style="border-bottom:1px solid #eee;">
-                    <td style="padding:.5rem;" th:text="${r.revision}">01</td>
-                    <td style="padding:.5rem;" th:text="${r.releaseStatus}">WORKING</td>
-                    <td style="padding:.5rem;" th:text="${r.createdDate != null ? #temporals.format(r.createdDate, 'dd.MM.yyyy HH:mm:ss') : #messages.msg('common.unknown')}">N/A</td>
+                <tr th:each="r : ${revisions}">
+                    <td th:text="${r.revision}">01</td>
+                    <td th:text="${r.releaseStatus}">WORKING</td>
+                    <td th:text="${r.createdDate != null ? #temporals.format(r.createdDate, 'dd.MM.yyyy HH:mm:ss') : #messages.msg('common.unknown')}">N/A</td>
                 </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <div class="card">
             <h3 th:text="#{cim.validations}">Validations</h3>
-            <table style="width:100%; border-collapse:collapse;">
+            <div style="overflow-x:auto;">
+            <table class="m-table">
                 <thead>
-                <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.rule}">Rule</th>
-                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.severity}">Severity</th>
-                    <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.blocking}">Blocking</th>
+                <tr>
+                    <th th:text="#{cim.column.rule}">Rule</th>
+                    <th th:text="#{cim.column.severity}">Severity</th>
+                    <th th:text="#{cim.column.blocking}">Blocking</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:if="${#lists.isEmpty(validations)}"><td colspan="3" style="padding:.5rem; color:#6c757d;" th:text="#{cim.noValidations}">No validations</td></tr>
-                <tr th:each="v : ${validations}" style="border-bottom:1px solid #eee;">
-                    <td style="padding:.5rem;" th:text="${v.ruleId + ' - ' + v.message}">Rule</td>
-                    <td style="padding:.5rem;" th:text="${v.severity}">ERROR</td>
-                    <td style="padding:.5rem;" th:text="${v.blocking}">true</td>
+                <tr th:if="${#lists.isEmpty(validations)}"><td colspan="3" style="text-align:center; color:#6c757d;" th:text="#{cim.noValidations}">No validations</td></tr>
+                <tr th:each="v : ${validations}">
+                    <td th:text="${v.ruleId + ' - ' + v.message}">Rule</td>
+                    <td th:text="${v.severity}">ERROR</td>
+                    <td th:text="${v.blocking}">true</td>
                 </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -235,9 +268,10 @@
                         <input type="text" name="manufacturingBomName" th:value="${'MBOM from ' + cimObject.id + (selectedConfiguration != null ? ' - ' + selectedConfiguration.name : '')}"/>
                     </div>
                     <div style="display:flex; align-items:flex-end;">
-                        <button type="submit" class="btn btn-success"
-                                th:disabled="${(!#lists.isEmpty(sourceConfigurations) and selectedConfigurationId == null) or (configurationResolveError != null and !#strings.isEmpty(configurationResolveError))}"
-                                th:text="#{cim.action.import}">Import</button>
+                        <button type="submit" class="a-button a-button--primary"
+                                th:disabled="${(!#lists.isEmpty(sourceConfigurations) and selectedConfigurationId == null) or (configurationResolveError != null and !#strings.isEmpty(configurationResolveError))}">
+                            <span class="a-button__label" th:text="#{cim.action.import}">Import</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -267,33 +301,41 @@
 
     <div class="card">
         <h3 th:text="#{cim.links}">Manufacturing Links</h3>
-        <table style="width:100%; border-collapse:collapse;">
+        <div style="overflow-x:auto;">
+        <table class="m-table">
             <thead>
-            <tr style="background:#f8f9fa; border-bottom:2px solid #ddd;">
-                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.target}">Target</th>
-                <th style="padding:.5rem; text-align:left;" th:text="#{label.id}">ID</th>
-                <th style="padding:.5rem; text-align:left;" th:text="#{cim.import.configuration}">Configuration</th>
-                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.tokens}">Frozen Tokens</th>
-                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.mode}">Mode</th>
-                <th style="padding:.5rem; text-align:left;" th:text="#{cim.column.result}">Result</th>
+            <tr>
+                <th th:text="#{cim.column.target}">Target</th>
+                <th th:text="#{label.id}">ID</th>
+                <th th:text="#{cim.import.configuration}">Configuration</th>
+                <th th:text="#{cim.column.tokens}">Frozen Tokens</th>
+                <th th:text="#{cim.column.mode}">Mode</th>
+                <th th:text="#{cim.column.result}">Result</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${#lists.isEmpty(manufacturingLinks)}"><td colspan="6" style="padding:.5rem; color:#6c757d;" th:text="#{cim.noLinks}">No links</td></tr>
-            <tr th:each="l : ${manufacturingLinks}" style="border-bottom:1px solid #eee;">
-                <td style="padding:.5rem;" th:text="${l.targetType}">PRODUCT_DATA</td>
-                <td style="padding:.5rem;" class="mono" th:text="${l.targetId}">PD0001</td>
-                <td style="padding:.5rem;" th:text="${l.configurationName != null ? l.configurationName + ' (#' + l.configurationId + ')' : '—'}">Config</td>
-                <td style="padding:.5rem;" class="mono" th:text="${l.selectedOptionTokens != null ? l.selectedOptionTokens : '—'}">ENGINE=V8,COLOR=RED</td>
-                <td style="padding:.5rem;" th:text="${l.importMode}">INITIAL</td>
-                <td style="padding:.5rem;">
+            <tr th:if="${#lists.isEmpty(manufacturingLinks)}"><td colspan="6" style="text-align:center; color:#6c757d;" th:text="#{cim.noLinks}">No links</td></tr>
+            <tr th:each="l : ${manufacturingLinks}">
+                <td th:text="${l.targetType}">PRODUCT_DATA</td>
+                <td class="mono" th:text="${l.targetId}">PD0001</td>
+                <td th:text="${l.configurationName != null ? l.configurationName + ' (#' + l.configurationId + ')' : '—'}">Config</td>
+                <td class="mono" th:text="${l.selectedOptionTokens != null ? l.selectedOptionTokens : '—'}">ENGINE=V8,COLOR=RED</td>
+                <td th:text="${l.importMode}">INITIAL</td>
+                <td>
                     <div th:text="${l.importResult}">SUCCESS</div>
                     <div style="font-size:.8rem; color:#6c757d;" th:if="${l.message != null}" th:text="${l.message}">Imported from CIM...</div>
                 </td>
             </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
 </body>
 </html>

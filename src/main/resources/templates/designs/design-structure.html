@@ -8,11 +8,21 @@
     <meta name="_csrf"        th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="icon" href="data:,">
-    <title th:text="${design.name} + ' – Structure – PEB'">
+    <title th:text="${design.name} + ' – Structure – SEP4Eng'">
         Design Structure – PEB
     </title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
 
         /* ══ Tree rows ═══════════════════════════════════════════ */
         .tree-row {
@@ -148,19 +158,26 @@
 </head>
 <body>
 
-<!-- ══ Header ════════════════════════════════════════════════ -->
-<div class="header">
-    <div class="logo-placeholder">SEP</div>
-    <h1 th:text="#{design.structureHeading}">Design Structure</h1>
-    <div style="margin-left:auto; display:flex; gap:0.5rem;">
-        <a th:href="@{/designs/{id}(id=${design.id})}"
-           class="btn btn-primary" th:text="#{button.backToDesignArrow}">← Back to Design</a>
-        <a th:href="@{/designs}"
-           class="btn btn-primary" th:text="#{button.allDesigns}">All Designs</a>
-    </div>
-</div>
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{design.structureHeading})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
 
 <div class="container">
+
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:5rem; margin-bottom:1rem;">
+        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs/{id}(id=${design.id})}'|">
+            <span class="a-button__label" th:text="#{button.backToDesignArrow}">← Back to Design</span>
+        </button>
+        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/designs}'|">
+            <span class="a-button__label" th:text="#{button.allDesigns}">All Designs</span>
+        </button>
+    </div>
 
     <!-- ══ Root Info Card ════════════════════════════════════ -->
     <div class="card">
@@ -168,7 +185,7 @@
                     align-items:flex-start; gap:1rem; flex-wrap:wrap;">
             <div>
                 <h2 style="margin:0 0 0.25rem;">
-                    🗂️ <span th:text="${design.name}">Design Name</span>
+                    <span th:text="${design.name}">Design Name</span>
                 </h2>
                 <span style="font-size:0.85rem; color:#6c757d;">
                     <code th:text="${design.id}">DS00000001</code>
@@ -268,15 +285,16 @@
                 <div class="node-actions">
 
                     <!-- Open Design -->
-                    <a th:href="@{/designs/{id}(id=${node.id})}"
-                       class="btn btn-primary btn-sm"
-                       th:title="#{design.openDesignTitle}" title="Open Design">🔗</a>
+                    <button type="button"
+                            class="a-button a-button--primary -small"
+                            th:onclick="|window.location.href='@{/designs/{id}(id=${node.id})}'|"
+                            th:title="#{design.openDesignTitle}" title="Open Design">🔗</button>
 
                     <!-- Sub-structure (only for non-root nodes) -->
-                    <a th:if="${node.depth > 0}"
-                       th:href="@{/designs/structure/{id}(id=${node.id})}"
-                       class="btn btn-primary btn-sm"
-                       th:title="#{design.viewSubStructureTitle}" title="View Sub-Structure">🗂️</a>
+                    <button type="button" th:if="${node.depth > 0}"
+                            class="a-button a-button--primary -small"
+                            th:onclick="|window.location.href='@{/designs/structure/{id}(id=${node.id})}'|"
+                            th:title="#{design.viewSubStructureTitle}" title="View Sub-Structure">🗂️</button>
 
                     <!-- Remove link (only non-root, WRITE authority) -->
                     <button th:if="${node.depth > 0}"
@@ -324,7 +342,7 @@
     <!-- ══ Add Child Card ════════════════════════════════════ -->
     <div class="card" th:if="${revisionId != null}"
          sec:authorize="hasAuthority('WRITE')">
-        <h3 style="margin-top:0;" th:text="#{design.addChildHeading}">➕ Add Child Design</h3>
+        <h3 style="margin-top:0;" th:text="#{design.addChildHeading}">Add Child Design</h3>
         <div class="add-child-panel">
             <form id="addChildForm" novalidate>
                 <input type="hidden" id="parentId"
@@ -372,8 +390,8 @@
                          style="flex:0; display:flex;
                                 align-items:flex-end;">
                         <button type="submit" id="submitBtn"
-                                class="btn btn-success" th:text="#{button.add}">
-                            ➕ Add
+                                class="a-button a-button--primary">
+                            <span class="a-button__label" th:text="#{button.add}">Add</span>
                         </button>
                     </div>
                 </div>
@@ -418,7 +436,7 @@
 
     <!-- ══ Rules Info Card ═══════════════════════════════════ -->
     <div class="card" th:if="${revisionId != null}">
-        <h3 style="margin-top:0;" th:text="#{design.rulesHeading}">ℹ️ Design Structure Rules</h3>
+        <h3 style="margin-top:0;" th:text="#{design.rulesHeading}">Design Structure Rules</h3>
         <ul style="margin:0; padding-left:1.5rem;
                    color:#6c757d; font-size:0.9rem; line-height:1.8;">
             <li th:text="#{design.rule1}">A Design can contain any number of child Designs.</li>
@@ -430,6 +448,12 @@
     </div>
 
 </div><!-- /container -->
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
 
 <!-- ══ Placement Modal ═══════════════════════════════════════ -->
 <div id="placementModal" role="dialog" aria-modal="true">
@@ -450,8 +474,8 @@
                  <input type="number" step="any" id="pmRk"></div>
         </div>
         <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-            <button id="pmSave"   class="btn btn-success" onclick="savePlacement()">💾 Speichern</button>
-            <button id="pmCancel" class="btn btn-secondary" onclick="closePlacementModal()">✖ Abbrechen</button>
+            <button id="pmSave"   class="a-button a-button--primary" onclick="savePlacement()"><span class="a-button__label">💾 Speichern</span></button>
+            <button id="pmCancel" class="a-button a-button--secondary" onclick="closePlacementModal()"><span class="a-button__label">✖ Abbrechen</span></button>
         </div>
         <p id="pmError" style="color:#dc3545; margin:0.5rem 0 0; display:none;"></p>
     </div>

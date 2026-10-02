@@ -9,7 +9,17 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="${objectId} + ' - Structure View - PEB'">Structure View - PEB</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
     <style>
+        .app-layout {
+            display: flex;
+            align-items: flex-start;
+        }
+        .app-layout__content {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         /* ── Tree ───────────────────────────────────────────── */
         .tree-view   { padding-left: 0; list-style: none; }
         .tree-node   {
@@ -32,19 +42,9 @@
             border-collapse: collapse;
             font-size: 0.875rem;
         }
-        .bmk-table th {
-            background: #0066cc;
-            color: #fff;
-            padding: 0.6rem 0.75rem;
-            text-align: left;
-            white-space: nowrap;
-        }
         .bmk-table td {
-            padding: 0.5rem 0.75rem;
-            border-bottom: 1px solid #dee2e6;
             vertical-align: middle;
         }
-        .bmk-table tr:hover td { background: #f0f4ff; }
 
 		/* indentation in BMK table – Objekt-Spalte */
 		.indent-0 { padding-left: 0.5rem; }
@@ -84,22 +84,17 @@
             font-weight: 600;
             white-space: nowrap;
         }
-        .badge-status-working  { background: #fff3cd; color: #856404;
-                                 border: 1px solid #ffc107; }
-        .badge-status-released { background: #d1e7dd; color: #0a3622;
-                                 border: 1px solid #198754; }
-        .badge-status-obsolete { background: #f8d7da; color: #58151c;
-                                 border: 1px solid #dc3545; }
-        .badge-refdes {
-            background: #e7f1ff;
-            color: #0d47a1;
-            border: 1px solid #90caf9;
-            font-family: monospace;
-        }
+        .badge-status-working,
+        .badge-status-released,
+        .badge-status-obsolete,
+        .badge-refdes,
         .badge-bmk {
-            background: #e8f5e9;
-            color: #1b5e20;
-            border: 1px solid #81c784;
+            background: #f1f1f1;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        .badge-refdes,
+        .badge-bmk {
             font-family: monospace;
         }
         .badge-empty {
@@ -227,16 +222,23 @@
 </head>
 <body>
 
-<!-- ══ Header ════════════════════════════════════════════════ -->
-<div class="header">
-    <div class="logo-placeholder">SEP</div>
-    <h1 th:text="#{sview.heading}">Structure Management</h1>
-    <div style="margin-left: auto;">
-        <a th:href="@{/ebom}" class="btn btn-primary" th:text="#{button.backToEbom}">Back to eBOM</a>
-    </div>
-</div>
+    <!-- ── Header (Fragment) ─────────────────────────────────── -->
+    <div th:replace="~{fragments/header :: header(#{sview.heading})}"></div>
+
+    <div class="app-layout">
+
+        <!-- ── Side-Navigation (Fragment) ────────────────────── -->
+        <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+
+        <div class="app-layout__content">
 
 <div class="container">
+
+    <div style="display:flex; justify-content:flex-end; margin-top:5rem; margin-bottom:1rem;">
+        <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/ebom}'|">
+            <span class="a-button__label" th:text="#{button.backToEbom}">Back to eBOM</span>
+        </button>
+    </div>
 <div class="card">
     <h2><span th:text="#{sview.structureFor}">Structure for:</span> <span th:text="${objectId}">Object ID</span></h2>
 	
@@ -315,13 +317,13 @@
 					 <!-- Button 1: Klassische In-Process Logik (bestehend) -->
 					 <div style="text-align:center;">
 						 <button id="triggerAgentBtn"
-								 class="btn btn-primary"
+								 class="a-button a-button--primary"
 								 th:data-root-id="${objectId}"
 								 th:data-root-rev="${revisionId}"
 								 onclick="triggerBmkAgent(this, false)"
 								 title="Bewährte Java-Logik: RefDes-Segmente werden
 										direkt konkateniert (deterministisch)">
-							 ⚙️ BMK generieren
+							 <span class="a-button__label">⚙️ BMK generieren</span>
 						 </button>
 						 <div style="font-size:0.68rem; color:#6c757d;
 									 margin-top:0.2rem;">
@@ -337,13 +339,13 @@
 					 <!-- Button 2: KI-Agent (NEU) -->
 					 <div style="text-align:center;">
 						 <button id="triggerAiAgentBtn"
-								 class="btn btn-success"
+								 class="a-button a-button--primary"
 								 th:data-root-id="${objectId}"
 								 th:data-root-rev="${revisionId}"
 								 onclick="triggerBmkAgent(this, true)"
 								 title="Gemini KI-Agent: Analysiert den gesamten Baum
 										und generiert BMKs nach N54 D6 / DIN EN 81346-2">
-							 🤖 KI-BMK generieren
+							 <span class="a-button__label">🤖 KI-BMK generieren</span>
 						 </button>
 						 <div style="font-size:0.68rem; color:#6c757d;
 									 margin-top:0.2rem;">
@@ -363,7 +365,7 @@
 			<!-- ── BMK Table ─────────────────────────────── -->
 			<div class="bmk-table-wrapper"
 				 th:if="${structureTree != null}">
-				<table class="bmk-table" id="bmkTable">
+				<table class="bmk-table m-table" id="bmkTable">
 					<thead>
 						<tr>
 							<th th:text="#{eclass.object}">Objekt</th>
@@ -376,9 +378,9 @@
 							<th title="Vollständiges BMK, generiert vom Agenten" th:title="#{sview.bmkGeneratedTitle}" th:text="#{sview.bmkGeneratedCol}">
 								BMK (generiert)
 							</th>
-							<th style="color:#d8b4fe;" th:text="#{variant.relation.type}">Relation Type</th>
-							<th style="color:#d8b4fe;" th:text="#{variant.relation.configRule}">Config Rule</th>
-							<th style="color:#d8b4fe;" th:text="#{variant.relation.altGroup}">Alt. Group</th>
+							<th th:text="#{variant.relation.type}">Relation Type</th>
+							<th th:text="#{variant.relation.configRule}">Config Rule</th>
+							<th th:text="#{variant.relation.altGroup}">Alt. Group</th>
 							<th sec:authorize="hasAuthority('WRITE')" th:text="#{label.actions}">
 								Aktionen
 							</th>
@@ -505,9 +507,9 @@
                         </div>
                     </details>
 
-                    <button type="submit" class="btn btn-success"
-                            id="submitBtn" th:text="#{button.addToStructure}">
-                        Add to Structure
+                    <button type="submit" class="a-button a-button--primary"
+                            id="submitBtn">
+                        <span class="a-button__label" th:text="#{button.addToStructure}">Add to Structure</span>
                     </button>
                     <small id="revisionWarningSubmit"
                            style="display:none; color:#dc3545;" th:text="#{sview.noRevisionSelected}">
@@ -529,25 +531,29 @@
 
             <div th:if="${configurations != null and !configurations.empty}"
                  style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
-                <a th:each="cfg : ${configurations}"
-                   th:href="@{/variant/configurations/{id}/resolve(id=${cfg.id})}"
-                   class="btn btn-primary"
-                   style="background:#6f42c1; border-color:#6f42c1;">
-                    ⚙️ <span th:text="${cfg.name}">Config Name</span>
+                <button type="button" th:each="cfg : ${configurations}"
+                        th:onclick="|window.location.href='@{/variant/configurations/{id}/resolve(id=${cfg.id})}'|"
+                        class="a-button a-button--primary"
+                        style="background:#6f42c1; border-color:#6f42c1;">
+                    <span class="a-button__label">⚙️ <span th:text="${cfg.name}">Config Name</span>
                     <span th:if="${cfg.orderNumber}"
                           style="font-size:0.8rem; opacity:0.85;"
-                          th:text="'(' + ${cfg.orderNumber} + ')'"></span>
-                </a>
+                          th:text="'(' + ${cfg.orderNumber} + ')'"></span></span>
+                </button>
             </div>
             <p th:if="${configurations == null or configurations.empty}"
                style="color:#adb5bd;" th:text="#{variant.sview.noConfigs}">
                 No configurations defined for this object yet.
             </p>
-            <a th:href="@{/variant/configurations/new}" class="btn btn-success btn-xs"
-               sec:authorize="hasAuthority('WRITE')"
-               th:text="#{variant.sview.newConfig}">+ New Configuration</a>
-            <a th:href="@{/variant/configurations}" class="btn btn-primary btn-xs"
-               th:text="#{variant.menu.configurations}">All Configurations</a>
+            <button type="button" th:onclick="|window.location.href='@{/variant/configurations/new}'|"
+                    class="a-button a-button--primary -small"
+                    sec:authorize="hasAuthority('WRITE')">
+                <span class="a-button__label" th:text="#{variant.sview.newConfig}">+ New Configuration</span>
+            </button>
+            <button type="button" th:onclick="|window.location.href='@{/variant/configurations}'|"
+                    class="a-button a-button--primary -small">
+                <span class="a-button__label" th:text="#{variant.menu.configurations}">All Configurations</span>
+            </button>
         </div>
 
         <!-- Hint when BOM type is 100% but configurations exist for this object -->
@@ -558,52 +564,54 @@
                 Configurations are defined for this object. Mark the BOM as 150% to activate full variant management.
             </p>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <a th:each="cfg : ${configurations}"
-                   th:href="@{/variant/configurations/{id}/resolve(id=${cfg.id})}"
-                   class="btn btn-primary btn-xs">
-                    ⚙️ <span th:text="${cfg.name}">Config</span>
-                </a>
-                <a th:href="@{/variant/configurations}" class="btn btn-primary btn-xs"
-                   th:text="#{variant.menu.configurations}">All Configurations</a>
+                <button type="button" th:each="cfg : ${configurations}"
+                        th:onclick="|window.location.href='@{/variant/configurations/{id}/resolve(id=${cfg.id})}'|"
+                        class="a-button a-button--primary -small">
+                    <span class="a-button__label">⚙️ <span th:text="${cfg.name}">Config</span></span>
+                </button>
+                <button type="button" th:onclick="|window.location.href='@{/variant/configurations}'|"
+                        class="a-button a-button--primary -small">
+                    <span class="a-button__label" th:text="#{variant.menu.configurations}">All Configurations</span>
+                </button>
             </div>
         </div>
 
         <!-- ══ Structure Rules ════════════════════════════════ -->
         <div class="card" style="margin-top: 2rem;">
             <h3 th:text="#{sview.structureRules}">Structure Rules</h3>
-            <table style="width:100%; border-collapse:collapse;">
+            <div style="overflow-x:auto;">
+            <table class="m-table">
                 <thead>
-                    <tr style="background:#f8f9fa;">
-                        <th style="padding:0.5rem; text-align:left;" th:text="#{label.parentType}">
-                            Parent Type</th>
-                        <th style="padding:0.5rem; text-align:left;" th:text="#{label.canContain}">
-                            Can Contain</th>
+                    <tr>
+                        <th th:text="#{label.parentType}">Parent Type</th>
+                        <th th:text="#{label.canContain}">Can Contain</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td style="padding:0.5rem;" th:text="#{entity.machine} + ' (MA)'">Machine (MA)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList1}">
+                    <tr><td th:text="#{entity.machine} + ' (MA)'">Machine (MA)</td>
+                        <td th:text="#{sview.canContainList1}">
                             System, Part, Auxiliary, Drawing, Document</td></tr>
-                    <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;" th:text="#{entity.system} + ' (SY)'">System (SY)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList2}">
+                    <tr>
+                        <td th:text="#{entity.system} + ' (SY)'">System (SY)</td>
+                        <td th:text="#{sview.canContainList2}">
                             Subsystem, Part, Auxiliary, Drawing, Document</td></tr>
-                    <tr><td style="padding:0.5rem;" th:text="#{entity.subsystem} + ' (SU)'">Subsystem (SU)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList3}">
+                    <tr><td th:text="#{entity.subsystem} + ' (SU)'">Subsystem (SU)</td>
+                        <td th:text="#{sview.canContainList3}">
                             Module, Part, Auxiliary, Drawing, Document</td></tr>
-                    <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;" th:text="#{entity.module} + ' (MO)'">Module (MO)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList4}">
+                    <tr>
+                        <td th:text="#{entity.module} + ' (MO)'">Module (MO)</td>
+                        <td th:text="#{sview.canContainList4}">
                             Submodule, Part, Auxiliary, Drawing, Document</td></tr>
-                    <tr><td style="padding:0.5rem;" th:text="#{entity.submodule} + ' (MU)'">Submodule (MU)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList5}">
+                    <tr><td th:text="#{entity.submodule} + ' (MU)'">Submodule (MU)</td>
+                        <td th:text="#{sview.canContainList5}">
                             Part, Auxiliary, Drawing, Document</td></tr>
-                    <tr style="background:#f8f9fa;">
-                        <td style="padding:0.5rem;" th:text="#{label.partAuxSlash}">
+                    <tr>
+                        <td th:text="#{label.partAuxSlash}">
                             Part / Auxiliary (PT/AX)</td>
-                        <td style="padding:0.5rem;" th:text="#{sview.canContainList6}">Drawing, Document</td></tr>
+                        <td th:text="#{sview.canContainList6}">Drawing, Document</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- ══ Export ════════════════════════════════════════ -->
@@ -611,16 +619,16 @@
              sec:authorize="hasAuthority('READ')">
             <h3 th:text="#{sview.exportStructure}">Export Structure</h3>
             <div style="display:flex; gap:1rem; margin-top:1rem;">
-                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml(
-                               id=${objectId},revId=${revisionId})}"
-                   class="btn btn-primary" download th:text="#{button.xmlSimple}">
-                    📄 XML (Simple)
-                </a>
-                <a th:href="@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(
-                               id=${objectId},revId=${revisionId})}"
-                   class="btn btn-success" download th:text="#{button.xmlDetailed}">
-                    📋 XML (Detailed)
-                </a>
+                <button type="button" class="a-button a-button--primary"
+                        th:onclick="|window.location.href='@{/api/export/ebom/{id}/revisions/{revId}/xml(
+                               id=${objectId},revId=${revisionId})}'|">
+                    <span class="a-button__label" th:text="#{button.xmlSimple}">📄 XML (Simple)</span>
+                </button>
+                <button type="button" class="a-button a-button--primary"
+                        th:onclick="|window.location.href='@{/api/export/ebom/{id}/revisions/{revId}/xml/detailed(
+                               id=${objectId},revId=${revisionId})}'|">
+                    <span class="a-button__label" th:text="#{button.xmlDetailed}">📋 XML (Detailed)</span>
+                </button>
             </div>
         </div>
 
@@ -683,13 +691,19 @@
             <br><span th:text="#{sview.attr2Mass}">Attribute 2 (Mass, kg):</span> <strong th:text="${ebomMass ?: '–'}"></strong>
         </div>
 
-        <button type="submit" class="btn btn-success" th:text="#{button.createLinkDocument}">
-            Dokument erstellen &amp; verlinken
+        <button type="submit" class="a-button a-button--primary">
+            <span class="a-button__label" th:text="#{button.createLinkDocument}">Dokument erstellen &amp; verlinken</span>
         </button>
     </form>
 </div>
 
 </div><!-- /container -->
+
+            <!-- ── Footer (Fragment) ─────────────────────────── -->
+            <div th:replace="~{fragments/footer :: footer}"></div>
+
+        </div>
+    </div>
 
 <!-- ══════════════════════════════════════════════════════════
      INLINE-EDIT MODAL (lightweight, no external dependency)
@@ -721,11 +735,11 @@
                    maxlength="100" style="font-family:monospace; width:100%;">
         </div>
         <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-            <button class="btn btn-success" onclick="saveEdit()">
-                💾 <span th:text="#{button.save}">Speichern</span>
+            <button class="a-button a-button--primary" onclick="saveEdit()">
+                <span class="a-button__label">💾 <span th:text="#{button.save}">Speichern</span></span>
             </button>
-            <button class="btn btn-secondary" onclick="closeModal()" th:text="#{button.cancel}">
-                Abbrechen
+            <button class="a-button a-button--secondary" onclick="closeModal()">
+                <span class="a-button__label" th:text="#{button.cancel}">Abbrechen</span>
             </button>
         </div>
     </div>
@@ -936,15 +950,8 @@ function renderBmkRow(tbody, node, depth, isRoot) {
         tdRelType.innerHTML = '<span style="color:#bbb;">—</span>';
     } else {
         const rt = node.relationType ?? 'ALWAYS';
-        const rtColors = {
-            ALWAYS:           '#d1e7dd',
-            OPTIONAL:         '#fff3cd',
-            VARIANT_SPECIFIC: '#cfe2ff',
-            ALTERNATIVE:      '#e2d9f3'
-        };
-        const bg = rtColors[rt] ?? '#e9ecef';
         tdRelType.innerHTML =
-            `<span class="badge" style="background:${bg}; border:1px solid #ccc; cursor:pointer;"
+            `<span class="badge" style="cursor:pointer;"
                    onclick="startVariantEdit(this, ${node.relationId}, '${escJs(rt)}',
                             '${escJs(node.configRule ?? '')}',
                             '${escJs(node.alternativeGroup ?? '')}')"
@@ -961,8 +968,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
     } else {
         const rule = node.configRule ?? '';
         tdRule.innerHTML = rule
-            ? `<code style="font-size:0.78rem; color:#0d47a1; background:#e8f0fe;
-                            padding:0.1rem 0.35rem; border-radius:3px; cursor:pointer;"
+            ? `<code style="font-size:0.78rem; cursor:pointer;"
                      onclick="startVariantEdit(this.closest('tr'), ${node.relationId},
                               '${escJs(node.relationType ?? 'ALWAYS')}',
                               '${escJs(rule)}',
@@ -984,8 +990,7 @@ function renderBmkRow(tbody, node, depth, isRoot) {
     } else {
         const ag = node.alternativeGroup ?? '';
         tdAltGrp.innerHTML = ag
-            ? `<code style="font-size:0.78rem; color:#6f42c1; background:#f3e8ff;
-                            padding:0.1rem 0.35rem; border-radius:3px;">${escHtml(ag)}</code>`
+            ? `<code style="font-size:0.78rem;">${escHtml(ag)}</code>`
             : `<span style="color:#adb5bd; font-size:0.78rem;">—</span>`;
     }
     tr.appendChild(tdAltGrp);
@@ -996,13 +1001,13 @@ function renderBmkRow(tbody, node, depth, isRoot) {
         const refDesVal = node.referenceDesignator ?? '';
         const bmkVal2   = node.bmk ?? '';
         tdAct.innerHTML =
-            `<button class="btn btn-primary btn-xs"
+            `<button class="a-button a-button--primary -small"
                      title="${svI18n.editBmkFullTitle}"
                      onclick="openEditModal(
                          ${node.relationId},
                          '${escJs(refDesVal)}',
                          '${escJs(bmkVal2)}')">
-                 ✏️
+                 <span class="a-button__label">✏️</span>
              </button>`;
     }
     tr.appendChild(tdAct);
@@ -1199,9 +1204,9 @@ function startVariantEdit(triggerEl, relationId, currentType, currentRule, curre
                        style="font-family:monospace; font-size:0.82rem; padding:0.25rem 0.4rem; border:1px solid #d8b4fe; border-radius:4px; width:160px;">
             </div>
             <div style="display:flex; gap:0.4rem; align-items:flex-end;">
-                <button class="btn btn-success btn-xs" onclick="saveVariantRule(${relationId}, this)">✓ Speichern</button>
-                <button class="btn btn-xs" style="background:#6c757d;color:#fff;"
-                        onclick="this.closest('.variant-edit-popup').remove()">✕</button>
+                <button class="a-button a-button--primary -small" onclick="saveVariantRule(${relationId}, this)"><span class="a-button__label">✓ Speichern</span></button>
+                <button class="a-button a-button--secondary -small"
+                        onclick="this.closest('.variant-edit-popup').remove()"><span class="a-button__label">✕</span></button>
                 <span id="ve_spinner_${relationId}" style="display:none;">⏳</span>
             </div>
         </div>`;

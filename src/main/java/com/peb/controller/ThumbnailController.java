@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,10 +65,13 @@ public class ThumbnailController {
                 .getDatasets(revision.getRevisionId(), "DESIGN")
                 .stream()
                 .filter(ds -> ds.getCategory() == DatasetCategory.THUMBNAIL)
-                .findFirst()
+            .filter(ds -> ds.getFilePath() != null
+                && Files.isReadable(Paths.get(ds.getFilePath())))
+            .max(Comparator.comparing(Dataset::getCreatedDate,
+                Comparator.nullsFirst(Comparator.naturalOrder())))
                 .orElse(null);
 
-        if (thumbnailDataset == null || thumbnailDataset.getFilePath() == null) {
+        if (thumbnailDataset == null) {
             // Kein Thumbnail vorhanden → 404 (onerror im HTML greift)
             return ResponseEntity.notFound().build();
         }

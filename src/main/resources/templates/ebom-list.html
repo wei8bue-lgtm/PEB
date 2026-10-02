@@ -60,77 +60,70 @@
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.machines}">Machines</h4>
                         <p th:if="${machines.empty}" style="color:#888;" th:text="#{ebom.noMachines}">No machines found.</p>
-                        <ul th:unless="${machines.empty}">
-                            <li th:each="m : ${machines}">
-                                <a th:href="@{'/ebom/' + ${m.id}}" th:text="${m.id + ' - ' + m.name}">MA00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${machines.empty}" aria-label="Machines">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="m : ${machines}"><td th:text="${m.id}">MA00000001</td><td th:text="${m.name}">Machine</td><td th:text="${m.department ?: '-'}"></td><td th:text="${m.mass ?: '-'}"></td><td th:text="${m.material ?: '-'}"></td><td th:text="${m.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${m.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Systems -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.systems}">Systems</h4>
                         <p th:if="${systems.empty}" style="color:#888;" th:text="#{ebom.noSystems}">No systems found.</p>
-                        <ul th:unless="${systems.empty}">
-                            <li th:each="s : ${systems}">
-                                <a th:href="@{'/ebom/' + ${s.id}}" th:text="${s.id + ' - ' + s.name}">SY00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${systems.empty}" aria-label="Systems">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="s : ${systems}"><td th:text="${s.id}">SY00000001</td><td th:text="${s.name}">System</td><td th:text="${s.department ?: '-'}"></td><td th:text="${s.mass ?: '-'}"></td><td th:text="${s.material ?: '-'}"></td><td th:text="${s.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${s.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Subsystems -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.subsystems}">Subsystems</h4>
                         <p th:if="${subsystems.empty}" style="color:#888;" th:text="#{ebom.noSubsystems}">No subsystems found.</p>
-                        <ul th:unless="${subsystems.empty}">
-                            <li th:each="su : ${subsystems}">
-                                <a th:href="@{'/ebom/' + ${su.id}}" th:text="${su.id + ' - ' + su.name}">SU00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${subsystems.empty}" aria-label="Subsystems">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="su : ${subsystems}"><td th:text="${su.id}">SU00000001</td><td th:text="${su.name}">Subsystem</td><td th:text="${su.department ?: '-'}"></td><td th:text="${su.mass ?: '-'}"></td><td th:text="${su.material ?: '-'}"></td><td th:text="${su.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${su.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Modules -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.modules}">Modules</h4>
                         <p th:if="${modules.empty}" style="color:#888;" th:text="#{ebom.noModules}">No modules found.</p>
-                        <ul th:unless="${modules.empty}">
-                            <li th:each="mo : ${modules}">
-                                <a th:href="@{'/ebom/' + ${mo.id}}" th:text="${mo.id + ' - ' + mo.name}">MO00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${modules.empty}" aria-label="Modules">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="mo : ${modules}"><td th:text="${mo.id}">MO00000001</td><td th:text="${mo.name}">Module</td><td th:text="${mo.department ?: '-'}"></td><td th:text="${mo.mass ?: '-'}"></td><td th:text="${mo.material ?: '-'}"></td><td th:text="${mo.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${mo.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Submodules -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.submodules}">Submodules</h4>
                         <p th:if="${submodules.empty}" style="color:#888;" th:text="#{ebom.noSubmodules}">No submodules found.</p>
-                        <ul th:unless="${submodules.empty}">
-                            <li th:each="mu : ${submodules}">
-                                <a th:href="@{'/ebom/' + ${mu.id}}" th:text="${mu.id + ' - ' + mu.name}">MU00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${submodules.empty}" aria-label="Submodules">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="mu : ${submodules}"><td th:text="${mu.id}">MU00000001</td><td th:text="${mu.name}">Submodule</td><td th:text="${mu.department ?: '-'}"></td><td th:text="${mu.mass ?: '-'}"></td><td th:text="${mu.material ?: '-'}"></td><td th:text="${mu.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${mu.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Parts -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.parts}">Parts</h4>
                         <p th:if="${parts.empty}" style="color:#888;" th:text="#{ebom.noParts}">No parts found.</p>
-                        <ul th:unless="${parts.empty}">
-                            <li th:each="p : ${parts}">
-                                <a th:href="@{'/ebom/' + ${p.id}}" th:text="${p.id + ' - ' + p.name}">PT00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${parts.empty}" aria-label="Parts">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="p : ${parts}"><td th:text="${p.id}">PT00000001</td><td th:text="${p.name}">Part</td><td th:text="${p.department ?: '-'}"></td><td th:text="${p.mass ?: '-'}"></td><td th:text="${p.material ?: '-'}"></td><td th:text="${p.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${p.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
 
                     <!-- Auxiliaries -->
                     <div class="ebom-section">
                         <h4 th:text="#{ebom.auxiliaries}">Auxiliaries</h4>
                         <p th:if="${auxiliaries.empty}" style="color:#888;" th:text="#{ebom.noAuxiliaries}">No auxiliaries found.</p>
-                        <ul th:unless="${auxiliaries.empty}">
-                            <li th:each="ax : ${auxiliaries}">
-                                <a th:href="@{'/ebom/' + ${ax.id}}" th:text="${ax.id + ' - ' + ax.name}">AX00000001</a>
-                            </li>
-                        </ul>
+                        <table class="m-table" th:unless="${auxiliaries.empty}" aria-label="Auxiliaries">
+                            <thead><tr><th th:text="#{label.id}">ID</th><th th:text="#{label.name}">Name</th><th th:text="#{label.department}">Department</th><th th:text="#{label.mass}">Mass</th><th th:text="#{label.material}">Material</th><th th:text="#{label.supplier}">Supplier</th><th th:text="#{label.actions}">Actions</th></tr></thead>
+                            <tbody><tr th:each="ax : ${auxiliaries}"><td th:text="${ax.id}">AX00000001</td><td th:text="${ax.name}">Auxiliary</td><td th:text="${ax.department ?: '-'}"></td><td th:text="${ax.mass ?: '-'}"></td><td th:text="${ax.material ?: '-'}"></td><td th:text="${ax.supplier ?: '-'}"></td><td><div class="a-link -icon"><a th:href="@{'/ebom/' + ${ax.id}}"><span></span><span th:text="#{button.details}">Details</span></a></div></td></tr></tbody>
+                        </table>
                     </div>
                 </div>
             </div>

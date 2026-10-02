@@ -57,11 +57,11 @@
                     <form th:if="${document.latestRevision != null
                                    and document.latestRevision.releaseStatus.name() == 'RELEASED'}"
                           th:action="@{/documents/{id}/revise(id=${document.id})}"
-                          method="post" style="display:inline;">
-                        <button type="submit" class="a-button a-button--primary"
-                                sec:authorize="hasAuthority('WRITE')" th:text="#{button.createNewRevision}">
-                            Neue Revision anlegen
-                        </button>
+                          method="post" style="display:inline;">						
+						<button type="submit" class="a-button a-button--primary" sec:authorize="hasAuthority('WRITE')">
+							<i class="a-icon a-button__icon boschicon-bosch-ic-add"></i>
+							<span class="a-button__label" th:text="#{button.createNewRevision}">Create new revision</span>
+						</button>
                     </form>
                     <button type="button" class="a-button a-button--primary"
                             th:onclick="|window.location.href='@{/documents/{id}/edit(id=${document.id})}'|"
@@ -137,11 +137,13 @@
                 <tbody>
                     <tr th:each="rev : ${revisions}" style="border-bottom:1px solid #ddd;">
                         <td style="padding:.75rem; font-weight:600;" th:text="${rev.revision}">01</td>
-                        <td class="-with-icon-and-label">
-                            <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                            <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                            <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                            <span th:text="${rev.releaseStatus.displayName}"></span>
+                        <td style="padding:.75rem;">
+                            <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                                <i th:if="${rev.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                                <i th:if="${rev.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                                <i th:if="${rev.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                                <span th:text="${rev.releaseStatus.displayName}"></span>
+                            </span>
                         </td>
                         <td style="padding:.75rem;" th:text="${rev.attribute1 ?: '-'}"></td>
                         <td style="padding:.75rem;" th:text="${rev.attribute2 ?: '-'}"></td>
@@ -166,43 +168,42 @@
                                     <form th:action="@{/documents/{id}/revisions/{revId}/generate-prefilled(id=${document.id},revId=${rev.revisionId})}"
                                           method="post" style="display:inline;">
                                         <button type="submit" class="a-button a-button--primary -small">
-                                            <i class="a-icon a-button__icon boschicon-bosch-ic-document-add"></i>
+<!--                                             <i class="a-icon a-button__icon boschicon-bosch-ic-document-add"></i> -->
                                             <span class="a-button__label" th:text="#{button.generateDocument}">Dokument generieren</span>
                                         </button>
                                     </form>
 
                                     <!-- (Optional) Manuellen Upload weiterhin erlauben -->
                                     <button class="a-button a-button--primary -small" onclick="toggleUploadForm(this)">
-                                        <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i>
+<!--                                         <i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i> -->
                                         <span class="a-button__label" th:text="#{button.uploadOwn}">Eigenes hochladen</span>
                                     </button>
                                 </div>
 
                                 <!-- FALL 2: Datei ist bereits vorhanden (generiert oder hochgeladen) -->
 								<div th:if="${rev.docFilePath != null}">
-                                                <a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
-                                                    class="a-button a-button--primary -small">
+                                                <button type="button" class="a-button a-button--primary -small"
+                                                    th:attr="onclick=|window.location.href='@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}'|">
                                                     <span class="a-button__label">Herunterladen und Prüfen</span>
-									</a>
+									</button>
 
-									<form th:action="@{/documents/{id}/revisions/{revId}/release(id=${document.id},revId=${rev.revisionId})}"
-										  method="post" style="display:inline;"
-										  sec:authorize="hasAuthority('WRITE')">
-                                        <button type="submit" class="a-button a-button--primary -small"
-                                                onclick="return confirm('Dokument-Revision freigeben?')">
-                                                <span class="a-button__label">Freigeben</span>
-										</button>
+                                                <form th:action="@{/documents/{id}/revisions/{revId}/release(id=${document.id},revId=${rev.revisionId})}"
+                                                    method="post" style="display:inline;"
+                                                    sec:authorize="hasAuthority('WRITE')">
+                                                <button type="submit" class="a-button a-button--primary -small"
+                                                    onclick="return confirm('Dokument-Revision freigeben?')">
+                                                    <span class="a-button__label">Freigeben</span>
+									</button>
 									</form>
 
-									<!-- NEU: Datei löschen -->
-									<form th:action="@{/documents/{id}/revisions/{revId}/delete-file(id=${document.id},revId=${rev.revisionId})}"
-										  method="post" style="display:inline;"
-										  sec:authorize="hasAuthority('WRITE')"
-										  onsubmit="return confirm('Datei wirklich löschen?\n\nAttribute und Revision bleiben erhalten. Danach kann ein neues Dokument generiert werden.')">
-                                        <button type="submit" class="a-button a-button--destructive-primary -small">
-                                            <i class="a-icon a-button__icon boschicon-bosch-ic-delete"></i>
-                                            <span class="a-button__label">Datei löschen</span>
-										</button>
+                                                <!-- NEU: Datei löschen -->
+                                                <form th:action="@{/documents/{id}/revisions/{revId}/delete-file(id=${document.id},revId=${rev.revisionId})}"
+                                                    method="post" style="display:inline;"
+                                                    sec:authorize="hasAuthority('WRITE')"
+                                                    onsubmit="return confirm('Datei wirklich löschen?\n\nAttribute und Revision bleiben erhalten. Danach kann ein neues Dokument generiert werden.')">
+                                                <button type="submit" class="a-button a-button--destructive-primary -small">
+                                                    <span class="a-button__label">Datei löschen</span>
+									</button>
 									</form>
 								</div>
 
@@ -212,7 +213,7 @@
                             <div th:if="${rev.releaseStatus.name() != 'WORKING' and rev.docFilePath != null}">
                                           <a th:href="@{/documents/{id}/revisions/{revId}/download(id=${document.id},revId=${rev.revisionId})}"
                                               class="a-button a-button--primary -small">
-                                                <i class="a-icon a-button__icon boschicon-bosch-ic-download"></i>
+<!--                                                 <i class="a-icon a-button__icon boschicon-bosch-ic-download"></i> -->
                                                 <span class="a-button__label" th:text="#{button.downloadDocument}">Dokument herunterladen</span>
                                 </a>
                             </div>

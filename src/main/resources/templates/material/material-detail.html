@@ -59,15 +59,17 @@
             <dt th:text="#{label.materialGroup}">Werkstoffgruppe</dt><dd th:text="${material.materialGroup} ?: '–'"></dd>
             <dt th:text="#{label.specification}">Spezifikation</dt><dd th:text="${material.specification} ?: '–'"></dd>
             <dt th:text="#{common.status}">Status</dt>
-            <dd class="-with-icon-and-label" th:switch="${material.status}">
-                <i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                <i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
-                <i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                <i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
-                <span th:if="${material.status != null and material.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
-                <span th:if="${material.status != null and material.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
-                <span th:if="${material.status != null and material.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
-                <span th:if="${material.status != null and material.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+            <dd th:switch="${material.status}">
+                <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                    <i th:case="'ACTIVE'" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                    <i th:case="'UNDER_REVIEW'" class="a-icon boschicon-bosch-ic-clock"></i>
+                    <i th:case="'BLOCKED'" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                    <i th:case="*" class="a-icon boschicon-bosch-ic-alert-error"></i>
+                    <span th:if="${material.status != null and material.status.name() == 'ACTIVE'}" th:text="#{material.status.active}"></span>
+                    <span th:if="${material.status != null and material.status.name() == 'UNDER_REVIEW'}" th:text="#{material.status.underReview}"></span>
+                    <span th:if="${material.status != null and material.status.name() == 'OBSOLETE'}" th:text="#{material.status.obsolete}"></span>
+                    <span th:if="${material.status != null and material.status.name() == 'BLOCKED'}" th:text="#{material.status.blocked}"></span>
+                </span>
             </dd>
             <dt th:text="#{label.unitOfMeasure}">Mengeneinheit</dt><dd th:text="${material.unitOfMeasure} ?: '–'"></dd>
             <dt th:text="#{label.density}">Dichte</dt><dd th:text="${material.densityKgM3} ? ${material.densityKgM3} + ' kg/m³' : '–'"></dd>
@@ -155,11 +157,13 @@
             <tbody>
             <tr th:each="r : ${revisions}">
                 <td th:text="${r.revision}"></td>
-                <td class="-with-icon-and-label">
-                    <i th:if="${r.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                    <i th:if="${r.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                    <i th:if="${r.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                    <span th:text="${r.releaseStatus.displayName}">Working</span>
+                <td>
+                    <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                        <i th:if="${r.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                        <i th:if="${r.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                        <i th:if="${r.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                        <span th:text="${r.releaseStatus.displayName}">Working</span>
+                    </span>
                 </td>
                 <td th:text="${r.changeDescription}"></td>
                 <td th:text="${r.createdBy}"></td>

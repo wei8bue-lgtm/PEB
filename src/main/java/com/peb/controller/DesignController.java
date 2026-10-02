@@ -135,6 +135,13 @@ public class DesignController {
 			List<Dataset> allDatasets =
 					datasetService.getDatasets(revisionId, revisionType);
 
+			Dataset thumbnailDataset = allDatasets.stream()
+					.filter(ds -> ds.getCategory() == DatasetCategory.THUMBNAIL)
+					.max(Comparator.comparing(Dataset::getCreatedDate,
+							Comparator.nullsFirst(Comparator.naturalOrder())))
+					.orElse(null);
+			model.addAttribute("thumbnailDataset", thumbnailDataset);
+
 			// ── PDF Dataset (PDF_DOCUMENT > PDF_DRAWING) ───────────────
 			Dataset pdfDataset = allDatasets.stream()
 					.filter(ds -> ds.getCategory() == DatasetCategory.PDF_DOCUMENT
@@ -162,6 +169,7 @@ public class DesignController {
 							? embeddedDataset.getCategory() : null);
 
 		} else {
+			model.addAttribute("thumbnailDataset", null);
 			model.addAttribute("pdfDataset",   null);
 			model.addAttribute("excelDataset", null);
 			model.addAttribute("embeddedDataset",  null);

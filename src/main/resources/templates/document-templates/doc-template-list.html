@@ -97,6 +97,7 @@
                         </button>
                     </form>
 
+                    <div style="overflow-x:auto;">
                     <table class="m-table" aria-label="Document Templates">
                         <thead>
                             <tr>
@@ -118,11 +119,13 @@
                                 <td th:text="${tmpl.department}">Engineering</td>
                                 <td th:text="${tmpl.attribute1}"></td>
                                 <td th:text="${tmpl.attribute2}"></td>
-                                <td class="-with-icon-and-label" th:if="${tmpl.latestRevision != null}">
-                                    <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
-                                    <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
-                                    <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
-                                    <span th:text="${tmpl.latestRevision.releaseStatus.displayName}"></span>
+                                <td th:if="${tmpl.latestRevision != null}">
+                                    <span style="display:inline-flex; align-items:center; gap:.4rem;">
+                                        <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'WORKING'}" class="a-icon boschicon-bosch-ic-settings"></i>
+                                        <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'RELEASED'}" class="a-icon boschicon-bosch-ic-checkmark"></i>
+                                        <i th:if="${tmpl.latestRevision.releaseStatus.name() == 'OBSOLETE'}" class="a-icon boschicon-bosch-ic-shield-stop"></i>
+                                        <span th:text="${tmpl.latestRevision.releaseStatus.displayName}"></span>
+                                    </span>
                                 </td>
                                 <td th:if="${tmpl.latestRevision == null}">-</td>
                                 <td style="text-align: right;">
@@ -158,6 +161,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
                     </div>

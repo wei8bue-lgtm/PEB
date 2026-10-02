@@ -107,6 +107,7 @@
                             </div>
                         </div>
 
+                        <div style="overflow-x:auto;">
                         <table th:unless="${result.results.empty}" class="m-table" aria-label="Suchergebnisse">
                             <thead>
                                 <tr>
@@ -132,16 +133,18 @@
                                     <td th:text="${doc.objectTypeDisplayName}"></td>
                                     <td th:text="${doc.objectId}"></td>
                                     <td th:text="${doc.revision}"></td>
-                                    <td>
+									<td th:text="${doc.releaseStatus}"></td>
+<!--                                     <td>
                                         <span class="status-badge"
                                               th:classappend="'status-' + ${#strings.toLowerCase(doc.releaseStatus)}"
                                               th:text="${doc.releaseStatus}"></span>
-                                    </td>
+                                    </td> -->
                                     <td th:text="${doc.department}"></td>
                                     <td th:text="${#temporals.format(doc.lastModifiedDate, 'dd.MM.yyyy HH:mm')}"></td>
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
 
                         <!-- Paginierung der Suchergebnis-Seiten -->
                         <div th:if="${result.totalPages > 1}" style="margin-top:1.25rem; display:flex; gap:.5rem;">
