@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Fertigungsplanung: lokale H2-Vorschau",
+			"type": "shell",
+			"command": "& ./scripts/Start-PlanningPreview.ps1",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

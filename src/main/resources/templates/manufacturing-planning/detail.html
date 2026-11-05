@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fertigungsplanung | SEP4Eng</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <link rel="stylesheet" th:href="@{/css/manufacturing-planning.css}">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<body class="planning-page">
+<div th:replace="~{fragments/header :: header('Fertigungsplanung')}"></div>
+<div class="planning-layout">
+    <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+    <main class="planning-main" id="planning-detail" th:attr="data-base=@{/manufacturing-planning/{id}(id=${projectId})},data-write=${#authorization.expression('hasAuthority(''WRITE'')')},data-delete=${#authorization.expression('hasAuthority(''DELETE'')')},data-execute=${#authorization.expression('hasAuthority(''EXECUTE'')')}">
+<!--         <a class="planning-back" th:href="@{/manufacturing-planning}">Fertigungsplanungsprojekte</a> -->
+        <div class="planning-heading"><h1 id="planning-title">Fertigungsplanung</h1><span id="project-status" class="planning-status"></span></div>
+        <div class="planning-toolbar planning-lifecycle">
+            <label for="revision-select">Revision</label><select id="revision-select" aria-label="Revision"></select>
+            <span id="planning-audit"></span>
+            <button id="release-project" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-checkmark"></i><span class="a-button__label">Freigeben</span></button>
+            <button id="revise-project" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-reset"></i><span class="a-button__label">Neue Planungsversion</span></button>
+            <a id="work-sequence-export" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-download"></i><span class="a-button__label">Arbeitsfolgekarte</span></a>
+            <button id="copy-project" type="button" class="a-button a-button--secondary" sec:authorize="hasAuthority('WRITE')"><i class="a-icon a-button__icon boschicon-bosch-ic-copy"></i><span class="a-button__label">Planung kopieren</span></button>
+            <label for="number-mode">Nummernbericht</label><select id="number-mode" aria-label="Nummernbericht"><option value="customer">Kundennummer</option><option value="sap">Bosch-SAP</option><option value="both" selected>Beide Nummern</option></select>
+            <a id="export-project" class="a-button a-button--secondary" title="Excel exportieren"><i class="a-icon a-button__icon boschicon-bosch-ic-download"></i><span class="a-button__label">Excel exportieren</span></a>
+        </div>
+        <nav class="planning-tabs" role="tablist" aria-label="Planungsschritte">
+            <button type="button" role="tab" id="tab-structure" aria-controls="planning-panel" aria-selected="true" data-tab="structure">1. Struktur <span id="count-structure">0</span></button>
+            <button type="button" role="tab" id="tab-articles" aria-controls="planning-panel" aria-selected="false" data-tab="articles">2. Artikelstamm <span id="count-articles">0</span></button>
+            <button type="button" role="tab" id="tab-zones" aria-controls="planning-panel" aria-selected="false" data-tab="zones">3. Zonen <span id="count-zones">0</span></button>
+            <button type="button" role="tab" id="tab-workplaces" aria-controls="planning-panel" aria-selected="false" data-tab="workplaces">4. Arbeitsplätze <span id="count-workplaces">0</span></button>
+            <button type="button" role="tab" id="tab-processes" aria-controls="planning-panel" aria-selected="false" data-tab="processes">5. Prozesse <span id="count-processes">0</span></button>
+            <button type="button" role="tab" id="tab-output" aria-controls="planning-panel" aria-selected="false" data-tab="output">6. Fertigungsliste <span id="count-output">0</span></button>
+            <button type="button" role="tab" id="tab-reports" aria-controls="planning-panel" aria-selected="false" data-tab="reports">7. Validierung &amp; Reports</button>
+        </nav>
+        <div id="planning-message" role="status" aria-live="polite" hidden></div>
+        <div id="planning-integrity-summary" role="status" aria-live="polite" hidden></div>
+        <div id="zone-flow-summary" aria-live="polite" hidden></div>
+        <section id="planning-panel" role="tabpanel" aria-labelledby="tab-structure">
+            <div class="planning-toolbar">
+                <form id="import-structure" class="planning-toolbar" hidden>
+                    <label for="structure-file">Strukturdatei</label><input id="structure-file" type="file" accept=".xlsx" required>
+                    <label class="planning-inline-check"><input id="import-new-version" type="checkbox"> Als neue Musterstücklisten-Version</label>
+                    <button type="submit" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-upload"></i><span class="a-button__label">Importieren</span></button>
+                </form>
+                <div id="structure-compare-controls" class="planning-toolbar" hidden>
+                    <label for="compare-previous-revision">Vergleichsstand</label><select id="compare-previous-revision"></select>
+                    <button id="compare-structure" type="button" class="a-button a-button--secondary"><i class="a-icon a-button__icon boschicon-bosch-ic-compare"></i><span class="a-button__label">BOM-Änderungen anzeigen</span></button>
+                </div>
+                <button id="add-article" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Artikelstamm hinzuf&uuml;gen</span></button>
+                <button id="add-row" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Zeile hinzuf&uuml;gen</span></button>
+                <button id="add-process-group" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Schrittgruppe anlegen</span></button>
+                <button id="add-process-template" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Prozessvorlage anlegen</span></button>
+                <button id="add-process-use" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Prozess der Planung zuordnen</span></button>
+                <button id="copy-process-plan" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-copy"></i><span class="a-button__label">Tätigkeiten kopieren</span></button>
+                <button id="save-table" type="button" class="a-button a-button--primary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-save"></i><span class="a-button__label">Speichern</span></button>
+                <button id="generate-output" type="button" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-settings"></i><span class="a-button__label">Fertigungsliste erzeugen</span></button>
+                <button id="discard-changes" type="button" class="planning-icon" title="Aenderungen verwerfen" aria-label="Aenderungen verwerfen" hidden><i class="a-icon boschicon-bosch-ic-undo"></i></button>
+                <span id="dirty-status" role="status"></span>
+            </div>
+            <div id="planning-table-region">
+            <div class="planning-toolbar planning-filter">
+                <label for="table-search">Filter</label><input id="table-search" type="search" autocomplete="off">
+                <label for="structure-zone-filter" id="structure-zone-label" hidden>Zone</label><select id="structure-zone-filter" hidden><option value="">Alle Zonen</option></select>
+                <label for="structure-target-filter" id="structure-target-label" hidden>Zielbaugruppe</label><select id="structure-target-filter" hidden><option value="">Alle Zielbaugruppen</option></select>
+                <span id="source-info"></span>
+            </div>
+            <div class="planning-table-scroll" id="table-scroll" tabindex="0" aria-label="Planungstabelle"><table id="planning-table" class="planning-sheet"><thead></thead><tbody></tbody></table></div>
+            <div class="planning-pagination"><span id="row-range"></span><button id="previous-page" class="planning-icon" title="Vorherige Seite" aria-label="Vorherige Seite"><i class="a-icon ui-ic-left"></i></button><button id="next-page" class="planning-icon" title="Naechste Seite" aria-label="Naechste Seite"><i class="a-icon ui-ic-right"></i></button></div>
+            </div>
+            <div id="process-workbench" hidden>
+                <h2>Schrittgruppen und Prozesse</h2>
+                <p class="planning-process-note">Arbeitsschritte werden je Prozess sequenziell ausgef&uuml;hrt. MTM-/URS-Zeitstudien &uuml;bersteuern die Sch&auml;tzung; Istzeiten bleiben Messwerte.</p>
+                <div id="process-consistency-summary" role="status" aria-live="polite" hidden></div>
+                <div id="process-balance" class="planning-balance-grid"></div>
+                <div id="process-groups" class="planning-process-groups"></div>
+            </div>
+            <div id="report-workbench" hidden>
+                <h2>Validierung und gefilterte Reports</h2>
+                <div class="planning-report-filters">
+                    <label for="report-kind">Reporttyp</label>
+                    <select id="report-kind">
+                        <option value="validation">Soll-/Ist-Materialabgleich</option>
+                        <option value="numbers">ERP-/SAP-Nummernprüfung</option>
+                        <option value="zone-supply">Zonenversorgung und Takt</option>
+                        <option value="materials">Materialbedarf</option>
+                        <option value="tools">Werkzeuge je Arbeitsplatz</option>
+                        <option value="aids">Hilfsmittel je Arbeitsplatz</option>
+                        <option value="all">Alle Ressourcen</option>
+                    </select>
+                    <label for="report-state" id="report-state-label">Status</label>
+                    <select id="report-state"><option value="">Alle Zustände</option><option value="MATCH">Übereinstimmung</option><option value="SHORTAGE">Fehlmenge</option><option value="EXCESS">Übermenge</option><option value="INCOMPLETE_MAPPING">Unvollständige Nummernzuordnung</option></select>
+                    <label for="report-zone">Zone</label><select id="report-zone"><option value="">Alle Zonen</option></select>
+                    <label for="report-workplace">Arbeitsplatz</label><select id="report-workplace"><option value="">Alle Arbeitsplätze</option></select>
+                    <label for="report-target">Zielbaugruppe</label><select id="report-target"><option value="">Alle Zielbaugruppen</option></select>
+                    <button id="run-report" type="button" class="a-button a-button--primary"><i class="a-icon a-button__icon boschicon-bosch-ic-search"></i><span class="a-button__label">Report erzeugen</span></button>
+                    <a id="download-report" class="a-button a-button--secondary" hidden><i class="a-icon a-button__icon boschicon-bosch-ic-download"></i><span class="a-button__label">XLSX herunterladen</span></a>
+                </div>
+                <div id="report-summary" role="status" aria-live="polite"></div>
+                <div class="planning-table-scroll"><table id="report-table" class="planning-sheet"><thead></thead><tbody></tbody></table></div>
+            </div>
+        </section>
+        <dialog id="process-use-dialog" class="planning-dialog">
+            <form method="dialog" id="process-use-form">
+                <h2>Prozessverwendung anlegen</h2>
+                <label for="use-group">Schrittgruppe</label><select id="use-group" required></select>
+                <label for="use-template">Prozess / logische Station</label><select id="use-template" required></select>
+                <label for="use-target">Zielbaugruppe</label><select id="use-target"><option value="">Noch keiner Zielbaugruppe zugeordnet</option></select>
+                <div class="planning-dialog-actions"><button type="button" class="a-button a-button--secondary" data-dialog-cancel>Abbrechen</button><button id="save-process-use" class="a-button a-button--primary" value="save">Prozess zuordnen</button></div>
+            </form>
+        </dialog>
+        <dialog id="copy-process-plan-dialog" class="planning-dialog">
+            <form method="dialog" id="copy-process-plan-form">
+                <h2>Tätigkeiten auf Zielbaugruppe kopieren</h2>
+                <label for="copy-process-source">Quelle</label><select id="copy-process-source" required></select>
+                <label for="copy-process-target">Ziel</label><select id="copy-process-target" required></select>
+                <div class="planning-dialog-actions"><button type="button" class="a-button a-button--secondary" data-dialog-cancel>Abbrechen</button><button id="save-process-copy" class="a-button a-button--primary" value="save">Tätigkeiten kopieren</button></div>
+            </form>
+        </dialog>
+        <dialog id="structure-compare-dialog" class="planning-dialog planning-dialog--wide">
+            <div class="planning-dialog-content">
+                <h2>Gesamtlistenvergleich</h2>
+                <div class="planning-table-scroll"><table id="structure-compare-table" class="planning-sheet"><thead></thead><tbody></tbody></table></div>
+                <div class="planning-dialog-actions"><button type="button" class="a-button a-button--secondary" data-dialog-cancel>Schließen</button></div>
+            </div>
+        </dialog>
+        <dialog id="process-editor-dialog" class="planning-dialog planning-dialog--wide">
+            <form method="dialog" id="process-editor-form">
+                <h2 id="process-editor-title">Prozess bearbeiten</h2>
+                <label for="process-template-name">Prozessname</label><input id="process-template-name" maxlength="255" required>
+                <div id="process-usage-impact" class="planning-integrity-summary"></div>
+                <fieldset id="process-change-scope"><legend>Aenderungsumfang</legend>
+                    <label><input type="radio" name="change-scope" value="LOCAL" checked> Nur ausgewaehlte Verwendung lokal abkoppeln</label>
+                    <label><input type="radio" name="change-scope" value="SHARED"> Neue gemeinsame Vorlagenrevision erstellen</label>
+                </fieldset>
+                <div id="process-affected-uses"></div>
+                <div id="process-operations" class="planning-operation-list"></div>
+                <button id="add-operation" type="button" class="a-button a-button--secondary"><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Arbeitsschritt hinzuf&uuml;gen</span></button>
+                <div class="planning-dialog-actions"><button type="button" class="a-button a-button--secondary" data-dialog-cancel>Abbrechen</button><button id="save-process-template" class="a-button a-button--primary" value="save">Aenderung speichern</button></div>
+            </form>
+        </dialog>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/manufacturing-planning.js}" defer></script>
+</body>
+</html>

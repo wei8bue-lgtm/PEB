@@ -135,7 +135,14 @@
 
                     <hr class="a-divider" />
 
-					<button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/document-templates}'|" >
+          <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/manufacturing-planning}'|">
+            <i class="a-icon a-button__icon boschicon-bosch-ic-toolbox"></i>
+            <span class="a-button__label">Fertigungsplanung</span>
+          </button>
+
+          <hr class="a-divider" />
+
+          <button type="button" class="a-button a-button--primary" th:onclick="|window.location.href='@{/document-templates}'|" >
 					  <i class="a-icon a-button__icon boschicon-bosch-ic-document-code-stack"></i>
 						<span class="a-button__label" th:text="#{menu.documentTemplates}">Document Templates</span>
 					</button>

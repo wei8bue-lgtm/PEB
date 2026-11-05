@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fertigungsplanung | SEP4Eng</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/frontend-kit-complete.css}">
+    <link rel="stylesheet" th:href="@{/css/brand/styles/brands/bosch/styles/semantic/index.css}">
+    <link rel="stylesheet" th:href="@{/css/manufacturing-planning.css}">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<body class="planning-page">
+<div th:replace="~{fragments/header :: header('Fertigungsplanung')}"></div>
+<div class="planning-layout">
+    <div th:replace="~{fragments/side-navigation :: side-navigation}"></div>
+    <main class="planning-main" id="planning-list" th:attr="data-base=@{/manufacturing-planning}">
+        <div class="planning-heading"><h1>Fertigungsplanung</h1><span class="planning-count" th:text="${#lists.size(projects)} + ' Projekte'">0 Projekte</span></div>
+        <form id="create-project" class="planning-toolbar" sec:authorize="hasAuthority('WRITE')">
+            <label for="project-name">Projektname</label>
+            <input id="project-name" name="name" required maxlength="255" autocomplete="off">
+            <button class="a-button a-button--primary" type="submit"><i class="a-icon a-button__icon boschicon-bosch-ic-add"></i><span class="a-button__label">Projekt anlegen</span></button>
+        </form>
+        <div id="planning-message" role="status" aria-live="polite" hidden></div>
+        <div class="planning-table-scroll">
+            <table class="planning-project-table">
+                <thead><tr><th>Projekt</th><th>Revision</th><th>Status</th><th>Ge&auml;ndert am</th><th>Ge&auml;ndert von</th></tr></thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(projects)}"><td colspan="5" class="planning-empty">Keine Fertigungsplanungsprojekte vorhanden.</td></tr>
+                <tr th:each="project : ${projects}">
+                    <td><a th:href="@{/manufacturing-planning/{id}(id=${project.id})}" th:text="${project.name}">Projekt</a></td>
+                    <td th:text="${project.revision}">1</td>
+                    <td><span class="planning-status" th:attr="data-status=${project.status}" th:text="${project.status}">WORKING</span></td>
+                    <td th:text="${#temporals.format(project.modifiedAt, 'dd.MM.yyyy HH:mm')}"></td>
+                    <td th:text="${project.modifiedBy}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/manufacturing-planning.js}" defer></script>
+</body>
+</html>

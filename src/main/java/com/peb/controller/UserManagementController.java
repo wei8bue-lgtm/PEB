@@ -5,13 +5,12 @@ import com.peb.model.PebUser;
 import com.peb.service.UserManagementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -98,14 +97,14 @@ public class UserManagementController {
             @RequestParam                   String  role,
             @RequestParam                   String  status,
             @RequestParam(required = false)  String  notes,
-            @AuthenticationPrincipal UserDetails admin,
+            Principal admin,
             RedirectAttributes redirectAttrs) {
 
         try {
             if (id == null) {
                 // Neu anlegen
                 userService.createUser(username, displayName, email,
-                                       role, admin.getUsername());
+                                       role, admin.getName());
                 redirectAttrs.addFlashAttribute("successMessage",
                         "Benutzer '" + username + "' erfolgreich angelegt.");
             } else {
@@ -125,9 +124,9 @@ public class UserManagementController {
     /** Benutzer aktivieren (Quick-Action) */
     @PostMapping("/admin/users/{id}/activate")
     public String activate(@PathVariable Long id,
-                           @AuthenticationPrincipal UserDetails admin,
+                           Principal admin,
                            RedirectAttributes redirectAttrs) {
-        PebUser user = userService.activateUser(id, admin.getUsername());
+        PebUser user = userService.activateUser(id, admin.getName());
         redirectAttrs.addFlashAttribute("successMessage",
                 "Benutzer '" + user.getUsername() + "' wurde aktiviert.");
         return "redirect:/admin/users";
@@ -136,9 +135,9 @@ public class UserManagementController {
     /** Benutzer deaktivieren (Quick-Action) */
     @PostMapping("/admin/users/{id}/deactivate")
     public String deactivate(@PathVariable Long id,
-                             @AuthenticationPrincipal UserDetails admin,
+                             Principal admin,
                              RedirectAttributes redirectAttrs) {
-        PebUser user = userService.deactivateUser(id, admin.getUsername());
+        PebUser user = userService.deactivateUser(id, admin.getName());
         redirectAttrs.addFlashAttribute("successMessage",
                 "Benutzer '" + user.getUsername() + "' wurde deaktiviert.");
         return "redirect:/admin/users";
@@ -147,10 +146,10 @@ public class UserManagementController {
     /** Benutzer löschen */
     @PostMapping("/admin/users/{id}/delete")
     public String delete(@PathVariable Long id,
-                         @AuthenticationPrincipal UserDetails admin,
+                         Principal admin,
                          RedirectAttributes redirectAttrs) {
         try {
-            userService.deleteUser(id, admin.getUsername());
+            userService.deleteUser(id, admin.getName());
             redirectAttrs.addFlashAttribute("successMessage",
                     "Benutzer wurde gelöscht.");
         } catch (Exception e) {
@@ -196,10 +195,10 @@ public class UserManagementController {
     public ResponseEntity<?> apiUpdateRole(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
-            @AuthenticationPrincipal UserDetails admin) {
+            Principal admin) {
         try {
             PebUser user = userService.updateRole(
-                    id, body.get("role"), admin.getUsername());
+                    id, body.get("role"), admin.getName());
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "username", user.getUsername(),
